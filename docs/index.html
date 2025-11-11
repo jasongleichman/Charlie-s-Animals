@@ -141,8 +141,123 @@
     }
   </style>
 
+
+  <style id="landscape-login-and-sidebar-fixes">
+    /* Global font-size a touch smaller on iPad landscape */
+    @media (orientation: landscape) and (min-width: 900px) and (max-height: 850px){
+      html { font-size: clamp(13px, 1.55vh, 15px); }
+      /* Reduce big paddings and gaps app-wide */
+      .p-12{ padding: 1.25rem !important; }
+      .p-10{ padding: 1rem !important; }
+      .p-8{  padding: .9rem !important; }
+      .px-10{ padding-left: 1rem !important; padding-right: 1rem !important; }
+      .py-10{ padding-top: 1rem !important; padding-bottom: 1rem !important; }
+      .gap-10{ gap: 1rem !important; }
+      .gap-8{ gap: .9rem !important; }
+      .space-y-10 > :not([hidden]) ~ :not([hidden]) {
+        --tw-space-y-reverse: 0;
+        margin-top: calc(.9rem * calc(1 - var(--tw-space-y-reverse)));
+        margin-bottom: calc(.9rem * var(--tw-space-y-reverse));
+      }
+      /* Sidebar width + inner spacing */
+      .w-72{ width: 13rem !important; }
+      .w-64{ width: 12rem !important; }
+      .w-60{ width: 11.5rem !important; }
+      .pl-8{ padding-left: .9rem !important; } .pr-8{ padding-right: .9rem !important; }
+      .pt-8{ padding-top: .9rem !important; } .pb-8{ padding-bottom: .9rem !important; }
+    }
+
+    /* Welcome/Login card specific: ensure it fits on iPad landscape */
+    @media (orientation: landscape) and (min-width: 900px) and (max-height: 850px){
+      .welcome-card, .setup-card {
+        max-width: 720px !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        padding: 1rem !important;
+      }
+      .welcome-title{ font-size: 1.6rem !important; line-height: 1.2 !important; }
+      .welcome-subtitle{ font-size: 1rem !important; }
+      .welcome-input{ height: 2.75rem !important; }
+      .welcome-button{ padding: .65rem 1rem !important; }
+    }
+
+    /* Ensure main content never bleeds off right/bottom */
+    main { max-width: 100vw; max-height: 100vh; overflow: auto; }
+  </style>
+
 </head>
 <body>
+
+  <script>
+    // ---- Global TTS rate limiter & backoff wrapper ----
+    (function(){
+      const TTS_HOST = "generativelanguage.googleapis.com";
+      let queue = Promise.resolve();
+      const minDelayMs = 7000;   // ~1 req/sec
+      const maxRetries = 5;
+
+      async function backoff(fn){
+        let attempt = 0, lastErr;
+        while (attempt <= maxRetries){
+          try { return await fn(); } catch(e){
+            lastErr = e;
+            const status = (e && e.status) || (e && e.response && e.response.status);
+            if (status !== 429 && status !== 503) throw e;
+            const delay = Math.min(8000, Math.pow(2, attempt) * 600);
+            await new Promise(r => setTimeout(r, delay));
+            attempt++;
+          }
+        }
+        throw lastErr;
+      }
+
+      const realFetch = window.fetch.bind(window);
+      window.fetch = async function(input, init){
+        try {
+          const url = (typeof input === 'string') ? input : (input && input.url) || "";
+          if (url.includes(TTS_HOST)){
+            // serialize and rate limit TTS requests
+            const job = async () => {
+              const res = await backoff(() => realFetch(input, init));
+              // polite spacing between calls
+              await new Promise(r => setTimeout(r, minDelayMs));
+              return res;
+            };
+            queue = queue.then(job, job);
+            return queue;
+          }
+        } catch(_){}
+        return realFetch(input, init);
+      };
+
+      // ---- Non-cached fallback: on-device SpeechSynthesis with male English voice ----
+      window.__getMaleEnglishVoice = function(){
+        const voices = speechSynthesis.getVoices();
+        const prefer = [/en[-_](US)/i, /English/];
+        const maleNames = ['Alex','Daniel','Eddy','Fred','Oliver','Arthur','Matthew','Aaron','Moira','Tom','Sam','Michael','Bruce','US Male'];
+        function isEnglish(v){ return prefer.some(r => r.test(v.lang) || r.test(v.name)); }
+        function isMale(v){ return maleNames.some(n => v.name.includes(n)); }
+        // Strong preference: English + male
+        let best = voices.find(v => isEnglish(v) && isMale(v));
+        if (!best) best = voices.find(v => isEnglish(v));
+        return best || voices[0] || null;
+      };
+
+      window.__speakLocal = function(text){
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          const pick = window.__getMaleEnglishVoice();
+          if (pick) u.voice = pick;
+          u.rate = 0.92; u.pitch = 1.0; u.lang = (pick && pick.lang) || 'en-US';
+          speechSynthesis.speak(u);
+        } catch(_){}
+      };
+
+      // Warm-up voices (iOS sometimes lazy-loads)
+      try { speechSynthesis.getVoices(); setTimeout(()=>speechSynthesis.getVoices(), 500); } catch(_){}
+    })();
+  </script>
+
   <div id="root"></div>
 
   <!--  Your app code (single Babel block ONLY)  -->
@@ -2768,7 +2883,7 @@ const AnimalReadingApp = () => {
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
                 <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
                     <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-                        <Users className="w-6 h-6 text-emerald-500" /> Welcome!
+                        <Users className="w-6 h-6 text-emerald-500" /> <span class="welcome-title">Welcome!</span>
                     </h1>
 
                     <p className="text-gray-500 mb-6">Enter your name to track your progress and collection.</p>
@@ -2799,7 +2914,7 @@ const AnimalReadingApp = () => {
                                     Saving...
                                 </>
                             ) : (
-                                'Start Playing'
+                                '<span class="welcome-button-text">Start Playing</span>'
                             )}
                         </button>
                     </form>
@@ -3399,5 +3514,152 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
 </script>
 
 
-  </body>
+  
+  <script>
+    // Make the Change Player/Sign Out area always work as a safety net
+    document.addEventListener('click', function(e){
+      const el = e.target.closest('[data-action="signout"], [data-action="change-player"]');
+      if (!el) return;
+      try {
+        localStorage.removeItem('playerName');
+        localStorage.removeItem('local_uid');
+        // Also clear any cached profile we may be using
+        localStorage.removeItem('PLAYER_PROFILES_KEY');
+      } catch(_){}
+      // Best-effort return to Welcome
+      try { window.location.reload(); } catch(_){}
+    }, true);
+  </script>
+
+
+<script>
+/* Collection Enhancer: show animal photos on tiles and open a modal with earned facts + TTS */
+(function(){
+  function getImageFor(animal){
+    // heuristics: look for common keys or a CDN path embedded in dataset attributes
+    try{
+      const db = window.ANIMAL_DATABASE || (window.__ANIMAL_DB__) || [];
+      const rec = db.find(x => (x && (x.name||'').toLowerCase() === (animal||'').toLowerCase()));
+      const keys = ['image','img','photo','url','src','picture'];
+      if (rec){
+        for (const k of keys){
+          if (rec[k] && /^https?:\/\//.test(rec[k])) return rec[k];
+        }
+        // nested objects
+        for (const v of Object.values(rec)){
+          if (v && typeof v === 'object'){
+            for (const k of keys){
+              if (v[k] && /^https?:\/\//.test(v[k])) return v[k];
+            }
+          }
+        }
+      }
+    }catch(_){}
+    return null;
+  }
+
+  function ensureTileImages(){
+    const tiles = document.querySelectorAll('[data-collection-item]');
+    tiles.forEach(t => {
+      const name = t.getAttribute('data-name') || t.textContent.trim();
+      if (!name) return;
+      if (t.querySelector('img')) return;
+      const url = getImageFor(name);
+      if (url){
+        const img = new Image();
+        img.decoding = 'async';
+        img.loading = 'lazy';
+        img.src = url;
+        img.alt = name;
+        img.className = 'w-full h-28 object-cover rounded-md mb-2 shadow-sm';
+        t.prepend(img);
+      }
+    });
+  }
+
+  function openFactsModal(name){
+    // Build simple modal
+    const wrap = document.createElement('div');
+    wrap.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4';
+    const card = document.createElement('div');
+    card.className = 'bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-5 space-y-4';
+    const head = document.createElement('div');
+    head.className = 'flex items-center justify-between';
+    const h = document.createElement('h2');
+    h.textContent = name;
+    h.className = 'text-xl font-bold';
+    const close = document.createElement('button');
+    close.textContent = '×';
+    close.className = 'text-2xl leading-none px-2';
+    close.onclick = () => wrap.remove();
+    head.appendChild(h); head.appendChild(close);
+    const list = document.createElement('ul');
+    list.className = 'space-y-2 list-disc pl-5 max-h-[50vh] overflow-auto';
+    // pull earned facts: rely on localStorage convention "facts:<name>" (array) or fallback to all facts
+    let facts = [];
+    try{
+      const key = 'facts:'+name;
+      const raw = localStorage.getItem(key);
+      if (raw) facts = JSON.parse(raw);
+    }catch(_){}
+    if (!facts || !facts.length){
+      try{
+        const db = window.ANIMAL_DATABASE || window.__ANIMAL_DB__ || [];
+        const rec = db.find(x => (x.name||'').toLowerCase() === name.toLowerCase());
+        if (rec && Array.isArray(rec.facts)) facts = rec.facts;
+      }catch(_){}
+    }
+    // Render facts + attach TTS playback
+    facts.forEach(f => {
+      const li = document.createElement('li');
+      const row = document.createElement('div');
+      row.className = 'flex items-start gap-3';
+      const btn = document.createElement('button');
+      btn.textContent = '🔊';
+      btn.className = 'shrink-0 rounded-md border px-2';
+      btn.onclick = () => {
+        if (window.__speakLocal) window.__speakLocal(f);
+      };
+      const p = document.createElement('p');
+      p.textContent = f;
+      row.appendChild(btn); row.appendChild(p);
+      li.appendChild(row);
+      list.appendChild(li);
+    });
+    if (!facts.length){
+      const empty = document.createElement('p');
+      empty.textContent = 'No facts earned yet.';
+      list.appendChild(empty);
+    }
+    card.appendChild(head);
+    // optional image
+    const url = getImageFor(name);
+    if (url){
+      const hero = new Image();
+      hero.src = url; hero.loading = 'lazy';
+      hero.className = 'w-full h-48 object-cover rounded-xl';
+      card.appendChild(hero);
+    }
+    card.appendChild(list);
+    wrap.appendChild(card);
+    document.body.appendChild(wrap);
+  }
+
+  // Click binding on collection tiles
+  document.addEventListener('click', function(e){
+    const tile = e.target.closest('[data-collection-item]');
+    if (!tile) return;
+    const name = tile.getAttribute('data-name') || tile.textContent.trim();
+    if (!name) return;
+    openFactsModal(name);
+  }, true);
+
+  // After each navigation / render pass, try to enhance tile images
+  const obs = new MutationObserver(() => ensureTileImages());
+  obs.observe(document.documentElement, { childList: true, subtree: true });
+  ensureTileImages();
+})();
+</script>
+
+</body>
 </html>
