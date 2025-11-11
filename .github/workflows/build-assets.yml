@@ -1,10 +1,11 @@
-name: Build Static Assets (Images)
+name: Build Static Assets (Images + TTS)
 
 on:
   workflow_dispatch: {}
   push:
     paths:
       - "docs/index.html"
+      - "scripts/**.mjs"
       - "scripts/**.cjs"
 
 permissions:
@@ -25,24 +26,31 @@ jobs:
 
       - name: Ensure folders
         run: |
-          mkdir -p scripts docs/assets
+          mkdir -p scripts docs/assets docs/assets/images docs/assets/tts
 
-      # EXAMPLE: build the images manifest (adjust to your script/args)
+      # Build images manifest from files that already exist in docs/assets/images
       - name: Build images manifest (diff-only)
-  run: |
-    node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
+        run: |
+          node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ✅ Fixed commit step — correct indentation + regular hyphens
+      # Build TTS with AWS Polly (creates only missing files)
+      - name: Build TTS (diff-only, AWS Polly)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }} # e.g. us-east-1
+          VOICE_ID: Matthew
+        run: |
+          node scripts/build_tts_polly.cjs
+
+      # Commit only if something actually changed
       - name: Commit & push if changes
         shell: bash
         run: |
-          # Stage only the generated assets and image map
+          # Stage only generated assets and maps; ignore node_modules, etc.
           git add docs/assets docs/images_map.json 2>/dev/null || true
 
-          # If you want to include package.json changes, uncomment:
-          # git add package.json
-
-          # Skip commit if nothing is staged (prevents exit 1)
+          # Skip commit if nothing is staged
           if git diff --cached --quiet; then
             echo "No staged changes to commit."
             exit 0
@@ -50,5 +58,5 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(assets): update images manifest"
+          git commit -m "chore(assets): add/update images and TTS (diff-only)"
           git push
