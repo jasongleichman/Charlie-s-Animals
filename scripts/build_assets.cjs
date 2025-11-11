@@ -1,10 +1,10 @@
 /**
- * scripts/build_assets.js  (CommonJS)
+ * scripts/build_assets.cjs (CommonJS)
  * Builds local images + TTS audio from docs/index.html (ANIMAL_DATABASE),
- * writes docs/assets/manifest.json (so GitHub Pages can serve it).
+ * and writes docs/assets/manifest.json (so GitHub Pages can serve it).
  *
  * Usage (CI/local):
- *   node scripts/build_assets.js --db docs/index.html --out ./docs/assets --images --tts --rate 7000
+ *   node scripts/build_assets.cjs --db docs/index.html --out ./docs/assets --images --tts --rate 7000
  *
  * Env:
  *   GEMINI_API_KEY=<your key>   (only needed for --tts)
@@ -18,13 +18,13 @@ const vm = require("vm");
 // ---- CLI args ----
 const args = Object.fromEntries(
   process.argv.slice(2).map((a) => {
-    const [k, v] = a.includes("=") ? a.split("=") : [a, true];
+    const [k, v] = a.includes("=") ? a.split("=", 2) : [a, true];
     return [k.replace(/^--/, ""), v];
   })
 );
 
-const DB_FILE = String(args.db || "docs/index.html");   // read from your published index
-const OUT_DIR = String(args.out || "./docs/assets");     // MUST be under docs/
+const DB_FILE = String(args.db || "docs/index.html");    // read from your published index
+const OUT_DIR = String(args.out || "./docs/assets");      // MUST be under docs/
 const DO_TTS = !!args.tts;
 const DO_IMAGES = !!args.images;
 const RATE_MS = Number(args.rate || 7000);
