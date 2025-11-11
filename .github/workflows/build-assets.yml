@@ -5,7 +5,7 @@ on:
   push:
     paths:
       - "docs/index.html"
-      - "scripts/build_images_from_wikimedia.cjs"
+      - "scripts/**.cjs"
 
 permissions:
   contents: write
@@ -13,7 +13,6 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 180
 
     steps:
       - name: Checkout
@@ -24,23 +23,32 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install deps for image processing
+      - name: Ensure folders
         run: |
-          npm init -y
-          npm install sharp@0.32
+          mkdir -p scripts docs/assets
 
-      # ⬇️ Use the Wikimedia builder. No API keys. No TTS in CI.
-      - name: Build images + manifest from Wikimedia
-        run: node scripts/build_images_from_wikimedia.cjs
+      # EXAMPLE: build the images manifest (adjust to your script/args)
+      - name: Build images manifest
+        run: |
+          node scripts/build_images_from_wikimedia.cjs
 
+      # ✅ Fixed commit step — correct indentation + regular hyphens
       - name: Commit & push if changes
+        shell: bash
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add docs/assets docs/images_map.json
-            git commit -m "chore(assets): fetch Wikimedia images + update manifest"
-            git push
-          else
-            echo "No changes to commit."
+          # Stage only the generated assets and image map
+          git add docs/assets docs/images_map.json 2>/dev/null || true
+
+          # If you want to include package.json changes, uncomment:
+          # git add package.json
+
+          # Skip commit if nothing is staged (prevents exit 1)
+          if git diff --cached --quiet; then
+            echo "No staged changes to commit."
+            exit 0
           fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(assets): update images manifest"
+          git push
