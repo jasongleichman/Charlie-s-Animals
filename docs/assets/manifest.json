@@ -76,7 +76,5 @@
     "flying-fish": "./assets/images/flying-fish.webp",
     "quetzalcoatlus": "./assets/images/quetzalcoatlus.webp",
     "chinchilla": "./assets/images/chinchilla.webp"
-  },
-  "audio": {},
-  "audioKeys": {}
+  }
 }
