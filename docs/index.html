@@ -49,6 +49,12 @@
     }
   </style>
   <link rel="manifest" href="./manifest.webmanifest">
+<script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => { navigator.serviceWorker.register('./sw.js'); });
+    }
+  </script>
+
 </head>
 <body>
   <div id="root"></div>
@@ -59,6 +65,55 @@
     // Note: Global Firebase references must use 'window.firebase.' where needed.
 
     const { useState, useEffect, useCallback, useRef } = React;
+
+// --- Persistence helpers for existing user ---
+const getSavedName = () => { try { return localStorage.getItem('playerName') || ''; } catch { return ''; } };
+const saveName = (name) => { try { localStorage.setItem('playerName', name); } catch {} };
+
+// --- Precache helper: message SW to cache given URLs ---
+async function precacheUrls(urls){
+  if (!navigator.serviceWorker) return;
+  if (!navigator.serviceWorker.controller) {
+    await new Promise(res => {
+      const to = setTimeout(res, 1200);
+      navigator.serviceWorker.addEventListener('controllerchange', () => { clearTimeout(to); res(); }, { once:true });
+    });
+  }
+  navigator.serviceWorker.controller?.postMessage({ type:'PRECACHE', urls });
+}
+
+
+// --- Image URL collector from ANIMAL_DATABASE (best-effort) ---
+function collectImageUrlsFromDatabase(db){
+  const urls = [];
+  const urlKeys = ['image','img','photo','url','src'];
+  try {
+    (db||[]).forEach(item => {
+      if (typeof item === 'string') return;
+      for (const k of urlKeys) {
+        const v = item[k];
+        if (typeof v === 'string' && /^https?:\/\//.test(v)) urls.push(v);
+      }
+      // scan nested objects
+      Object.values(item).forEach(val => {
+        if (val && typeof val === 'object') {
+          urlKeys.forEach(k => {
+            if (val[k] && typeof val[k] === 'string' && /^https?:\/\//.test(val[k])) urls.push(val[k]);
+          });
+        }
+      });
+    });
+  } catch {}
+  return Array.from(new Set(urls));
+}
+// Precache on first run if we can find images
+window.__precacheKnownImages = () => {
+  try {
+    const urls = collectImageUrlsFromDatabase(typeof ANIMAL_DATABASE !== 'undefined' ? ANIMAL_DATABASE : []);
+    if (urls.length) precacheUrls(urls);
+  } catch {}
+};
+
     
     /* Lucide wrappers - convert <Star/> to inline SVGs */
     const LucideIcon = ({ name, className = "" }) => {
@@ -1519,7 +1574,7 @@ const useAppState = () => {
     const [cacheStatus, setCacheStatus] = useState(0); // 0=ready, 1=caching, 2=complete, 3=skipped
 
     // Profile Setup State 
-    const [userName, setUserName] = useState('');
+    const [userName, setUserName] = useState(getSavedName());
     const [isSigningIn, setIsSigningIn] = useState(false);
     const [authError, setAuthError] = useState(null);
 
@@ -3192,5 +3247,9 @@ const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 root.render(<AnimalReadingApp />);
     </script>
+<script>
+  window.addEventListener('load', () => { setTimeout(() => { try { window.__precacheKnownImages?.(); } catch(e){} }, 600); });
+</script>
+
 </body>
 </html>
