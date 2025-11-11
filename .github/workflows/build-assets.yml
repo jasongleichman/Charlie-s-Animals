@@ -32,7 +32,12 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          node scripts/build_assets.cjs --db docs/index.html --out ./docs/assets --images --tts --rate 7000
+          node scripts/build_assets.cjs \
+            --db=docs/index.html \
+            --out=./docs/assets \
+            --images \
+            --tts \
+            --rate=7000
 
       - name: Commit & push if changes
         run: |
