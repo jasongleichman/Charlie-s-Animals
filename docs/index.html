@@ -20,24 +20,7 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <!--  Firebase SDK via ES Modules  -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Expose Firebase primitives for the JSX app
-    window.firebase = {
-      initializeApp,
-      getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
-      getFirestore, doc, getDoc, setDoc
-    };
-
-    // Optional config injection
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    if (Object.keys(firebaseConfig).length > 0) {
-      window.appInstance = initializeApp(firebaseConfig);
-    }
-  </script>
+  
 
   <style>
     /* Fill viewport; prevent whole-page scroll jank on mobile */
@@ -80,7 +63,6 @@
     /* Make main content areas naturally scroll if needed while keeping sidebar stable */
     #root, #app, main { min-height: 100vh; }
   </style>
-
 
   <style id="ipad-desktop-fixes">
     /* === Universal visibility & fit === */
@@ -141,7 +123,6 @@
     }
   </style>
 
-
   <style id="landscape-login-and-sidebar-fixes">
     /* Global font-size a touch smaller on iPad landscape */
     @media (orientation: landscape) and (min-width: 900px) and (max-height: 850px){
@@ -184,7 +165,6 @@
     /* Ensure main content never bleeds off right/bottom */
     main { max-width: 100vw; max-height: 100vh; overflow: auto; }
   </style>
-
 
   <style id="ipad-welcome-55">
     @media (orientation: landscape) and (min-width: 900px) {
@@ -232,7 +212,6 @@
       window.__imgInvalidKey = false;
     })();
   </script>
-
 
   <script>
     // ---- Global TTS rate limiter & backoff wrapper ----
@@ -391,7 +370,7 @@ function AW_WelcomeScreen({ onStart }){
   const [avatar,setAvatar]=React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
   const canStart = name.trim().length>=2;
   function handleStart(e){ e.preventDefault(); if(!canStart) return; const rec=awAddOrUpdateProfile(name.trim(),avatar); setProfiles(awLoadProfiles().sort((a,b)=>b.lastPlayed-a.lastPlayed)); onStart&&onStart(rec); }
-  function pickExisting(p){ setName(p.name); setAvatar(p.avatar||"🦊"); setTab("new"); }
+  function pickExisting(p){ const rec = awAddOrUpdateProfile(p.name, p.avatar); onStart && onStart(rec); }
   React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab,profiles,name,avatar]);
   return (
     <main className="app-shell grid place-items-center px-4 py-6">
@@ -478,7 +457,6 @@ async function getLocalImageForAnimal(name, slug) {
   return (manifest.images && manifest.images[s]) ? manifest.images[s] : null; // e.g. "./assets/images/fennec-fox.webp"
 }
 
-
     // Note: Global Firebase references must use 'window.firebase.' where needed.
 
     const { useState, useEffect, useCallback, useRef } = React;
@@ -491,7 +469,6 @@ try {
     __safeAuth = window.firebase.getAuth(window.appInstance);
   }
 } catch(e){ /* ignore */ }
-
 
 // --- Persistence helpers for existing user ---
 const getSavedName = () => { try { return localStorage.getItem('playerName') || ''; } catch { return ''; } };
@@ -508,7 +485,6 @@ async function precacheUrls(urls){
   }
   navigator.serviceWorker.controller?.postMessage({ type:'PRECACHE', urls });
 }
-
 
 // --- Image URL collector from ANIMAL_DATABASE (best-effort) ---
 function collectImageUrlsFromDatabase(db){
@@ -534,7 +510,6 @@ function collectImageUrlsFromDatabase(db){
   return Array.from(new Set(urls));
 }
 // Precache on first run if we can find images
-
 
 // Aggressive image preloader used by caching screen
 async function __precacheImageList(urls, onProgress) {
@@ -594,7 +569,6 @@ window.__precacheKnownImages = () => {
     const ChevronLeft   = (p) => <LucideIcon name="chevron-left" {...p} />;
 // lucide is now defined by the UMD script above
     // removed lucide destructure (replaced by wrappers)
-
 
         // --- DATABASE ---
         const ANIMAL_DATABASE = [
@@ -1834,7 +1808,6 @@ const base64Decode = (base64) => {
     }
 };
 
-
 /** Helper to save data to the browser's Cache API */
 const saveToCache = async (key, data) => {
     if (!('caches' in window)) return;
@@ -1988,7 +1961,6 @@ const generateAnimalImage = async (animalName, key) => {
     }
 };
 
-
 // --- CUSTOM HOOK: useAppState ---
 
 const useAppState = () => {
@@ -2062,7 +2034,6 @@ const useAppState = () => {
         return missingCount === 0 ? 2 : 0; // 2 means complete, 0 means not complete
     }, []);
 
-
     /** Loads user profile data (high score, collected animals, streak) from Firestore. */
     const loadUserProfile = useCallback(async (uidOverride) => {
         const targetUid = uidOverride || userId;
@@ -2109,7 +2080,6 @@ const useAppState = () => {
             setApiError("Error loading profile data. Check Firebase connection.");
         }
     }, [db, userId, setHighScore, setProfile, setApiError, setUserName, setUserApiKey]); 
-
 
     // --- Core Utility: Speak (Real-time API Call, prioritizes Cache) ---
 
@@ -2223,7 +2193,6 @@ const useAppState = () => {
         }
     }, [userApiKey, setApiError, setIsSpeaking, cacheStatus]);
 
-
     // --- Core Firebase Initialization Effect ---
     useEffect(() => {
         if (!window.appInstance || !window.appInstance.options) {
@@ -2265,7 +2234,6 @@ const useAppState = () => {
     
         }
     }, []); // Empty dependency array ensures this runs once
-
 
     // --- Load Profile Effect (Runs after Auth is Ready and User is logged in) ---
     useEffect(() => {
@@ -2310,7 +2278,6 @@ const useAppState = () => {
         }
     }, [auth, db, loadUserProfile, loadUserCacheStatus]);
 
-
     // --- Auth/Profile Setup Handlers ---
 
     const saveUserNameProfile = useCallback(async (name) => {
@@ -2343,7 +2310,6 @@ const useAppState = () => {
   }
 }, [db, userId, profile, setProfile, setUserName, setAuthError, setUserId]);
 
-
     const handleSignOut = async (fromSettings = false) => {
         if (auth) {
             // Sign out current anon user
@@ -2364,7 +2330,6 @@ const useAppState = () => {
         }
     };
 
-
     return {
         // Auth/System State
         db, auth, userId, isAuthReady,
@@ -2382,7 +2347,6 @@ const useAppState = () => {
         saveUserNameProfile, handleSignOut, speak, generateAnimalImage, saveUserProfile, signInExistingPlayer
     };
 };
-
 
 // --- UI COMPONENTS & MODALS ---
 
@@ -2622,7 +2586,6 @@ const PlayerSelectionModal = ({ onSelectPlayer, onStartNew, onClose }) => {
     );
 };
 
-
 // --- MAIN APP COMPONENT ---
 
 const AnimalReadingApp = () => {
@@ -2653,7 +2616,6 @@ const AnimalReadingApp = () => {
     // UI State
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [showPlayerModal, setShowPlayerModal] = useState(false);
-
 
     // --- Game Data Initializer & Shuffling ---
     const [shuffledWords, setShuffledWords] = useState([]);
@@ -2703,7 +2665,6 @@ const AnimalReadingApp = () => {
             }
         }
     }, [isAuthReady, userId, appView, profile.userName, userApiKey, cacheStatus, loadUserCacheStatus, auth, profile.geminiApiKey]);
-
 
     // --- Handlers: Setup, API, Cache ---
     
@@ -2948,7 +2909,6 @@ const AnimalReadingApp = () => {
 
     }, [profile, userApiKey, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
 
-
     const handleAnswer = (answer) => {
         if (selectedAnswer) return;
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
@@ -3123,7 +3083,7 @@ const AnimalReadingApp = () => {
                                     Saving...
                                 </>
                             ) : (
-                                '<span class="welcome-button-text">Start Playing</span>'
+                                'Start Playing'
                             )}
                         </button>
                     </form>
@@ -3157,14 +3117,11 @@ const AnimalReadingApp = () => {
 
                 <div className="relative mb-4">
                     <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input
-                        type="password" class="api-key"
-                        value={apiKeyInput}
-                        onChange={(e) => {
+                     {
                             setApiKeyInput(e.target.value.trim());
                             setApiError(null);
                         }}
-                        className="welcome-input api-key" placeholder="Enter your API Key here"
+                        className="welcome-input api-key" placeholder=""
                         className={`w-full text-lg p-3 pl-12 rounded-xl border bg-gray-100 border-gray-300 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none ${apiError ? 'border-red-500' : ''}`}
                     />
                 </div>
@@ -3294,7 +3251,6 @@ const AnimalReadingApp = () => {
             </div>
         );
     };
-
 
     const WelcomeScreen = () => (
         <div className="flex h-screen w-screen">
@@ -3684,7 +3640,6 @@ const AnimalReadingApp = () => {
         );
     };
 
-
     // --- View Controller ---
     switch (appView) {
         case 'loading':
@@ -3721,7 +3676,6 @@ window.__kickPrecacheOnce = true;
 window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } catch(e){} });
 </script>
 
-
   
   <script>
     // Make the Change Player/Sign Out area always work as a safety net
@@ -3738,7 +3692,6 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
       try { window.location.reload(); } catch(_){}
     }, true);
   </script>
-
 
 <script>
 /* Collection Enhancer: show animal photos on tiles and open a modal with earned facts + TTS */
@@ -3868,7 +3821,6 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
   ensureTileImages();
 })();
 </script>
-
 
   <script>
     (function(){
