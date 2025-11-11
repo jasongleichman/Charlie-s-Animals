@@ -1,48 +1,43 @@
-name: Build Offline TTS (Polly)
+name: Build TTS (AWS Polly)
 
 on:
   workflow_dispatch: {}
-  push:
-    paths:
-      - "docs/index.html"
-      - "scripts/build_tts_polly.cjs"
-
-permissions:
-  contents: write
 
 jobs:
-  tts:
+  build-tts:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
+    permissions:
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
 
-      - name: Install AWS SDK Polly
-        run: |
-          npm init -y
-          npm install @aws-sdk/client-polly
+      - name: Ensure folders
+        run: mkdir -p scripts docs/assets/tts
 
-      - name: Build TTS
+      - name: Install deps for TTS
+        run: npm i @aws-sdk/client-polly
+
+      - name: Build TTS (diff-only)
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: ${{ secrets.AWS_REGION }}
-        run: node scripts/build_tts_polly.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --voice=Matthew
+          AWS_REGION: ${{ secrets.AWS_REGION }} # e.g., us-east-1
+        run: |
+          node scripts/build_tts_polly.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --voice=Matthew
 
       - name: Commit & push if changes
+        shell: bash
         run: |
-          if [ -n "$(git status --porcelain)" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git add docs/assets
-            git commit -m "chore(tts): add/update offline TTS audio"
-            git push
-          else
-            echo "No changes to commit."
+          git add docs/assets/tts 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No staged changes to commit."
+            exit 0
           fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(tts): add/update Polly audio (diff-only)"
+          git push
