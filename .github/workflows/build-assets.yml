@@ -28,9 +28,9 @@ jobs:
           mkdir -p scripts docs/assets
 
       # EXAMPLE: build the images manifest (adjust to your script/args)
-      - name: Build images manifest
-        run: |
-          node scripts/build_images_from_wikimedia.cjs
+      - name: Build images manifest (diff-only)
+  run: |
+    node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
       # ✅ Fixed commit step — correct indentation + regular hyphens
       - name: Commit & push if changes
