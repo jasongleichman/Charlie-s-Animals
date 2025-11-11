@@ -1,69 +1,98 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Charlie's Animal Words</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Charlie's Animal Words</title>
+    <!-- Use Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Lucide UMD (global `lucide`) -->
+    <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
+    
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-  <!-- Tailwind -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Firebase SDK Modules (FIX for "exports is not defined") -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-  <!-- React 18 UMD -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+        // Expose Firebase functions globally for the React component
+        window.firebase = {
+            initializeApp,
+            getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
+            getFirestore, doc, getDoc, setDoc
+        };
 
-  <!-- Lucide UMD (global 'lucide') -->
-  <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
+        // Initialize App and expose instances globally (using the placeholder variables)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        if (Object.keys(firebaseConfig).length > 0) {
+            window.appInstance = initializeApp(firebaseConfig);
+            // These instances are retrieved by the React component using window.firebase.getAuth(appInstance)
+        }
+    </script>
 
-  <!-- Babel for in-browser JSX -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Firebase SDK via ES Modules -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-    // Expose Firebase primitives for the JSX app
-    window.firebase = {
-      initializeApp,
-      getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
-      getFirestore, doc, getDoc, setDoc
-    };
-
-    // Optional config injection
-    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-    if (Object.keys(firebaseConfig).length > 0) {
-      window.appInstance = initializeApp(firebaseConfig);
-    }
-  </script>
-
-  <style>
-    /* Fill viewport; prevent whole-page scroll jank on mobile */
-    html, body, #root {
-      height: 100%;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
-    }
-  </style>
+    <style>
+        /* Force app to fill the entire screen viewport on mobile/iPad */
+        html, body, #root {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            /* Allow vertical scrolling only in the main game area, not the entire page */
+            overflow: hidden; 
+        }
+    </style>
 </head>
 <body>
-  <div id="root"></div>
+    <div id="root"></div>
 
-  <!-- Your app code (single Babel block ONLY) -->
-  <script type="text/babel">
-    // --- START OF APP CODE ---
-    // Note: Global Firebase references must use 'window.firebase.' where needed.
+    <script type="text/babel">
+        // --- START OF APP CODE ---
+        // Note: Global Firebase references must now use 'window.firebase.' where needed.
+        
+        const { useState, useEffect, useCallback, useRef } = React;
 
-    const { useState, useEffect, useCallback, useRef } = React;
-    // lucide is now defined by the UMD script above
-    const {
-      Volume2, Star, Trophy, ArrowRight, Loader2, XCircle, KeyRound, Play, Home, Award,
-      BookOpen, MessageSquare, Database, CheckCircle, Users, Image, Zap, ChevronRight,
-      Lock, Clock, Video, Menu, Settings, LogOut, X, ChevronLeft
-    } = lucide;
-
+        /* ---------------- Lucide wrappers (UMD -> React components) --------------- */
+        const LucideIcon = ({ name, className = "" }) => {
+            const ref = React.useRef(null);
+            React.useEffect(() => {
+                // Replace <i data-lucide="..."> with inline SVGs
+                lucide.createIcons();
+            }, []);
+            return <i ref={ref} data-lucide={name} className={className} />;
+        };
+        const Volume2       = (p) => <LucideIcon name="volume-2" {...p} />;
+        const Star          = (p) => <LucideIcon name="star" {...p} />;
+        const Trophy        = (p) => <LucideIcon name="trophy" {...p} />;
+        const ArrowRight    = (p) => <LucideIcon name="arrow-right" {...p} />;
+        const Loader2       = (p) => <LucideIcon name="loader-2" {...p} />;
+        const XCircle       = (p) => <LucideIcon name="x-circle" {...p} />;
+        const KeyRound      = (p) => <LucideIcon name="key-round" {...p} />;
+        const Play          = (p) => <LucideIcon name="play" {...p} />;
+        const Home          = (p) => <LucideIcon name="home" {...p} />;
+        const Award         = (p) => <LucideIcon name="award" {...p} />;
+        const BookOpen      = (p) => <LucideIcon name="book-open" {...p} />;
+        const MessageSquare = (p) => <LucideIcon name="message-square" {...p} />;
+        const Database      = (p) => <LucideIcon name="database" {...p} />;
+        const CheckCircle   = (p) => <LucideIcon name="check-circle" {...p} />;
+        const Users         = (p) => <LucideIcon name="users" {...p} />;
+        const Image         = (p) => <LucideIcon name="image" {...p} />;
+        const Zap           = (p) => <LucideIcon name="zap" {...p} />;
+        const ChevronRight  = (p) => <LucideIcon name="chevron-right" {...p} />;
+        const Lock          = (p) => <LucideIcon name="lock" {...p} />;
+        const Clock         = (p) => <LucideIcon name="clock" {...p} />;
+        const Video         = (p) => <LucideIcon name="video" {...p} />;
+        const Menu          = (p) => <LucideIcon name="menu" {...p} />;
+        const Settings      = (p) => <LucideIcon name="settings" {...p} />;
+        const LogOut        = (p) => <LucideIcon name="log-out" {...p} />;
+        const X             = (p) => <LucideIcon name="x" {...p} />;
+        const ChevronLeft   = (p) => <LucideIcon name="chevron-left" {...p} />;
+        /* --------------------------------------------------------------------------- */
 
         // --- DATABASE ---
         const ANIMAL_DATABASE = [
@@ -3157,10 +3186,10 @@ const AnimalReadingApp = () => {
     }
 };
 
-// --- React Render Mount ---
-const container = document.getElementById("root");
+const container = document.getElementById('root');
 const root = ReactDOM.createRoot(container);
 root.render(<AnimalReadingApp />);
+        
     </script>
 </body>
 </html>
