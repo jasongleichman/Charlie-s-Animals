@@ -185,8 +185,54 @@
     main { max-width: 100vw; max-height: 100vh; overflow: auto; }
   </style>
 
+
+  <style id="ipad-welcome-55">
+    @media (orientation: landscape) and (min-width: 900px) {
+      .welcome-card, .setup-card {
+        width: 55vw !important;
+        max-width: 55vw !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+      }
+      .welcome-input.api-key,
+      input.api-key {
+        max-width: 36ch !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+        font-size: 0.95rem !important;
+        padding-left: 0.9rem !important;
+        padding-right: 0.9rem !important;
+      }
+    }
+    main { max-height: 100vh; overflow:auto; }
+  </style>
+
 </head>
 <body>
+
+  <script>
+    (function(){
+      function b64ToUint8(b64){
+        const bin = atob(b64);
+        const len = bin.length;
+        const bytes = new Uint8Array(len);
+        for (let i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
+        return bytes;
+      }
+      const SILENT_WAV_B64 = "UklGRhQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAAA";
+      const SILENT_WAV = b64ToUint8(SILENT_WAV_B64).buffer;
+      const PNG1x1_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YbG+0MAAAAASUVORK5CYII=";
+      const PNG1x1 = b64ToUint8(PNG1x1_B64);
+      window.__ttsSyntheticOk = function(){
+        return new Response(SILENT_WAV, { status: 200, headers: { "Content-Type": "audio/wav" } });
+      };
+      window.__imgSyntheticOk = function(){
+        return new Response(PNG1x1, { status: 200, headers: { "Content-Type": "image/png" } });
+      };
+      window.__ttsInvalidKey = false;
+      window.__imgInvalidKey = false;
+    })();
+  </script>
+
 
   <script>
     // ---- Global TTS rate limiter & backoff wrapper ----
@@ -213,20 +259,37 @@
 
       const realFetch = window.fetch.bind(window);
       window.fetch = async function(input, init){
+        const urlStr = (typeof input === 'string') ? input : (input && input.url) || "";
+        const isTts = urlStr.includes('generativelanguage.googleapis.com') && urlStr.includes('tts');
+        const isImg = urlStr.includes('generativelanguage.googleapis.com') && (urlStr.includes('image') || urlStr.includes('image-preview'));
+
         try {
           const url = (typeof input === 'string') ? input : (input && input.url) || "";
           if (url.includes(TTS_HOST)){
             // serialize and rate limit TTS requests
             const job = async () => {
-              const res = await backoff(() => realFetch(input, init));
-              // polite spacing between calls
-              await new Promise(r => setTimeout(r, minDelayMs));
-              return res;
+              try {
+                const res = await backoff(() => realFetch(input, init));
+                if (res && res.status === 400) {
+                  if (isTts) { window.__ttsInvalidKey = true; return window.__ttsSyntheticOk(); }
+                  if (isImg) { window.__imgInvalidKey = true; return window.__imgSyntheticOk(); }
+                }
+                return res;
+              } catch(e){
+                const msg = (e && (e.message||"")) + "";
+                if (isTts) { window.__ttsInvalidKey = true; return window.__ttsSyntheticOk(); }
+                if (isImg) { window.__imgInvalidKey = true; return window.__imgSyntheticOk(); }
+                throw e;
+              } finally {
+                await new Promise(r => setTimeout(r, minDelayMs));
+              }
             };
             queue = queue.then(job, job);
             return queue;
           }
         } catch(_){}
+        if (isTts && window.__ttsInvalidKey) return window.__ttsSyntheticOk();
+        if (isImg && window.__imgInvalidKey) return window.__imgSyntheticOk();
         return realFetch(input, init);
       };
 
@@ -2949,13 +3012,13 @@ const AnimalReadingApp = () => {
                 <div className="relative mb-4">
                     <KeyRound className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
-                        type="password"
+                        type="password" class="api-key"
                         value={apiKeyInput}
                         onChange={(e) => {
                             setApiKeyInput(e.target.value.trim());
                             setApiError(null);
                         }}
-                        placeholder="Enter your API Key here"
+                        className="welcome-input api-key" placeholder="Enter your API Key here"
                         className={`w-full text-lg p-3 pl-12 rounded-xl border bg-gray-100 border-gray-300 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none ${apiError ? 'border-red-500' : ''}`}
                     />
                 </div>
@@ -3660,6 +3723,35 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
   ensureTileImages();
 })();
 </script>
+
+
+  <script>
+    (function(){
+      async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+      const CACHE_NAME = 'animal-words-precache-v6';
+      async function cachePut(url, res){
+        try { const cache = await caches.open(CACHE_NAME); await cache.put(url, res.clone()); } catch(_){}
+      }
+      async function headOk(url){ try{ const r = await caches.match(url); return !!r; }catch(_){ return false; } }
+      window.__runPrecache = async function(imageUrls = [], ttsTexts = [], onTick){
+        let total = imageUrls.length + ttsTexts.length;
+        let done = 0;
+        for (const url of imageUrls){
+          try { if (!(await headOk(url))) { const r = await fetch(new Request(url, {mode:'cors', cache:'reload'})); if (r && r.ok) await cachePut(url, r); } } catch(_){}
+          done++; try{ onTick && onTick(done, total); }catch(_){}
+          await sleep(10);
+        }
+        for (const text of ttsTexts){
+          try {
+            if (window.__generateAndCacheTTS) { await window.__generateAndCacheTTS(text); }
+            else if (window.__speakLocal) { window.__speakLocal(text); }
+          } catch(_){}
+          done++; try{ onTick && onTick(done, total); }catch(_){}
+          await sleep(7000);
+        }
+      };
+    })();
+  </script>
 
 </body>
 </html>
