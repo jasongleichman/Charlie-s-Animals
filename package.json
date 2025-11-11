@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build:assets": "node scripts/build_assets.js --db index.html --out ./assets --images --tts --rate 7000"
+    "build:assets": "node scripts/build_assets.cjs --db=docs/index.html --out=./docs/assets --images --tts --rate=7000"
   }
 }
