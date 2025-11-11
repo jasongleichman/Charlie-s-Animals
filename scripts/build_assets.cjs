@@ -1,182 +1,46 @@
-/**
- * scripts/build_assets.cjs (CommonJS)
- * Builds local images + TTS audio from docs/index.html (ANIMAL_DATABASE),
- * and writes docs/assets/manifest.json.
- *
- * Usage (CI/local):
- *   node scripts/build_assets.cjs --db=docs/index.html --out=./docs/assets --images --tts --rate=7000
- */
+name: Build Static Assets (Images)
 
-const fs = require("fs");
-const fsp = require("fs/promises");
-const path = require("path");
-const vm = require("vm");
+on:
+  workflow_dispatch: {}
+  push:
+    paths:
+      - "docs/index.html"
+      - "scripts/build_images_from_wikimedia.cjs"
 
-// ---- CLI args (supports --key=value and --key value) ----
-function parseArgs(argv) {
-  const out = {};
-  for (let i = 0; i < argv.length; i++) {
-    const token = argv[i];
-    if (!token.startsWith("--")) continue;
+permissions:
+  contents: write
 
-    const eq = token.indexOf("=");
-    if (eq !== -1) {
-      const key = token.slice(2, eq);
-      const val = token.slice(eq + 1);
-      out[key] = val === "" ? true : val;
-    } else {
-      const key = token.slice(2);
-      const next = argv[i + 1];
-      if (next && !next.startsWith("--")) {
-        out[key] = next;
-        i++;
-      } else {
-        out[key] = true;
-      }
-    }
-  }
-  return out;
-}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
 
-const args = parseArgs(process.argv.slice(2));
-const DB_FILE = String(args.db || "docs/index.html");
-const OUT_DIR = String(args.out || "./docs/assets");
-const DO_TTS = !!args.tts;
-const DO_IMAGES = !!args.images;
-const RATE_MS = Number(args.rate || 7000);
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-// ---- Config ----
-const GEMINI_KEY = process.env.GEMINI_API_KEY || "";
-const TTS_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent";
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
 
-function ttsPayload(text) {
-  return {
-    contents: [{ role: "user", parts: [{ text }]}],
-    audioConfig: { audioEncoding: "LINEAR16", speakingRate: 0.92, pitch: 0.0, voice: "en-US" }
-  };
-}
+      - name: Install deps for image processing
+        run: |
+          npm init -y
+          npm install sharp@0.32
 
-// ---- Helpers ----
-function slugify(s) {
-  return String(s || "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-function existsSync(p){ try { fs.accessSync(p); return true; } catch { return false; } }
-async function ensureDir(p) { await fsp.mkdir(p, { recursive: true }); }
-async function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+      - name: Build images + manifest from Wikimedia
+        run: |
+          node scripts/build_images_from_wikimedia.cjs
 
-async function readAnimals() {
-  if (DB_FILE.endsWith(".html")) {
-    const src = await fsp.readFile(DB_FILE, "utf8");
-    const m = src.match(/const\s+ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
-    if (!m) throw new Error("ANIMAL_DATABASE not found in docs/index.html");
-    const context = {};
-    vm.createContext(context);
-    const arr = vm.runInContext("(" + m[1] + ")", context);
-    return arr;
-  } else {
-    const raw = await fsp.readFile(DB_FILE, "utf8");
-    const obj = JSON.parse(raw);
-    return obj.animals || obj || [];
-  }
-}
-
-async function fetchBuffer(url, opts) {
-  const r = await fetch(url, opts);
-  if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-  const ab = await r.arrayBuffer();
-  return Buffer.from(ab);
-}
-
-async function ttsGemini(text) {
-  const url = `${TTS_ENDPOINT}?key=${GEMINI_KEY}`;
-  const r = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(ttsPayload(text)),
-  });
-  if (!r.ok) throw new Error(`TTS ${r.status}`);
-  const data = await r.json();
-  const b64 = data?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-  if (!b64) throw new Error("No audio in response");
-  return Buffer.from(b64, "base64");
-}
-
-async function readManifest(p) {
-  try { return JSON.parse(await fsp.readFile(p, "utf8")); }
-  catch { return { images: {}, audio: {}, audioKeys: {} }; }
-}
-
-async function main() {
-  console.log("📦 Args:", args);
-  const animals = await readAnimals();
-  console.log(`Found ${animals.length} animals in ${DB_FILE}`);
-
-  const audioDir = path.join(OUT_DIR, "audio");
-  const imgDir   = path.join(OUT_DIR, "img");
-  const manifestPath = path.join(OUT_DIR, "manifest.json");
-  await ensureDir(audioDir);
-  await ensureDir(imgDir);
-
-  const manifest = await readManifest(manifestPath);
-
-  // IMAGES
-  if (DO_IMAGES) {
-    for (const a of animals) {
-      const slug = slugify(a.name);
-      const dest = path.join(imgDir, `${slug}.jpg`);
-      if (existsSync(dest)) {
-        manifest.images[slug] = `./assets/img/${slug}.jpg`;
-        continue;
-      }
-      try {
-        const imageUrl = a.image || a.img || a.photo || (a.picture && a.picture.url);
-        if (imageUrl && /^https?:\/\//.test(imageUrl)) {
-          const buf = await fetchBuffer(imageUrl, { cache: "no-store" });
-          await fsp.writeFile(dest, buf);
-          manifest.images[slug] = `./assets/img/${slug}.jpg`;
-          console.log("🖼️ IMG ok:", a.name);
-        } else {
-          console.log("🚫 IMG skip:", a.name);
-        }
-      } catch (e) {
-        console.warn("❌ IMG fail:", a.name, e.message);
-      }
-      await sleep(50);
-    }
-  }
-
-  // AUDIO
-  if (DO_TTS && GEMINI_KEY) {
-    for (const a of animals) {
-      const facts = Array.isArray(a.facts) ? a.facts : [];
-      for (const f of facts) {
-        const slug = slugify(f).slice(0, 100);
-        const dest = path.join(audioDir, `${slug}.wav`);
-        if (existsSync(dest)) {
-          manifest.audio[slug] = `./assets/audio/${slug}.wav`;
-          manifest.audioKeys[f] = `./assets/audio/${slug}.wav`;
-          continue;
-        }
-        try {
-          const audio = await ttsGemini(f);
-          await fsp.writeFile(dest, audio);
-          manifest.audio[slug] = `./assets/audio/${slug}.wav`;
-          manifest.audioKeys[f] = `./assets/audio/${slug}.wav`;
-          console.log("🔊 TTS ok:", a.name, "::", f.slice(0, 60));
-        } catch (e) {
-          console.warn("❌ TTS fail:", a.name, e.message);
-        }
-        await sleep(RATE_MS);
-      }
-    }
-  }
-
-  await fsp.writeFile(manifestPath, JSON.stringify(manifest, null, 2), "utf8");
-  console.log("✅ Manifest written:", manifestPath);
-}
-
-main().catch((err) => { console.error(err); process.exit(1); });
+      - name: Commit & push if changes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add docs/assets docs/images_map.json
+            git commit -m "chore(assets): fetch Wikimedia images + update manifest"
+            git push
+          else
+            echo "No changes to commit."
+          fi
