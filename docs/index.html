@@ -1,60 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Charlie's Animal Words</title>
-    <!-- Use Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React and ReactDOM -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-    
-    <!-- Babel for JSX compilation -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Lucide Icons (Dependency for React components) -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Charlie's Animal Words</title>
 
-    <!-- Firebase SDK Modules (FIX for "exports is not defined") -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-        // Expose Firebase functions globally for the React component
-        window.firebase = {
-            initializeApp,
-            getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
-            getFirestore, doc, getDoc, setDoc
-        };
+  <!-- React 18 UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
-        // Initialize App instance globally
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        if (Object.keys(firebaseConfig).length > 0) {
-            window.appInstance = initializeApp(firebaseConfig);
-        }
-    </script>
+  <!-- 🔧 NEW: Lucide UMD (provides the global `lucide` your code uses) -->
+  <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
 
-    <style>
-        /* Force app to fill the entire screen viewport */
-        html, body, #root {
-            height: 100%;
-            margin: 0;
-            padding: 0;
-            overflow: hidden; 
-            font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-        }
-    </style>
+  <!-- Babel for in-browser JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <!-- Firebase SDK via ES Modules (prevents "exports is not defined") -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Expose Firebase primitives for the JSX app
+    window.firebase = {
+      initializeApp,
+      getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken,
+      getFirestore, doc, getDoc, setDoc
+    };
+
+    // Optional: pull config if you define __firebase_config in a separate script
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+    if (Object.keys(firebaseConfig).length > 0) {
+      window.appInstance = initializeApp(firebaseConfig);
+    }
+  </script>
+
+  <style>
+    /* Fill viewport; prevent whole-page scroll jank on mobile */
+    html, body, #root {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
+  <div id="root"></div>
+
+  <!-- Your entire app (unchanged) -->
+  <script type="text/babel">
+    // --- START OF APP CODE (unchanged except for the render call at the bottom) ---
+    // Note: Global Firebase references must use 'window.firebase.' where needed.
+
+    const { useState, useEffect, useCallback, useRef } = React;
+    // lucide is now defined by the added UMD script above
+    const {
+      Volume2, Star, Trophy, ArrowRight, Loader2, XCircle, KeyRound, Play, Home, Award,
+      BookOpen, MessageSquare, Database, CheckCircle, Users, Image, Zap, ChevronRight,
+      Lock, Clock, Video, Menu, Settings, LogOut, X, ChevronLeft
+    } = lucide;
 
     <script type="text/babel">
-        // --- START OF COMPLETE APPLICATION CODE ---
+        // --- START OF APP CODE ---
+        // Note: Global Firebase references must now use 'window.firebase.' where needed.
         
-        // Define React scope globally (Crucial Fix for deployment)
         const { useState, useEffect, useCallback, useRef } = React;
         const { Volume2, Star, Trophy, ArrowRight, Loader2, XCircle, KeyRound, Play, Home, Award, BookOpen, MessageSquare, Database, CheckCircle, Users, Image, Zap, ChevronRight, Lock, Clock, Video, Menu, Settings, LogOut, X, ChevronLeft } = lucide;
 
@@ -1030,8 +1043,8 @@
             facts: [`Vampire bats are the only mammals that feed entirely on blood (hematophagy).`, `They use heat sensors in their nose to find warm spots on their prey to bite.`, `Their saliva contains an anticoagulant, preventing the blood from clotting while they drink.`, `They do not suck; they lap up the blood.`, `They are found in Central and South America.`]
         },
         {
-            name: 'Marine Iguana',
-            facts: [`Marine Iguanas are the only lizards in the world that forage in the sea.`, `They live exclusively on the Galapagos Islands.`, `They are cold-blooded and must bask in the sun to raise their body temperature after diving into the cold water.`, `They sneeze out excess salt they ingest from seawater.`, `They are herbivores, feeding on marine algae.`]
+            name: 'Okapi',
+            facts: [`The Okapi is the only living relative of the giraffe, not the zebra.`, `It has stripes for camouflage in the dense, filtered sunlight of the rainforest.`, `Its tongue is long enough to clean its own eyelids and ears.`, `They are solitary and elusive, living only in the Congo's Ituri Rainforest.`, `They communicate using low-frequency "infrasonic" rumbles.`]
         },
         {
             name: 'Blue Whale',
@@ -1054,6 +1067,14 @@
             facts: [`Manatees are large, slow-moving marine mammals, often called "sea cows."`, `They are herbivores, grazing on sea grass and freshwater vegetation.`, `They have prehensile lips, using them like fingers to grasp plants.`, `They must regularly surface to breathe, usually every few minutes.`, `They communicate with squeaks and chirps.`]
         },
         {
+            name: 'Narwhal',
+            facts: [`The narwhal's "tusk" is a long, spiraled tooth, predominantly found on males.`, `The tusk is a sensory organ with millions of nerve endings used to "read" the water.`, `It is a deep diver, capable of reaching depths of over 5,000 feet.`, `They live in the Arctic year-round.`, `They use the tusk to stun fish before eating them.`]
+        },
+        {
+            name: 'Iguana',
+            facts: [`Marine Iguanas are the only lizards in the world that forage in the sea.`, `They live exclusively on the Galapagos Islands.`, `They are cold-blooded and must bask in the sun to raise their body temperature after diving into the cold water.`, `They sneeze out excess salt they ingest from seawater.`, `They are herbivores, feeding on marine algae.`]
+        },
+        {
             name: 'Anglerfish',
             facts: [`Anglerfish are famous for the bioluminescent "fishing rod" (esca) attached to their head.`, `They live in the deep, dark abyss of the ocean.`, `The light from the esca is used to lure unsuspecting prey toward their huge jaws.`, `Males are tiny and fuse themselves permanently to the female to fertilize her.`, `They can expand their stomachs to swallow prey larger than themselves.`]
         },
@@ -1062,29 +1083,21 @@
             facts: [`Flying fish use their enlarged pectoral fins like wings to glide out of the water.`, `They launch themselves out of the water to escape predators, reaching speeds of up to 43 mph.`, `Their glides can last for up to 45 seconds.`, `They are found in warm tropical and subtropical waters.`, `They typically feed on plankton.`]
         },
         {
+            name: 'Pangolin',
+            facts: [`Pangolins are the only mammals in the world completely covered in scales (made of keratin).`, `When threatened, they roll into an armor-plated ball.`, `Their tongue can be over 16 inches long, stored in a special chest cavity.`, `They have no teeth and ingest stones to help grind food.`, `They are the most illegally trafficked mammals in the world.`]
+        },
+        {
             name: 'Quetzalcoatlus',
             facts: [`Quetzalcoatlus was the largest known flying animal of all time (a pterosaur).`, `Its wingspan was comparable to a small aircraft, up to 36 feet.`, `It stood as tall as a giraffe when on the ground.`, `It was a predator, likely eating fish and small vertebrates.`, `It lived in North America during the late Cretaceous period.`]
+        },
+        {
+            name: 'Axolotl',
+            facts: [`Axolotls can regenerate damaged limbs, spinal cords, and even parts of their brain without scarring.`, `They are "neotenic," meaning they keep their juvenile features (external gills) into adulthood.`, `They are critically endangered, found only in Lake Xochimilco near Mexico City.`, `They hunt by smell and suck prey in like a vacuum.`, `They come in various colors, but wild axolotls are typically dark.`]
         },
         {
             name: 'Chinchilla',
             facts: [`The Chinchilla has the densest fur of any land animal, with up to 60 hairs growing from a single follicle.`, `This dense fur helps them survive in the cold, arid climate of the Andes Mountains.`, `They never bathe in water; they clean their fur using dust baths.`, `They are nocturnal rodents.`, `They can leap up to 6 feet high.`]
         },
-        {
-            name: 'Goliath Birdwing',
-            facts: [`The Goliath Birdwing is the second largest butterfly in the world, with a wingspan up to 11 inches.`, `It is found in the rainforests of New Guinea.`, `The male has bright green and black wings, while the female is larger and brown/cream.`, `The larvae feed on poisonous vine plants, making the adults toxic to predators.`, `It is named after the giant Goliath from the Bible.`]
-        },
-        {
-            name: 'Giant Clam',
-            facts: [`Giant clams are the largest species of clam in the world, weighing over 440 pounds and measuring 4 feet across.`, `They are filter feeders but also have symbiotic algae in their tissue that provides most of their energy.`, `They can live for over 100 years.`, `They are found on coral reefs in the South Pacific and Indian oceans.`, `The mantle (fleshy part) has colorful patterns that absorb light.`]
-        },
-        {
-            name: 'Wanderer Butterfly',
-            facts: [`The Wanderer Butterfly (Monarch) is famous for its long, multi-generational migration across North America.`, `It uses the Earth's magnetic field and the sun for navigation.`, `The caterpillar eats milkweed, making the adults toxic to birds.`, `It takes four generations to complete the full migration cycle.`, `They are easily recognized by their orange and black wing patterns.`]
-        },
-        {
-            name: 'Manta Ray',
-            facts: [`Manta rays are the largest rays in the world, with wingspans reaching up to 23 feet.`, `They are filter feeders, eating large amounts of plankton and small fish.`, `They have the largest brain-to-body ratio of any fish.`, `Manta rays are highly migratory, often traveling thousands of miles.`, `They are known for their graceful movements, often appearing to "fly" through the water.`]
-        }
 ];
 
 // --- SIGHT WORD DATABASE (100 words and custom options, homophones removed) ---
@@ -1261,7 +1274,7 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
 const __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
 
 // Paths
-const getUserProfileDocRef = (db, userId) => doc(db, 'artifacts', appId, 'users', userId, 'app_data', 'profile');
+const getUserProfileDocRef = (db, userId) => window.firebase.doc(db, 'artifacts', appId, 'users', userId, 'app_data', 'profile');
 
 // --- CACHING UTILS (Unicode Safe) ---
 
@@ -1488,40 +1501,16 @@ const useAppState = () => {
 
     // --- FIREBASE PERSISTENCE LOGIC (DEFINED LOCALLY VIA useCALLBACK FOR SCOPE SAFETY) ---
 
-    // NOTE: In the deployed version (index.html), window.firebase.doc, etc. are used.
-    // In the dev environment React component, the destructured names (doc, getDoc, etc.) are used.
-
-    // Helper to get Firebase functions bound to the initialized app/firestore instance
-    const getFirebaseBoundFunctions = () => {
-        if (typeof window.firebase !== 'undefined' && typeof window.appInstance !== 'undefined') {
-            const firestore = window.firebase.getFirestore(window.appInstance);
-            const authInstance = window.firebase.getAuth(window.appInstance);
-
-            return {
-                db: firestore,
-                auth: authInstance,
-                doc: (...args) => window.firebase.doc(firestore, ...args),
-                getDoc: (docRef) => window.firebase.getDoc(docRef),
-                setDoc: (docRef, data, options) => window.firebase.setDoc(docRef, data, options),
-                // Helper to get doc ref easily
-                getUserProfileDocRef: (uid) => window.firebase.doc(firestore, 'artifacts', appId, 'users', uid, 'app_data', 'profile'),
-            };
-        }
-        return {}; 
-    };
-
     /** Saves user profile data (high score, collected animals, streak) to Firestore. */
     const saveUserProfile = useCallback(async (profileToSave) => {
-        const { setDoc, getUserProfileDocRef } = getFirebaseBoundFunctions();
-        if (!setDoc || !userId) return;
-
+        if (!db || !userId) return;
         try {
-            await setDoc(getUserProfileDocRef(userId), profileToSave, { merge: true });
+            await window.firebase.setDoc(getUserProfileDocRef(db, userId), profileToSave, { merge: true });
         } catch (error) {
             console.error("Error saving user profile:", error);
             setApiError("Error saving profile data. Check Firebase permissions.");
         }
-    }, [userId, setApiError]); 
+    }, [db, userId, setApiError]); 
     
     /** Loads the local browser cache status */
     const loadUserCacheStatus = useCallback(async () => {
@@ -1552,11 +1541,9 @@ const useAppState = () => {
     /** Loads user profile data (high score, collected animals, streak) from Firestore. */
     const loadUserProfile = useCallback(async (uidOverride) => {
         const targetUid = uidOverride || userId;
-        const { getDoc, getUserProfileDocRef } = getFirebaseBoundFunctions();
-        if (!getDoc || !targetUid) return; 
-
+        if (!db || !targetUid) return;
         try {
-            const docSnap = await getDoc(getUserProfileDocRef(targetUid));
+            const docSnap = await window.firebase.getDoc(getUserProfileDocRef(db, targetUid));
             if (docSnap.exists()) {
                 const profileData = docSnap.data();
                 setHighScore(profileData.highScore || 0);
@@ -1596,7 +1583,7 @@ const useAppState = () => {
             console.error("Error loading user profile:", error);
             setApiError("Error loading profile data. Check Firebase connection.");
         }
-    }, [userId, setHighScore, setProfile, setApiError, setUserName, setUserApiKey]); 
+    }, [db, userId, setHighScore, setProfile, setApiError, setUserName, setUserApiKey]); 
 
 
     // --- Core Utility: Speak (Real-time API Call, prioritizes Cache) ---
@@ -1714,47 +1701,47 @@ const useAppState = () => {
 
     // --- Core Firebase Initialization Effect ---
     useEffect(() => {
-        if (typeof window.firebase === 'undefined' || typeof window.appInstance === 'undefined') {
-            console.warn("Firebase SDK not loaded in global scope yet.");
-            // Set auth ready to true if Firebase environment is missing to allow simple local demo flow
-            if (Object.keys(firebaseConfig).length === 0) {
-                 setIsAuthReady(true);
-                 setApiError("Firebase config missing. Using local guest mode.");
-            }
-            return;
+        if (typeof window.appInstance === 'undefined') {
+             console.warn("Firebase app instance not initialized in the global scope.");
+             setIsAuthReady(true);
+             setApiError("Firebase setup missing from index.html.");
+             return;
         }
         
-        // Use bound functions inside effect
-        const { db: firestore, auth: authInstance } = getFirebaseBoundFunctions();
-        if (!firestore) return; // Wait until bound functions are ready
-        
-        setDb(firestore);
-        setAuth(authInstance);
+        try {
+            const firestore = window.firebase.getFirestore(window.appInstance);
+            const authInstance = window.firebase.getAuth(window.appInstance);
+            setDb(firestore);
+            setAuth(authInstance);
 
-        const unsubscribe = window.firebase.onAuthStateChanged(authInstance, async (user) => {
-            if (user) {
-                setUserId(user.uid);
-            } else if (__initial_auth_token) {
-                await window.firebase.signInWithCustomToken(authInstance, __initial_auth_token);
-            } else {
-                const anonUser = await window.firebase.signInAnonymously(authInstance);
-                setUserId(anonUser.user.uid);
-            }
+            const unsubscribe = window.firebase.onAuthStateChanged(authInstance, async (user) => {
+                if (user) {
+                    setUserId(user.uid);
+                } else if (__initial_auth_token) {
+                    await window.firebase.signInWithCustomToken(authInstance, __initial_auth_token);
+                } else {
+                    const anonUser = await window.firebase.signInAnonymously(authInstance);
+                    setUserId(anonUser.user.uid);
+                }
+                setIsAuthReady(true);
+            });
+            return () => {
+                unsubscribe();
+            };
+        } catch (e) {
+            console.error("Firebase Initialization Error:", e);
             setIsAuthReady(true);
-        });
-        return () => {
-            unsubscribe();
-        };
-    }, []); 
+            setApiError("Firebase initialization failed.");
+        }
+    }, []); // Empty dependency array ensures this runs once
 
 
     // --- Load Profile Effect (Runs after Auth is Ready and User is logged in) ---
     useEffect(() => {
-        // Only run if auth is ready, db/user are present, and we haven't successfully loaded a profile yet
-        if (isAuthReady && userId && !profile.userName) {
+        if (isAuthReady && db && userId) {
             loadUserProfile();
         }
-    }, [isAuthReady, userId, profile.userName, loadUserProfile]);
+    }, [isAuthReady, db, userId, loadUserProfile]);
     
     // --- Load Cache Status Effect (Runs after Profile is loaded, which includes API Key) ---
     useEffect(() => {
@@ -1771,13 +1758,11 @@ const useAppState = () => {
     
     
     const signInExistingPlayer = useCallback(async (cachedUserId) => {
-        const { auth: authInstance } = getFirebaseBoundFunctions();
-        if (!authInstance) return false;
-
+        if (!auth || !db) return false;
         try {
             // Sign out the current user and sign in anonymously to generate the UID context
-            await authInstance.signOut();
-            await window.firebase.signInAnonymously(authInstance);
+            await auth.signOut();
+            await window.firebase.signInAnonymously(auth);
             
             // Now load the saved profile data using the saved UID
             setUserId(cachedUserId); 
@@ -1792,18 +1777,16 @@ const useAppState = () => {
             setAuthError("Failed to load player profile. Try starting a new game.");
             return false;
         }
-    }, [loadUserProfile, loadUserCacheStatus, setAuthError]);
+    }, [auth, db, loadUserProfile, loadUserCacheStatus]);
 
 
     // --- Auth/Profile Setup Handlers ---
 
     const saveUserNameProfile = useCallback(async (name) => {
-        const { setDoc, getUserProfileDocRef } = getFirebaseBoundFunctions();
-        if (!setDoc || !userId) return false;
-
+        if (!db || !userId) return false;
         try {
             const newProfile = { ...profile, userName: name };
-            await setDoc(getUserProfileDocRef(userId), newProfile, { merge: true });
+            await window.firebase.setDoc(getUserProfileDocRef(db, userId), newProfile, { merge: true });
             setProfile(newProfile);
             setUserName(name);
             savePlayerName(userId, name); // Cache locally
@@ -1813,14 +1796,13 @@ const useAppState = () => {
             setAuthError("Failed to save name. Please try again.");
             return false;
         }
-    }, [userId, profile, setProfile, setUserName, setAuthError]);
+    }, [db, userId, profile, setProfile, setUserName, setAuthError]);
 
 
     const handleSignOut = async (fromSettings = false) => {
-        const { auth: authInstance } = getFirebaseBoundFunctions();
-        if (authInstance) {
+        if (auth) {
             // Sign out current anon user
-            await authInstance.signOut();
+            await auth.signOut();
             
             // Clear current state
             setProfile({ highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, userName: '', highScores: [], factIndices: {}, geminiApiKey: '' });
@@ -1840,7 +1822,7 @@ const useAppState = () => {
 
     return {
         // Auth/System State
-        db, userId, isAuthReady,
+        db, auth, userId, isAuthReady,
         // Login State (Renamed to Setup)
         userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
         // Profile/Score State
@@ -2101,7 +2083,7 @@ const PlayerSelectionModal = ({ onSelectPlayer, onStartNew, onClose }) => {
 const AnimalReadingApp = () => {
     // 🔥 New State Hook 
     const {
-        db, userId, isAuthReady,
+        db, userId, auth, isAuthReady,
         userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
         profile, setProfile, highScore, setHighScore,
         isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError, userApiKey, setUserApiKey,
@@ -2152,17 +2134,14 @@ const AnimalReadingApp = () => {
         if (isAuthReady && appView === 'loading') {
             const cachedPlayers = getCachedPlayerProfiles();
             
-            if (!userId || !db) { // Check if Firebase failed entirely (not expected on local machine)
-                setAppView('setup');
-            } else if (!profile.userName && cachedPlayers.length > 0) {
-                 // If we have a UID but no profile name loaded, try loading profile
-                 // If that fails, it falls through to setup.
-                 setAppView('setup'); 
-            } else if (!profile.userName) {
+            if (!userId || !auth.currentUser || !profile.userName) {
+                // If user is anon or new, go to setup screen
                  setAppView('setup');
             } else if (!userApiKey && !profile.geminiApiKey) {
+                // If profile is loaded but key is missing, go to API setup
                 setAppView('apikey');
             } else if (cacheStatus === 0 || cacheStatus === 3) {
+                // If caching status is unknown (0) or skipped (3), check status and transition
                 const checkCache = async () => {
                     const status = await loadUserCacheStatus();
                     setCacheStatus(status);
@@ -2174,10 +2153,11 @@ const AnimalReadingApp = () => {
                 };
                 checkCache();
             } else {
+                // All good, go to main menu
                 setAppView('welcome');
             }
         }
-    }, [isAuthReady, userId, appView, profile.userName, userApiKey, cacheStatus, loadUserCacheStatus]);
+    }, [isAuthReady, userId, appView, profile.userName, userApiKey, cacheStatus, loadUserCacheStatus, auth, profile.geminiApiKey]);
 
 
     // --- Handlers: Setup, API, Cache ---
@@ -3183,8 +3163,10 @@ const AnimalReadingApp = () => {
     }
 };
 
-ReactDOM.render(<AnimalReadingApp />, document.getElementById('root'));
-        
+// --- React Render Mount ---
+const container = document.getElementById("root");
+const root = ReactDOM.createRoot(container);
+root.render(<AnimalReadingApp />);
     </script>
 </body>
 </html>
