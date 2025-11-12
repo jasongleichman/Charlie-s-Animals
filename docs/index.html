@@ -733,7 +733,7 @@ const Modal = ({ title, children, onClose }) => (
 
 // Fact Modal Component (FIXED: Template literals, Lock logic)
 const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-    // FIX 2: Default to the newest earned fact, or fact 0 if no facts earned
+    // --- FIX: Default to the newest earned fact, or fact 0 if no facts earned yet (for gallery view) ---
     const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
     const totalFactsCount = animal.facts.length;
 
@@ -822,8 +822,11 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const videoIndex = Math.floor(Math.random() * (window.VIDEO_DATABASE || []).length);
     const actualVideo = (window.VIDEO_DATABASE || [])[videoIndex];
 
-    // FIX 3: Convert YouTube URL to embed URL
-    const embedUrl = actualVideo ? actualVideo.url.replace("watch?v=", "embed/") : null;
+    // FIX 3: Convert YouTube URL to embed URL for playback
+    const embedUrl = actualVideo && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be"))
+                     ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                     : actualVideo ? actualVideo.url : null;
+
 
     return (
         <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
@@ -869,6 +872,72 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
 };
 
 
+// Rewards Modal Component (FIXED: Shows tiles and embeds for all earned videos)
+const RewardsModal = ({ profile, onClose }) => {
+    const videoDatabase = window.VIDEO_DATABASE || [];
+    // FIX 1: Correct template literal formatting
+    const rewardsEarned = profile.rewardsEarned || 0;
+    const totalVideos = videoDatabase.length;
+
+    return (
+        <Modal title="My Video Rewards" onClose={onClose}>
+            <div className="space-y-4">
+                <div className="text-center mb-4">
+                    <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
+                    {/* FIX 1: Correct template literal formatting */}
+                    <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
+                    <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
+                </div>
+
+                {/* FIX 3: Display videos as tiles */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
+                    {videoDatabase.length === 0 ? (
+                        <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
+                    ) : videoDatabase.map((video, index) => {
+                        // FIX 3: Check if video is unlocked based on index (1-based count)
+                        const isUnlocked = rewardsEarned > index;
+                        // FIX 3: Ensure YouTube URL is in embed format for playback in iframe
+                        const embedUrl = (video.url.includes("youtube.com") || video.url.includes("youtu.be"))
+                                        ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                                        : video.url; // Fallback for non-YouTube links
+                        
+                        return (
+                            <div 
+                                key={index}
+                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-70'}`}
+                            >
+                                <div className="relative aspect-video">
+                                    {isUnlocked ? (
+                                        <iframe
+                                            className="w-full h-full"
+                                            src={embedUrl}
+                                            title={video.title}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            loading="lazy"
+                                        ></iframe>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                            <Lock className="w-8 h-8 text-gray-500" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3">
+                                    <h4 className={`font-semibold line-clamp-2 ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                                        {isUnlocked ? video.title : `Reward ${index + 1} (Locked)`}
+                                    </h4>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+
 // Stats Modal Component
 const StatsModal = ({ profile, onClose }) => {
     const sortedScores = profile.highScores 
@@ -899,69 +968,6 @@ const StatsModal = ({ profile, onClose }) => {
                     ) : (
                         <p className="text-center text-gray-500 py-4">No scores logged yet. Start playing!</p>
                     )}
-                </div>
-            </div>
-        </Modal>
-    );
-};
-
-// Video Rewards Gallery Modal Component (FIXED: Shows tiles and embeds)
-const RewardsModal = ({ profile, onClose }) => {
-    // FIX 3: Use the global VIDEO_DATABASE
-    const videoDatabase = window.VIDEO_DATABASE || [];
-    // FIX 1: Correct template literal formatting
-    const rewardsEarned = profile.rewardsEarned || 0;
-    const totalVideos = videoDatabase.length;
-
-    return (
-        <Modal title="My Video Rewards" onClose={onClose}>
-            <div className="space-y-4">
-                <div className="text-center mb-4">
-                    <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
-                    {/* FIX 1: Correct template literal formatting */}
-                    <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
-                    <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
-                    {videoDatabase.length === 0 ? (
-                        <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
-                    ) : videoDatabase.map((video, index) => {
-                        // FIX 3: Check if video is unlocked based on index (1-based count)
-                        const isUnlocked = rewardsEarned > index;
-                        // FIX 3: Ensure YouTube URL is in embed format for playback in iframe
-                        const embedUrl = video.url.includes("youtube.com") || video.url.includes("youtu.be")
-                                        ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
-                                        : video.url; // Fallback for non-YouTube links
-                        
-                        return (
-                            <div 
-                                key={index}
-                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-70'}`}
-                            >
-                                <div className="relative w-full aspect-video">
-                                    {isUnlocked ? (
-                                        <iframe
-                                            className="w-full h-full"
-                                            src={embedUrl}
-                                            title={video.title}
-                                            frameBorder="0"
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                            loading="lazy"
-                                        ></iframe>
-                                    ) : (
-                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                            <Lock className="w-8 h-8 text-gray-500" />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-3">
-                                    <h4 className={`font-semibold line-clamp-2 ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>{video.title}</h4>
-                                </div>
-                            </div>
-                        );
-                    })}
                 </div>
             </div>
         </Modal>
@@ -1558,10 +1564,12 @@ const AnimalReadingApp = () => {
     
     const GalleryScreen = () => {
         const [factModalOpen, setFactModalOpen] = useState(false);
+        // FIX 2: Added factsEarned to currentAnimal for passing to FactModal
         const [currentAnimal, setCurrentAnimal] = useState(null);
 
-        // FIX 2: Updated logic to correctly set currentAnimal data including earned facts
+        // FIX 2: Corrected open modal function logic
         const openFactModal = async (animal) => {
+            // Use the new, corrected function from the hook
             const animalWithData = await getAnimalDataForModal(animal.name);
             if (animalWithData) {
                 // Attach the earned fact count from the profile
@@ -1629,7 +1637,7 @@ const AnimalReadingApp = () => {
                                 <div 
                                     key={animal.name} 
                                     className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
-                                    // FIX 2: This onClick is now fully functional
+                                    // FIX 2: This onClick is now fully functional and correctly uses the collected check
                                     onClick={() => isCollected && openFactModal(animal)}
                                 >
                                     <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -1661,7 +1669,7 @@ const AnimalReadingApp = () => {
                         })}
                     </div>
                 </div>
-                {/* FIX 2: Modal now receives factsEarned data */}
+                {/* FIX 2: Modal now receives factsEarned data from the currentAnimal state */}
                 {factModalOpen && currentAnimal && (
                 <FactModal 
                     animal={currentAnimal}
