@@ -44,8 +44,8 @@ async function main() {
   // --- FIX 2: Read and parse the JS file to get animal names ---
   const jsContent = fs.readFileSync(dataPath, "utf-8");
   
-  // Safely extract the ANIMAL_DATABASE array using regex
-  const animalMatch = jsContent.match(/const\s+ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
+  // FIX: Look for 'window.ANIMAL_DATABASE ='
+  const animalMatch = jsContent.match(/window\.ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
   if (!animalMatch) {
       throw new Error("Could not find ANIMAL_DATABASE in docs/assets/app-data.js");
   }
