@@ -681,7 +681,8 @@ const useAppState = () => {
     const getAnimalDataForModal = useCallback(async (animalName) => {
         setIsLoading(true);
         
-        const animal = ANIMAL_DATABASE.find(a => a.name === animalName);
+        // FIX: Ensure global data object is used
+        const animal = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.find(a => a.name === animalName) : null;
         if (!animal) {
              console.error("Animal not found:", animalName);
              setIsLoading(false);
@@ -707,14 +708,17 @@ const useAppState = () => {
 
     const generateRewardAnimal = useCallback(async (isVideoReward = false, currentAppView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal) => {
         setIsLoading(true);
+        
+        // FIX: Ensure global data object is used
+        const animalDatabase = window.ANIMAL_DATABASE || [];
 
-        const uncollected = ANIMAL_DATABASE.filter(
+        const uncollected = animalDatabase.filter(
             animal => !(profile.collectedAnimals || []).includes(animal.name)
         );
 
         const animalToReward = uncollected.length > 0
             ? uncollected[Math.floor(Math.random() * uncollected.length)]
-            : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
+            : animalDatabase[Math.floor(Math.random() * animalDatabase.length)];
 
         if (!animalToReward) {
             setIsLoading(false);
@@ -863,17 +867,19 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     
     // Choose a random video 
-    const videoIndex = Math.floor(Math.random() * VIDEO_DATABASE.length);
-    const actualVideo = VIDEO_DATABASE[videoIndex];
+    const videoIndex = Math.floor(Math.random() * (window.VIDEO_DATABASE || []).length);
+    const actualVideo = (window.VIDEO_DATABASE || [])[videoIndex];
 
     return (
         <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
             <div className="text-center space-y-4">
-                <h3 className="text-2xl font-bold text-gray-800">Video Unlocked: {actualVideo.title}</h3>
+                <h3 className="text-2xl font-bold text-gray-800">Video Unlocked: {actualVideo ? actualVideo.title : 'No Video Available'}</h3>
                 <p className="text-gray-500">You earned this video for 10 consecutive correct answers!</p>
                 
                 <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center">
-                    {!isPlaying ? (
+                    {!actualVideo || !actualVideo.url ? (
+                        <div className="text-white">Video data missing.</div>
+                    ) : !isPlaying ? (
                         <div className="flex flex-col items-center justify-center h-full w-full">
                             <Video className="w-16 h-16 text-gray-500 mb-4" />
                             <button 
@@ -998,7 +1004,7 @@ const AnimalReadingApp = () => {
         };
 
         const initialShuffle = () => {
-            // FIX: Ensure global data objects are loaded before accessing properties
+            // FIX: Safely check for global data objects before accessing properties
             if (window.sightWordsData && window.sentencesData) {
                 setShuffledWords(window.sightWordsData.map(shuffleOptions).sort(() => Math.random() - 0.5));
                 setShuffledSentences(window.sentencesData.map(shuffleOptions).sort(() => Math.random() - 0.5));
@@ -1191,7 +1197,7 @@ const AnimalReadingApp = () => {
     // Components
 
     const Sidebar = () => {
-        const totalAnimals = ANIMAL_DATABASE ? ANIMAL_DATABASE.length : 0;
+        const totalAnimals = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.length : 0;
         const collectedCount = (profile.collectedAnimals || []).length;
         return (
             // FIX: Responsive sidebar for mobile
@@ -1214,7 +1220,7 @@ const AnimalReadingApp = () => {
                         icon={Image} 
                         // FIX 4: Only show "Collection" without count
                         label="Collection" 
-                        labelDesktop={`Collection (${collectedCount}/${totalAnimals})`} 
+                        labelDesktop={`Collection`} 
                         onClick={() => setAppView('gallery')} 
                     />
                     <SidebarButton icon={Trophy} label="Scores" labelDesktop="High Scores" onClick={() => setShowStatsModal(true)} />
@@ -1281,7 +1287,7 @@ const AnimalReadingApp = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Image className="w-6 h-6 text-emerald-500" />
-                        Animals: {(profile.collectedAnimals || []).length}/{(ANIMAL_DATABASE || []).length}
+                        Animals: {(profile.collectedAnimals || []).length}/{(window.ANIMAL_DATABASE || []).length}
                     </div>
                 </div>
 
@@ -1344,7 +1350,7 @@ const AnimalReadingApp = () => {
             const animal = animalData;
             if (!animal) return <LoadingScreen />; // Should be pre-loaded, but just in case
 
-            const totalFacts = ANIMAL_DATABASE.find(a => a.name === animal.name)?.facts.length || 10;
+            const totalFacts = (window.ANIMAL_DATABASE || []).find(a => a.name === animal.name)?.facts.length || 10;
             
             if (showVideoModal) {
                 return (
@@ -1553,10 +1559,10 @@ const AnimalReadingApp = () => {
             setCurrentAnimal(null);
         };
 
-        const totalAnimals = ANIMAL_DATABASE ? ANIMAL_DATABASE.length : 0;
+        const totalAnimals = (window.ANIMAL_DATABASE || []).length;
         const collected = (profile.collectedAnimals || []);
         
-        const sortedAnimals = [...(ANIMAL_DATABASE || [])].sort((a, b) => {
+        const sortedAnimals = [...(window.ANIMAL_DATABASE || [])].sort((a, b) => {
             const aCollected = collected.includes(a.name);
             const bCollected = collected.includes(b.name);
             
