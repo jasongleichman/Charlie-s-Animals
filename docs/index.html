@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta name="mobile-web-app-capable" content="yes">
@@ -7,12 +6,9 @@
   <title>Charlie's Animal Words</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
-
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
-
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
@@ -245,84 +241,210 @@
 
 <script type="text/babel">
 /* ================== AW: Local Profiles (no Firebase) ================== */
+// --- FIX: Added 'avatar' to the profile data structure ---
 const AW_AVATAR_EMOJI = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
 function awLoadProfiles(){ try { return JSON.parse(localStorage.getItem("profiles_v1")||"[]"); } catch { return []; } }
 function awSaveProfiles(list){ try { localStorage.setItem("profiles_v1", JSON.stringify(list)); } catch {} }
 function awGetSavedName(){ try { return localStorage.getItem("playerName") || ""; } catch { return ""; } }
-function awAddOrUpdateProfile(name, avatar){
-  const list = awLoadProfiles();
-  const idx = list.findIndex(p => (p.name||"").toLowerCase() === (name||"").toLowerCase());
-  const record = { name: name.trim(), avatar: avatar || "🦊", lastPlayed: Date.now() };
-  if (idx >= 0) list[idx] = { ...list[idx], ...record }; else list.push(record);
-  awSaveProfiles(list);
-  try { localStorage.setItem("playerName", record.name); } catch {}
-  return record;
+
+// --- FIX: This function now also saves all the other profile data (score, streak, etc.) ---
+function awSaveProfileData(profile) {
+    if (!profile || !profile.name) return;
+    const list = awLoadProfiles();
+    const name = profile.name.trim();
+    const idx = list.findIndex(p => (p.name||"").toLowerCase() === name.toLowerCase());
+    
+    const record = { 
+        ...profile, // Save all data (score, streak, etc.)
+        name: name, 
+        avatar: profile.avatar || "🦊", 
+        lastPlayed: Date.now() 
+    };
+    
+    if (idx >= 0) {
+        // Merge, preserving existing data if not overwritten
+        list[idx] = { ...list[idx], ...record }; 
+    } else {
+        list.push(record);
+    }
+    
+    awSaveProfiles(list);
+    try { localStorage.setItem("playerName", record.name); } catch {}
+    return record;
 }
+
+// --- NEW: Function to load a specific profile by name ---
+function awLoadProfileByName(name) {
+    if (!name) return null;
+    const list = awLoadProfiles();
+    const profile = list.find(p => (p.name||"").toLowerCase() === name.toLowerCase());
+    return profile || null;
+}
+
 function awClearActiveProfile(){ try { localStorage.removeItem("playerName"); } catch {} }
 
 /* ================== AW: Asset Manifests + Helpers ================== */
-async function awLoadImageManifest(){ try { const r=await fetch("./assets/manifest.json",{cache:"no-store"}); return r.ok?await r.json():null; } catch { return null; } }
+// --- NEW: Memoize the manifest to avoid re-fetching ---
+let __manifestCache = null;
+async function awLoadImageManifest(){ 
+    if (__manifestCache) return __manifestCache;
+    try { 
+        const r = await fetch("./assets/manifest.json", { cache: "no-store" }); 
+        if (r.ok) {
+            __manifestCache = await r.json();
+            return __manifestCache;
+        }
+        return null;
+    } catch { 
+        return null; 
+    } 
+}
+
+// --- NEW: Preloader function for performance ---
+async function awPreloadImages() {
+    console.log("Starting image preload...");
+    const manifest = await awLoadImageManifest();
+    if (!manifest || !manifest.images) {
+        console.warn("No manifest found, skipping preload.");
+        return;
+    }
+    const promises = [];
+    for (const slug in manifest.images) {
+        const url = manifest.images[slug];
+        if (url) {
+            promises.push(new Promise((resolve) => {
+                const img = new Image();
+                img.src = url;
+                img.onload = resolve;
+                img.onerror = resolve; // Continue on error
+            }));
+        }
+    }
+    await Promise.all(promises);
+    console.log(`Image preload complete (${promises.length} images).`);
+}
+
 async function awGetLocalImageForAnimal(name, slug){
   const m = await awLoadImageManifest(); if (!m || !m.images) return null;
   const s = (slug||name||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
   return m.images[s] || null;
 }
-window.getLocalImageForAnimal = awGetLocalImageForAnimal;
+window.getLocalImageForAnimal = awGetLocalImageForAnimal; // Keep for old reference if any
 
-/* ================== AW: Welcome Screen ================== */
+/* ================== AW: Welcome Screen (Login) ================== */
+// --- FIX: This is the component the user wanted for login. ---
+// --- It's now used as the 'setup' view in the main app. ---
 function AW_WelcomeScreen({ onStart }){
-  const [profiles,setProfiles]=React.useState(()=>awLoadProfiles().sort((a,b)=>b.lastPlayed-a.lastPlayed));
-  const [tab,setTab]=React.useState(profiles.length?"existing":"new");
-  const [name,setName]=React.useState(awGetSavedName());
-  const [avatar,setAvatar]=React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
-  const canStart = name.trim().length>=2;
-  function handleStart(e){ e.preventDefault(); if(!canStart) return; const rec=awAddOrUpdateProfile(name.trim(),avatar); setProfiles(awLoadProfiles().sort((a,b)=>b.lastPlayed-a.lastPlayed)); onStart&&onStart(rec); }
-  function pickExisting(p){ setName(p.name); setAvatar(p.avatar||"🦊"); handleStart(new Event("submit")); }
-  React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab,profiles,name,avatar]);
+  const [profiles, setProfiles] = React.useState(() => awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
+  const [tab, setTab] = React.useState(profiles.length ? "existing" : "new");
+  const [name, setName] = React.useState(awGetSavedName());
+  const [avatar, setAvatar] = React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
+  
+  // --- FIX: When selecting an existing player, update name/avatar state ---
+  const [selectedProfileName, setSelectedProfileName] = React.useState(awGetSavedName());
+  
+  const canStartNew = name.trim().length >= 2;
+  const canStartExisting = selectedProfileName && profiles.some(p => p.name === selectedProfileName);
+
+  function handleStart(e){ 
+      e.preventDefault(); 
+      let profileToLoad;
+      if (tab === 'new' && canStartNew) {
+          // Create a new profile structure
+          profileToLoad = { 
+              name: name.trim(), 
+              avatar: avatar || "🦊",
+              highScore: 0,
+              streak: 0,
+              collectedAnimals: [], 
+              rewardsEarned: 0,
+              highScores: [], 
+              factIndices: {}
+          };
+          awSaveProfileData(profileToLoad); // Save the new profile
+          awSaveProfiles(awLoadProfiles()); // Update list
+      } else if (tab === 'existing' && canStartExisting) {
+          // Load the existing profile
+          profileToLoad = awLoadProfileByName(selectedProfileName);
+          if (profileToLoad) {
+             try { localStorage.setItem("playerName", profileToLoad.name); } catch {}
+          }
+      }
+      
+      if (profileToLoad) {
+          setProfiles(awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed)); 
+          onStart && onStart(profileToLoad); // Pass the full profile up
+      }
+  }
+
+  function pickExisting(p){ 
+      setSelectedProfileName(p.name);
+      setName(p.name); // Also update the input field for clarity
+      setAvatar(p.avatar || "🦊");
+      // --- FIX: Don't auto-start. Let user click "Start Playing" ---
+  }
+  
+  React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab, profiles, name, avatar, selectedProfileName]);
+  
   return (
     <main className="app-shell grid place-items-center px-4 py-6">
       <div className="welcome-card bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[720px]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-bold text-2xl">Charlie’s Animal Words</h1>
+          {/* --- FIX: Show avatar for the selected/new user --- */}
           <span className="text-3xl select-none" aria-label="avatar">{avatar}</span>
         </div>
+        
         <div className="inline-flex bg-gray-100 rounded-xl p-1 mb-6">
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='new'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('new')}>New Player</button>
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='existing'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('existing')} disabled={!profiles.length} title={!profiles.length?"No saved players yet":""}>Existing Player</button>
         </div>
-        {tab==='existing'?(
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-            {profiles.length===0 && <div className="text-slate-500">No saved players yet.</div>}
-            {profiles.map((p,i)=>(
-              <button key={i} onClick={()=>pickExisting(p)} className="flex items-center gap-3 p-3 rounded-xl border transition hover:border-emerald-500 text-left">
-                <span className="text-2xl">{p.avatar||"🦊"}</span>
-                <div className="min-w-0">
-                  <div className="font-semibold truncate">{p.name}</div>
-                  <div className="text-xs text-slate-500">Last played {new Date(p.lastPlayed).toLocaleDateString()}</div>
-                </div>
-              </button>
-            ))}
+        
+        {/* --- FIX: Use a single form for both tabs --- */}
+        <form onSubmit={handleStart}>
+          {tab === 'existing' ? (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-600">Select your profile</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2 max-h-60 overflow-y-auto">
+                {profiles.length === 0 && <div className="text-slate-500">No saved players yet.</div>}
+                {profiles.map((p,i)=>(
+                  <button type="button" key={i} onClick={()=>pickExisting(p)} 
+                    className={`flex items-center gap-3 p-3 rounded-xl border transition text-left ${p.name === selectedProfileName ? "border-emerald-500 ring-1 ring-emerald-500" : "hover:border-emerald-400"}`}>
+                    <span className="text-2xl">{p.avatar||"🦊"}</span>
+                    <div className="min-w-0">
+                      <div className="font-semibold truncate">{p.name}</div>
+                      <div className="text-xs text-slate-500">Last played {new Date(p.lastPlayed).toLocaleDateString()}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-600">Choose your avatar</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {AW_AVATAR_EMOJI.map((e,i)=>(
+                  <button type="button" key={i} onClick={()=>setAvatar(e)}
+                    className={"rounded-xl border px-3 py-2 "+(e===avatar?"border-emerald-500 ring-1 ring-emerald-500":"border-slate-200")} aria-label={"avatar "+(i+1)}>{e}</button>
+                ))}
+              </div>
+              <label className="block text-sm font-medium text-slate-600">Player name</label>
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name"
+                className="block w-full rounded-xl border px-4 py-3 bg-slate-50 focus:ring-2 focus:ring-emerald-400" maxLength={30} autoFocus />
+            </div>
+          )}
+          
+          {/* --- FIX: Single "Start" button --- */}
+          <div className="flex justify-end mt-6">
+            <button type="submit" disabled={(tab === 'new' && !canStartNew) || (tab === 'existing' && !canStartExisting)}
+              className={"rounded-xl px-5 py-3 font-semibold flex items-center gap-2 "+
+                ((canStartNew && tab==='new') || (canStartExisting && tab==='existing')) ?
+                "bg-emerald-600 text-white hover:bg-emerald-700" :
+                "bg-slate-200 text-slate-500 cursor-not-allowed"}>
+              <i data-lucide="play" className="w-5 h-5"></i> Start Playing
+            </button>
           </div>
-        ):(
-          <form onSubmit={handleStart} className="space-y-4">
-            <label className="block text-sm font-medium text-slate-600">Choose your avatar</label>
-            <div className="flex flex-wrap gap-2 mb-2">
-              {AW_AVATAR_EMOJI.map((e,i)=>(
-                <button type="button" key={i} onClick={()=>setAvatar(e)}
-                  className={"rounded-xl border px-3 py-2 "+(e===avatar?"border-emerald-500 ring-1 ring-emerald-500":"border-slate-200")} aria-label={"avatar "+(i+1)}>{e}</button>
-              ))}
-            </div>
-            <label className="block text-sm font-medium text-slate-600">Player name</label>
-            <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name"
-              className="block w-full rounded-xl border px-4 py-3 bg-slate-50 focus:ring-2 focus:ring-emerald-400" maxLength={30} autoFocus />
-            <div className="flex justify-end">
-              <button type="submit" disabled={!canStart}
-                className={"rounded-xl px-5 py-3 font-semibold flex items-center gap-2 "+(canStart?"bg-emerald-600 text-white hover:bg-emerald-700":"bg-slate-200 text-slate-500 cursor-not-allowed")}>
-                <i data-lucide="play" className="w-5 h-5"></i> Start Playing
-              </button>
-            </div>
-          </form>
-        )}
+        </form>
       </div>
     </main>
   );
@@ -1567,106 +1689,73 @@ const VIDEO_DATABASE = [
 ];
 
 // --- PLAYER PROFILE CACHING UTILS ---
+// --- DEPRECATED ---
+// The functionality of these helpers has been merged into the 
+// awLoadProfiles, awSaveProfileData, and awLoadProfileByName functions above.
 const PLAYER_PROFILES_KEY = 'cached_player_profiles';
-
-const savePlayerName = (userId, name) => {
-    try {
-        const profiles = JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || '{}');
-        profiles[userId] = { userId, userName: name };
-        localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(profiles));
-    } catch (e) {
-        console.error("Error saving player name to local storage:", e);
-    }
-};
-
-const getCachedPlayerProfiles = () => {
-    try {
-        return Object.values(JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || '{}'));
-    } catch (e) {
-        console.error("Error loading player names from local storage:", e);
-        return [];
-    }
-};
-
-const removePlayerProfile = (userId) => {
-    try {
-        const profiles = JSON.parse(localStorage.getItem(PLAYER_PROFILES_KEY) || '{}');
-        delete profiles[userId];
-        localStorage.setItem(PLAYER_PROFILES_KEY, JSON.stringify(profiles));
-    } catch (e) {
-        console.error("Error removing player name from local storage:", e);
-    }
-};
+const savePlayerName = (userId, name) => {};
+const getCachedPlayerProfiles = () => [];
+const removePlayerProfile = (userId) => {};
 
 
 // --- CUSTOM HOOK: useAppState (LOCAL ONLY) ---
 
 const useAppState = () => {
-    const [userId, setUserId] = useState(null);
+    // --- FIX: Removed firebase-specific state ---
     const [isAuthReady, setIsAuthReady] = useState(false);
     
     // --- Profile State (Loaded from localStorage) ---
     const [profile, setProfile] = useState({
+        name: '', // --- FIX: Renamed userName to name for consistency ---
+        avatar: '🦊',
         highScore: 0,
         streak: 0,
         collectedAnimals: [], 
         rewardsEarned: 0,
-        userName: '',
         highScores: [], 
         factIndices: {}
     });
 
     // --- Caching/API State ---
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isGeneratingImage, setIsGeneratingImage] = useState(false); // We still use this as a "loading" flag
+    const [isLoading, setIsLoading] = useState(false); // --- FIX: Renamed isGeneratingImage to generic 'isLoading' ---
     const [apiError, setApiError] = useState(null);
     
-    // Profile Setup State 
-    const [userName, setUserName] = useState(awGetSavedName());
-    const [isSigningIn, setIsSigningIn] = useState(false);
-    const [authError, setAuthError] = useState(null);
-
+    // --- FIX: Removed setup-specific state, as it's handled by AW_WelcomeScreen ---
+    
     // --- Local Persistence ---
     const saveUserProfile = useCallback((profileToSave) => {
-        if (!userId) return;
+        if (!profileToSave || !profileToSave.name) return;
         try {
-            // This just uses the functions from the top of the script
-            awAddOrUpdateProfile(profileToSave.userName, profileToSave.avatar);
-            // You might want to save more profile data to localStorage here if needed
+            awSaveProfileData(profileToSave);
         } catch (error) {
             console.error("Error saving user profile:", error);
             setApiError("Error saving profile data.");
         }
-    }, [userId, setApiError]); 
+    }, [setApiError]); 
     
-    const loadUserProfile = useCallback((uid) => {
-        if (!uid) return;
+    const loadUserProfile = useCallback((profileToLoad) => {
         try {
-            const profiles = awLoadProfiles();
-            const name = awGetSavedName();
-            const userProfile = profiles.find(p => p.name === name) || {
+            // --- FIX: Simplified load logic. The profile is passed in from AW_WelcomeScreen ---
+            const defaultProfile = {
+                name: 'Guest',
+                avatar: '🦊',
                 highScore: 0,
                 streak: 0,
                 collectedAnimals: [],
                 rewardsEarned: 0,
-                userName: name,
                 highScores: [],
                 factIndices: {}
             };
             
-            // For this app, we'll just load the active user.
-            // A real app would load based on UID.
-            setProfile(userProfile);
-            setUserName(userProfile.userName);
+            // Merge loaded profile with defaults to ensure all keys exist
+            setProfile({ ...defaultProfile, ...profileToLoad });
             
-            // Load other saved data if you have it
-            // For now, we just use the basic profile loader
-
         } catch (error) {
             console.error("Error loading user profile:", error);
             setApiError("Error loading profile data.");
         }
-    }, [setProfile, setUserName, setApiError]); 
+    }, [setProfile, setApiError]); 
 
 
     /**
@@ -1693,6 +1782,7 @@ const useAppState = () => {
         }
 
         // 2. Try to play the local .mp3 file
+        // --- FIX: All TTS files are in ./assets/tts/ ---
         const audioUrl = `./assets/tts/${slug}.mp3`;
         const audio = new Audio(audioUrl);
 
@@ -1709,7 +1799,9 @@ const useAppState = () => {
         audio.onerror = () => {
             // 3. FALLBACK: If file is missing (404) or fails to load
             console.warn(`Audio file not found: ${audioUrl}. Using browser fallback.`);
-            setApiError(`Missing audio file for: "${text.substring(0, 30)}..."`);
+            // --- FIX: Don't show a scary error for this, just warn in console ---
+            // setApiError(`Missing audio file for: "${text.substring(0, 30)}..."`);
+            
             // Use the browser's built-in voice
             window.__speakLocal(text).finally(() => setIsSpeaking(false));
         };
@@ -1720,127 +1812,115 @@ const useAppState = () => {
     // --- Core Initialization Effect [LOCAL-ONLY] ---
     useEffect(() => {
         try {
-            // Use a simple local UID instead of Firebase auth
-            let uid = localStorage.getItem('local_uid');
-            if (!uid) {
-                uid = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
-                localStorage.setItem('local_uid', uid);
+            // --- FIX: Try to load the saved player name ---
+            const savedName = awGetSavedName();
+            if (savedName) {
+                const loadedProfile = awLoadProfileByName(savedName);
+                if (loadedProfile) {
+                    setProfile(loadedProfile);
+                }
             }
-            setUserId(uid);
-            loadUserProfile(uid); // Load profile data from localStorage
         } catch (e) {
-            console.error("Error setting up local user ID:", e);
-            setUserId('default-local-user'); // Fallback
+            console.error("Error setting up local user:", e);
         }
         
-        // We are not waiting for a server, so auth is "ready" immediately.
         setIsAuthReady(true);
         setApiError(null); 
+        
+        // --- NEW: Kick off image preloading for performance ---
+        awPreloadImages();
 
     }, []); // Empty dependency array ensures this runs once
 
     
-    const signInExistingPlayer = useCallback(async (cachedUserId) => {
-        // This is now just "switching profiles"
-        try {
-            const profiles = awLoadProfiles();
-            const player = profiles.find(p => p.userId === cachedUserId); // Note: your profiles don't have userId
-            // This function needs to be re-thought for local-only
-            // For now, we just reload the main profile
-            loadUserProfile(userId);
-            setAppView('home');
-            return true;
-        } catch (error) {
-            console.error("Error signing in existing player:", error);
-            setAuthError("Failed to load player profile. Try starting a new game.");
-            return false;
-        }
-    }, [userId, loadUserProfile]);
-
-
-    // --- Auth/Profile Setup Handlers ---
-    const saveUserNameProfile = useCallback(async (name) => {
-      try {
-        let uid = userId;
-        if (!uid) {
-          uid = localStorage.getItem('local_uid') || String(Date.now());
-          setUserId(uid);
-        }
-        
-        const newProfile = { ...profile, userName: name };
-        awAddOrUpdateProfile(name, profile.avatar); // Use the local profile function
-        
-        setProfile(newProfile);
-        setUserName(name);
-        return true;
-      } catch (error) {
-        console.error('Error saving username:', error);
-        setAuthError('Failed to save name. Please try again.');
-        return false;
-      }
-    }, [userId, profile, setProfile, setUserName, setAuthError, setUserId]);
-
-
-    const handleSignOut = async (fromSettings = false) => {
+    // --- FIX: Removed redundant/unused auth functions ---
+    
+    const handleSignOut = async () => {
         awClearActiveProfile();
         // Clear current state
-        setProfile({ highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, userName: '', highScores: [], factIndices: {} });
-        setUserName('');
-        setUserId(null); 
+        setProfile({ name: '', avatar: '🦊', highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, highScores: [], factIndices: {} });
         
-        // Navigate back to selection/setup screen
-        setAppView('setup');
+        // --- FIX: Go back to 'setup' view (the welcome screen) ---
+        // (This will be handled by the main app component)
     };
 
-    const generateRewardAnimal = useCallback(async (isVideoReward = false) => {
-    setIsGeneratingImage(true); // Use this to show a loading state
-
-    // 1. Filter for uncollected animals
-    const uncollected = ANIMAL_DATABASE.filter(
-        animal => !(profile.collectedAnimals || []).includes(animal.name)
-    );
-
-    // 2. Select a random animal (Prioritize uncollected, then fallback)
-    const animalToReward = uncollected.length > 0
-        ? uncollected[Math.floor(Math.random() * uncollected.length)]
-        : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
-
-    if (!animalToReward) {
-        setIsGeneratingImage(false);
-        return;
-    }
-
-    // 3. Determine next fact index
-    const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
-    let nextFactIndex = currentFactIndex;
-
-    if (currentFactIndex < animalToReward.facts.length) {
-        nextFactIndex = currentFactIndex + 1;
-    } 
-
-    // 4. [NEW] Get image path directly from the manifest
-    let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animalToReward.name.replace(' ', '+')}`; // Default placeholder
-    try {
-        // Use the existing helper function to load the manifest
-        const manifest = await awLoadImageManifest();
-        const slug = slugify(animalToReward.name); // Use the slugify function you already have
-        if (manifest && manifest.images && manifest.images[slug]) {
-            imageUrl = manifest.images[slug]; // Get the local path, e.g., "./assets/images/fennec-fox.webp"
+    // --- NEW: Function to get animal data (inc. image) for modals ---
+    const getAnimalDataForModal = useCallback(async (animalName) => {
+        setIsLoading(true);
+        
+        const animal = ANIMAL_DATABASE.find(a => a.name === animalName);
+        if (!animal) {
+             console.error("Animal not found:", animalName);
+             setIsLoading(false);
+             return null;
         }
-    } catch (e) {
-        console.warn("Could not load image manifest", e);
-    }
 
-    setIsGeneratingImage(false);
-    setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
+        let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`; // Default
+        try {
+            const manifest = await awLoadImageManifest();
+            const slug = slugify(animal.name);
+            if (manifest && manifest.images && manifest.images[slug]) {
+                imageUrl = manifest.images[slug];
+            }
+        } catch (e) {
+            console.warn("Could not load image manifest for modal", e);
+        }
 
-    if (isVideoReward) {
-        setShowVideoModal(true);
-    } else {
-        setShowRewardModal(true);
-    }
+        setIsLoading(false);
+        return { ...animal, imageUrl };
+        
+    }, [setIsLoading]);
 
-}, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
+
+    const generateRewardAnimal = useCallback(async (isVideoReward = false, currentAppView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal) => {
+        setIsLoading(true);
+
+        const uncollected = ANIMAL_DATABASE.filter(
+            animal => !(profile.collectedAnimals || []).includes(animal.name)
+        );
+
+        const animalToReward = uncollected.length > 0
+            ? uncollected[Math.floor(Math.random() * uncollected.length)]
+            : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
+
+        if (!animalToReward) {
+            setIsLoading(false);
+            return;
+        }
+
+        const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
+        let nextFactIndex = currentFactIndex;
+
+        if (currentFactIndex < animalToReward.facts.length) {
+            nextFactIndex = currentFactIndex + 1;
+        } 
+
+        const animalWithImage = await getAnimalDataForModal(animalToReward.name);
+        
+        setIsLoading(false);
+        
+        if (animalWithImage) {
+            setAnimalData({ ...animalWithImage, earnedFactIndex: nextFactIndex });
+            if (isVideoReward) {
+                setShowVideoModal(true);
+            } else {
+                setShowRewardModal(true);
+            }
+        }
+        
+    }, [profile, setIsLoading, getAnimalDataForModal]);
+
+
+    // --- Return all state and functions ---
+    return {
+        isAuthReady,
+        profile, setProfile,
+        isSpeaking, isLoading, apiError, setApiError,
+        saveUserProfile, handleSignOut, speak, 
+        generateRewardAnimal, getAnimalDataForModal, // --- FIX: Export new/renamed functions ---
+        loadUserProfile // --- NEW: Export loadUserProfile ---
+    };
+}; // --- End of useAppState hook ---
 
 
 // --- UI COMPONENTS & MODALS ---
@@ -1867,11 +1947,12 @@ const Modal = ({ title, children, onClose }) => (
 
 // Fact Modal Component
 const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-    const [factIndex, setFactIndex] = useState(0);
+    // --- FIX: Default to fact 0 if no facts earned yet (for gallery view) ---
+    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
     const totalFactsCount = animal.facts.length;
 
-    // Ensure the initial factIndex is a valid unlocked fact
     useEffect(() => {
+        // When factsEarned changes (e.g., in reward modal), update to show the *newest* fact
         if (factsEarned > 0) {
             setFactIndex(factsEarned - 1);
         }
@@ -1896,23 +1977,26 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
 
                 <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
 
-                <div className="space-y-2 max-h-48 overflow-y-auto">
+                {/* --- FIX: Fact list is now scrollable on its own --- */}
+                <div className="space-y-2 max-h-60 overflow-y-auto p-1">
                     {animal.facts.map((fact, index) => {
                         const isUnlocked = index < factsEarned;
                         const isCurrent = index === factIndex;
                         const factNumber = index + 1;
-                        const factText = isUnlocked ? fact : 'Locked. Earn this fact in the quiz!';
+                        // --- FIX: Show fact text even if locked, but disabled ---
+                        const factText = fact; 
 
                         return (
                             <div 
                                 key={index} 
+                                // --- FIX: OnClick now works for any unlocked fact ---
                                 className={`p-3 rounded-lg flex justify-between items-center transition-all ${
-                                    isUnlocked ? 'hover:bg-emerald-100 cursor-pointer' : 'bg-gray-100 text-gray-400'
-                                } ${isCurrent ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'bg-white'}`}
+                                    isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400'
+                                } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
                                 onClick={() => { if (isUnlocked) setFactIndex(index); }}
                             >
-                                <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-400'}`}>
-                                    Fact {factNumber}: {factText}
+                                <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
+                                    <strong className="text-emerald-600">Fact {factNumber}:</strong> {factText}
                                 </span>
                                 {isUnlocked ? (
                                     <button 
@@ -1921,7 +2005,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                             speak(fact); 
                                         }}
                                         disabled={isSpeaking}
-                                        className={`p-2 rounded-full flex-shrink-0 ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
+                                        className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
                                     >
                                         <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
                                     </button>
@@ -1998,7 +2082,7 @@ const StatsModal = ({ profile, onClose }) => {
     return (
         <Modal title="High Score History" onClose={onClose}>
             <div className="space-y-4">
-                <p className="text-sm text-gray-500 border-b pb-2">All scores logged for player: <span className="font-semibold text-emerald-600">{profile.userName}</span></p>
+                <p className="text-sm text-gray-500 border-b pb-2">All scores logged for player: <span className="font-semibold text-emerald-600">{profile.name}</span></p>
                 <div className="max-h-80 overflow-y-auto space-y-3">
                     {sortedScores.length > 0 ? (
                         sortedScores.map((s, index) => (
@@ -2025,57 +2109,15 @@ const StatsModal = ({ profile, onClose }) => {
     );
 };
 
-// Player Selection Modal Component
-const PlayerSelectionModal = ({ onSelectPlayer, onStartNew, onClose }) => {
-    const cachedPlayers = getCachedPlayerProfiles();
-    
-    // Filter to ensure only unique userNames are displayed if multiple UIDs somehow share a name
-    const uniquePlayers = cachedPlayers.reduce((acc, player) => {
-        if (!acc.some(p => p.userName === player.userName)) {
-            acc.push(player);
-        }
-        return acc;
-    }, []);
-
-    const handleDelete = (userId, userName) => {
-        if (window.confirm(`Are you sure you want to delete local login data for ${userName}? This does NOT delete their cloud data.`)) {
-             removePlayerProfile(userId);
-             onClose(); // Force re-render of selection screen
-        }
-    };
-    
+// --- NEW: Simple Modal for "Rewards" ---
+const RewardsModal = ({ profile, onClose }) => {
     return (
-        <Modal title="Select Player Profile" onClose={onClose}>
-            <div className="space-y-4">
-                {uniquePlayers.length > 0 ? (
-                    uniquePlayers.map((player) => (
-                        <div key={player.userId} className="bg-gray-100 p-4 rounded-xl flex justify-between items-center shadow-sm">
-                            <button
-                                onClick={() => onSelectPlayer(player.userId)}
-                                className="text-left text-lg font-semibold text-gray-800 hover:text-emerald-600 transition-colors flex-grow"
-                            >
-                                {player.userName}
-                            </button>
-                            <button 
-                                onClick={() => handleDelete(player.userId, player.userName)}
-                                className="text-red-400 hover:text-red-600 p-2 ml-4 rounded-full bg-gray-200 hover:bg-red-50 transition-colors"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                    ))
-                ) : (
-                    <p className="text-center text-gray-500 py-4">No saved players found.</p>
-                )}
-                
-                <div className="pt-4 border-t border-gray-200">
-                    <button
-                        onClick={onStartNew}
-                        className="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors"
-                    >
-                        Start New Player Profile
-                    </button>
-                </div>
+        <Modal title="My Rewards" onClose={onClose}>
+            <div className="space-y-4 text-center">
+                <Award className="w-16 h-16 text-emerald-500 mx-auto" />
+                <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
+                <p className="text-6xl font-extrabold text-emerald-600">{profile.rewardsEarned || 0}</p>
+                <p className="text-gray-500">You earn a new video reward for every 10-question streak in the quiz!</p>
             </div>
         </Modal>
     );
@@ -2085,17 +2127,18 @@ const PlayerSelectionModal = ({ onSelectPlayer, onStartNew, onClose }) => {
 // --- MAIN APP COMPONENT ---
 
 const AnimalReadingApp = () => {
-    // 🔥 New State Hook 
+    // 🔥 State Hook 
     const {
-        userId, isAuthReady,
-        userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
+        isAuthReady,
         profile, setProfile,
-        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError,
-        saveUserNameProfile, handleSignOut, speak, generateAnimalImage, saveUserProfile, signInExistingPlayer
+        isSpeaking, isLoading, apiError, setApiError,
+        saveUserProfile, handleSignOut, speak, 
+        generateRewardAnimal, getAnimalDataForModal,
+        loadUserProfile
     } = useAppState();
 
     // --- Local Game State ---
-    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'welcome', 'game', 'complete', 'gallery'
+    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'home', 'game', 'complete', 'gallery'
     const [gameMode, setGameMode] = useState('words');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -2107,7 +2150,7 @@ const AnimalReadingApp = () => {
     
     // UI State
     const [showStatsModal, setShowStatsModal] = useState(false);
-    const [showPlayerModal, setShowPlayerModal] = useState(false);
+    const [showRewardsModal, setShowRewardsModal] = useState(false); // --- NEW ---
 
 
     // --- Game Data Initializer & Shuffling ---
@@ -2132,33 +2175,26 @@ const AnimalReadingApp = () => {
     // Effect to handle view transition after auth is ready and profile loaded
     useEffect(() => {
         if (isAuthReady && appView === 'loading') {
-            if (!profile.userName) {
+            // --- FIX: Check profile.name instead of profile.userName ---
+            if (!profile.name) {
                  setAppView('setup');
             } else {
                  setAppView('home');
             }
         }
-    }, [isAuthReady, appView, profile.userName]);
+    }, [isAuthReady, appView, profile.name]);
 
 
-    // --- Handlers: Setup ---
-    const handleSetupSubmit = async (e) => {
-        e.preventDefault();
-        setAuthError(null);
-        setIsSigningIn(true);
-
-        if (!userName.trim()) {
-            setAuthError("Please enter your name to start.");
-            setIsSigningIn(false);
-            return;
-        }
-
-        const success = await saveUserNameProfile(userName);
-
-        if (success) {
-            setAppView('home'); // Go straight home
-        }
-        setIsSigningIn(false);
+    // --- FIX: This handler is now passed to AW_WelcomeScreen ---
+    const handleStartPlaying = (loadedProfile) => {
+        loadUserProfile(loadedProfile);
+        setAppView('home');
+    };
+    
+    // --- FIX: This handler is now passed to the Sidebar ---
+    const handleSignOutAndReset = () => {
+        handleSignOut();
+        setAppView('setup'); // Go back to the login screen
     };
 
     
@@ -2193,7 +2229,6 @@ const AnimalReadingApp = () => {
         setGameMode(pausedGame.mode);
         setCurrentIndex(pausedGame.index);
         setScore(pausedGame.score);
-        // The shuffled lists retain their state from before the pause
         setPausedGame(null);
         setAppView('game');
     };
@@ -2211,7 +2246,7 @@ const AnimalReadingApp = () => {
         const newScoreEntry = {
             score: finalScore,
             mode: mode,
-            userName: profile.userName,
+            userName: profile.name, // --- FIX: Use profile.name ---
             date: Date.now(),
         };
 
@@ -2230,57 +2265,7 @@ const AnimalReadingApp = () => {
         setPausedGame(null); // Clear pause on game over
     };
 
-    const generateRewardAnimal = useCallback(async (isVideoReward = false) => {
-    setIsGeneratingImage(true); // Use this to show a loading state
-
-    // 1. Filter for uncollected animals
-    const uncollected = ANIMAL_DATABASE.filter(
-        animal => !(profile.collectedAnimals || []).includes(animal.name)
-    );
-
-    // 2. Select a random animal (Prioritize uncollected, then fallback)
-    const animalToReward = uncollected.length > 0
-        ? uncollected[Math.floor(Math.random() * uncollected.length)]
-        : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
-
-    if (!animalToReward) {
-        setIsGeneratingImage(false);
-        return;
-    }
-
-    // 3. Determine next fact index
-    const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
-    let nextFactIndex = currentFactIndex;
-
-    if (currentFactIndex < animalToReward.facts.length) {
-        nextFactIndex = currentFactIndex + 1;
-    } 
-
-    // 4. [NEW] Get image path directly from the manifest
-    let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animalToReward.name.replace(' ', '+')}`; // Default placeholder
-    try {
-        // Use the existing function to load the manifest
-        const manifest = await awLoadImageManifest();
-        const slug = slugify(animalToReward.name); // Use the slugify function you already have
-        if (manifest && manifest.images && manifest.images[slug]) {
-            imageUrl = manifest.images[slug]; // Get the local path, e.g., "./assets/images/fennec-fox.webp"
-        }
-    } catch (e) {
-        console.warn("Could not load image manifest", e);
-    }
-
-    setIsGeneratingImage(false);
-    setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
-
-    if (isVideoReward) {
-        setShowVideoModal(true);
-    } else {
-        setShowRewardModal(true);
-    }
-
-}, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
-
-
+    
     const handleAnswer = (answer) => {
         if (selectedAnswer) return;
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
@@ -2307,10 +2292,12 @@ const AnimalReadingApp = () => {
                 };
                 setProfile(updatedProfile);
                 saveUserProfile(updatedProfile); 
-                generateRewardAnimal(true); // Triggers Video Modal
+                
+                // --- FIX: Pass all required state setters to the reward function ---
+                generateRewardAnimal(true, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
             } else {
                 // Standard Animal/Fact Reward
-                generateRewardAnimal(false); // Triggers Fact Modal
+                generateRewardAnimal(false, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
             }
 
         } else {
@@ -2369,41 +2356,50 @@ const AnimalReadingApp = () => {
         const totalAnimals = ANIMAL_DATABASE.length;
         const collectedCount = (profile.collectedAnimals || []).length;
         return (
-            <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200">
-                <div className="flex flex-col mb-8 border-b pb-4">
+            // --- FIX: Responsive sidebar for mobile ---
+            <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200 
+                            max-lg:w-full max-lg:h-auto max-lg:bottom-0 max-lg:top-auto max-lg:flex-row max-lg:items-center max-lg:justify-around max-lg:p-2 max-lg:border-t-2">
+                
+                {/* --- HIDE ON MOBILE --- */}
+                <div className="flex flex-col mb-8 border-b pb-4 max-lg:hidden">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        <Trophy className="w-6 h-6 text-emerald-500" /> Charlie's Animal Words
+                        <Trophy className="w-6 h-6 text-emerald-500" /> Charlie's Words
                     </h2>
-                    <p className="text-sm text-gray-500 mt-1">Player: {profile.userName || 'Guest'}</p>
+                    <p className="text-sm text-gray-500 mt-1">Player: {profile.name || 'Guest'}</p>
                 </div>
                 
-                <nav className="flex-grow space-y-3">
+                {/* --- FIX: Horizontal nav for mobile --- */}
+                <nav className="flex-grow space-y-3 max-lg:flex max-lg:space-y-0 max-lg:space-x-2 max-lg:flex-grow-0">
                     <SidebarButton icon={Home} label="Home" onClick={() => setAppView('home')} />
                     <SidebarButton 
                         icon={Image} 
-                        label={`Collection (${collectedCount}/${totalAnimals})`} 
+                        label={`Collection`} 
+                        labelDesktop={`Collection (${collectedCount}/${totalAnimals})`} 
                         onClick={() => setAppView('gallery')} 
                     />
-                    <SidebarButton icon={Trophy} label="High Scores" onClick={() => setShowStatsModal(true)} />
-                    <SidebarButton icon={Video} label={`Rewards (${profile.rewardsEarned || 0})`} onClick={() => { /* Placeholder */ }} />
+                    <SidebarButton icon={Trophy} label="Scores" labelDesktop="High Scores" onClick={() => setShowStatsModal(true)} />
+                    {/* --- FIX: Hook up rewards button --- */}
+                    <SidebarButton icon={Video} label={`Rewards`} labelDesktop={`Rewards (${profile.rewardsEarned || 0})`} onClick={() => setShowRewardsModal(true)} />
                 </nav>
 
-                <div className="mt-auto pt-6 border-t border-gray-200 space-y-3">
-                    <SidebarButton icon={Users} label="Change Player / Sign Out" onClick={() => {
-                        handleSignOut();
-                    }} />
+                {/* --- HIDE ON MOBILE --- */}
+                <div className="mt-auto pt-6 border-t border-gray-200 space-y-3 max-lg:hidden">
+                    <SidebarButton icon={Users} label="Change Player" data-action="signout" onClick={handleSignOutAndReset} />
                 </div>
             </div>
         );
     };
     
-    const SidebarButton = ({ icon: Icon, label, onClick }) => (
+    // --- FIX: SidebarButton now supports different mobile/desktop labels ---
+    const SidebarButton = ({ icon: Icon, label, labelDesktop, onClick }) => (
         <button
             onClick={onClick}
-            className="w-full flex items-center p-3 rounded-xl text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors font-medium"
+            className="w-full flex items-center p-3 rounded-xl text-gray-700 hover:bg-emerald-50 hover:text-emerald-600 transition-colors font-medium
+                       max-lg:flex-col max-lg:text-xs max-lg:p-2 max-lg:w-20"
         >
-            <Icon className="w-5 h-5 mr-3" />
-            {label}
+            <Icon className="w-5 h-5 mr-3 max-lg:mr-0 max-lg:mb-1" />
+            <span className="max-lg:hidden">{labelDesktop || label}</span>
+            <span className="lg:hidden">{label}</span>
         </button>
     );
 
@@ -2414,152 +2410,76 @@ const AnimalReadingApp = () => {
             <p className="text-xl font-bold mt-4 text-gray-700">Loading App...</p>
         </div>
     );
-
-    const ProfileSetupScreen = () => {
-        const cachedPlayers = awLoadProfiles();
-        const showPlayerSelect = cachedPlayers.length > 0 && !showPlayerModal;
-
-        return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-                <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
-                    <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-                        <Users className="w-6 h-6 text-emerald-500" /> <span className="welcome-title">Welcome!</span>
-                    </h1>
-
-                    <p className="text-gray-500 mb-6">Enter your name to track your progress and collection.</p>
-
-                    <form onSubmit={handleSetupSubmit}>
-                        <input
-                            type="text"
-                            value={userName}
-                            onChange={(e) => setUserName(e.target.value)}
-                            placeholder="First Name (e.g., John)"
-                            className="w-full text-lg p-3 mb-4 rounded-xl bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                            disabled={isSigningIn}
-                            autoFocus 
-                        />
-
-                        {authError && (
-                            <p className="text-red-500 font-semibold mb-4 text-left text-sm">{authError}</p>
-                        )}
-
-                        <button
-                            type="submit"
-                            disabled={isSigningIn}
-                            className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] disabled:bg-gray-300 shadow-md shadow-emerald-500/20"
-                        >
-                            {isSigningIn ? (
-                                <>
-                                    <Loader2 className="w-6 h-6 animate-spin" />
-                                    Saving...
-                                </>
-                            ) : (
-                                'Start Playing'
-                            )}
-                        </button>
-                    </form>
-                    
-                    {showPlayerSelect && (
-                        <button
-                             onClick={() => setShowPlayerModal(true)}
-                             className="w-full mt-4 text-emerald-600 hover:text-emerald-800 text-sm font-semibold transition"
-                        >
-                            Select Existing Player ({cachedPlayers.length})
-                        </button>
-                    )}
-                </div>
-                {showPlayerModal && <PlayerSelectionModal 
-                    onSelectPlayer={(uid) => {
-                        // This local-only version just reloads the profile by name
-                        const player = awLoadProfiles().find(p => p.userId === uid); // This won't work as-is
-                        // Simple version: just use the name from local storage
-                        awGetSavedName();
-                        loadUserProfile(userId); // Reload the current user
-                        setShowPlayerModal(false);
-                        setAppView('home');
-                     }}
-                    onStartNew={() => setShowPlayerModal(false)}
-                    onClose={() => setShowPlayerModal(false)}
-                />}
-            </div>
-        );
-    };
     
+    // --- FIX: Main container styles for responsive sidebar ---
+    const MainContainer = ({ children }) => (
+        <div className="flex h-screen w-screen max-lg:flex-col">
+            <Sidebar />
+            <main className="flex-grow lg:ml-64 flex flex-col items-center bg-gray-50 p-6 md:p-12 overflow-y-auto max-lg:pb-24">
+                 {children}
+            </main>
+        </div>
+    );
 
     const WelcomeScreen = () => (
-        <div className="flex h-screen w-screen">
-             <Sidebar />
-            
-            <div className="flex-grow ml-64 flex flex-col items-center justify-center bg-gray-50 p-6 md:p-12">
-                <div className="w-full max-w-4xl">
-                    <div className="mb-8">
-                        <h1 className="text-4xl font-extrabold text-gray-800">Welcome, {profile.userName}!</h1>
+        <MainContainer>
+            <div className="w-full max-w-4xl">
+                <div className="mb-8">
+                    <h1 className="text-4xl font-extrabold text-gray-800">Welcome, {profile.name}!</h1>
+                </div>
+                
+                {/* --- STATS INDICATORS --- */}
+                <div className="flex flex-wrap justify-around items-center bg-white p-4 rounded-xl mb-10 shadow-lg border border-gray-200">
+                    <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
+                        <Star className="w-6 h-6 text-emerald-500" />
+                        High Score: {profile.highScore || 0}
                     </div>
-                    
-                    {/* --- STATS INDICATORS --- */}
-                    <div className="flex flex-wrap justify-around items-center bg-white p-4 rounded-xl mb-10 shadow-lg border border-gray-200">
-                        <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
-                            <Star className="w-6 h-6 text-emerald-500" />
-                            High Score: {profile.highScore || 0}
-                        </div>
-                        <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
-                            <Zap className="w-6 h-6 text-emerald-500" />
-                            Current Streak: {profile.streak || 0}
-                        </div>
-                        <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
-                            <Image className="w-6 h-6 text-emerald-500" />
-                            Animals: {(profile.collectedAnimals || []).length}/{ANIMAL_DATABASE.length}
-                        </div>
+                    <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
+                        <Zap className="w-6 h-6 text-emerald-500" />
+                        Streak: {profile.streak || 0}
                     </div>
-
-                    {/* --- GAME TILES --- */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <button
-                            onClick={() => pausedGame && pausedGame.mode === 'words' ? resumeGame() : startNewGame('words')}
-                            className="bg-emerald-500 text-white p-10 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30"
-                        >
-                            <BookOpen className="w-12 h-12" />
-                            <span className="text-2xl font-bold">1. Sight Words Quiz</span>
-                            {pausedGame && pausedGame.mode === 'words' ? (
-                                <span className="text-sm opacity-90 bg-emerald-700 px-3 py-1 rounded-full flex items-center gap-2">
-                                    <Play className="w-4 h-4" /> RESUME GAME ({pausedGame.score} pts)
-                                </span>
-                            ) : (
-                                <span className="text-sm opacity-90">Focus on individual words (100 total)</span>
-                            )}
-                        </button>
-                        <button
-                            onClick={() => pausedGame && pausedGame.mode === 'sentences' ? resumeGame() : startNewGame('sentences')}
-                            className="bg-emerald-500 text-white p-10 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30"
-                        >
-                            <MessageSquare className="w-12 h-12" />
-                            <span className="text-2xl font-bold">2. Sentence Quiz</span>
-                            {pausedGame && pausedGame.mode === 'sentences' ? (
-                                <span className="text-sm opacity-90 bg-emerald-700 px-3 py-1 rounded-full flex items-center gap-2">
-                                    <Play className="w-4 h-4" /> RESUME GAME ({pausedGame.score} pts)
-                                </span>
-                            ) : (
-                                <span className="text-sm opacity-90">Practice full sentence comprehension (50 total)</span>
-                            )}
-                        </button>
+                    <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
+                        <Image className="w-6 h-6 text-emerald-500" />
+                        Animals: {(profile.collectedAnimals || []).length}/{ANIMAL_DATABASE.length}
                     </div>
                 </div>
-                {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
-                {showPlayerModal && <PlayerSelectionModal 
-                    onSelectPlayer={(uid) => {
-                        // This local-only version just reloads the profile by name
-                        const player = awLoadProfiles().find(p => p.userId === uid); // This won't work as-is
-                        // Simple version: just use the name from local storage
-                        awGetSavedName();
-                        loadUserProfile(userId); // Reload the current user
-                        setShowPlayerModal(false);
-                        setAppView('home');
-                     }}
-                    onStartNew={() => { handleSignOut(); setShowPlayerModal(false); }}
-                    onClose={() => setShowPlayerModal(false)}
-                />}
+
+                {/* --- GAME TILES --- */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <button
+                        onClick={() => pausedGame && pausedGame.mode === 'words' ? resumeGame() : startNewGame('words')}
+                        className="bg-emerald-500 text-white p-10 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30"
+                    >
+                        <BookOpen className="w-12 h-12" />
+                        <span className="text-2xl font-bold">1. Sight Words Quiz</span>
+                        {pausedGame && pausedGame.mode === 'words' ? (
+                            <span className="text-sm opacity-90 bg-emerald-700 px-3 py-1 rounded-full flex items-center gap-2">
+                                <Play className="w-4 h-4" /> RESUME GAME ({pausedGame.score} pts)
+                            </span>
+                        ) : (
+                            <span className="text-sm opacity-90">Focus on individual words (100 total)</span>
+                        )}
+                    </button>
+                    <button
+                        onClick={() => pausedGame && pausedGame.mode === 'sentences' ? resumeGame() : startNewGame('sentences')}
+                        className="bg-emerald-500 text-white p-10 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30"
+                    >
+                        <MessageSquare className="w-12 h-12" />
+                        <span className="text-2xl font-bold">2. Sentence Quiz</span>
+                        {pausedGame && pausedGame.mode === 'sentences' ? (
+                            <span className="text-sm opacity-90 bg-emerald-700 px-3 py-1 rounded-full flex items-center gap-2">
+                                <Play className="w-4 h-4" /> RESUME GAME ({pausedGame.score} pts)
+                            </span>
+                        ) : (
+                            <span className="text-sm opacity-90">Practice full sentence comprehension (50 total)</span>
+                        )}
+                    </button>
+                </div>
             </div>
-        </div>
+            {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
+            {/* --- FIX: Hook up new rewards modal --- */}
+            {showRewardsModal && <RewardsModal profile={profile} onClose={() => setShowRewardsModal(false)} />}
+        </MainContainer>
     );
     
     // --- Game Screen Logic ---
@@ -2612,7 +2532,7 @@ const AnimalReadingApp = () => {
                             </p>
 
                             <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
-                                {isGeneratingImage ? (
+                                {isLoading ? (
                                     <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
                                 ) : (
                                     <img 
@@ -2648,146 +2568,144 @@ const AnimalReadingApp = () => {
         
         // Main Quiz UI
         return (
-            <div className="flex h-screen w-screen">
-                <Sidebar />
-                <div className="flex-grow ml-64 flex flex-col items-center bg-gray-50 p-6 md:p-12">
-                    <div className="w-full max-w-lg">
-                        {/* Header */}
-                        <div className="flex justify-between items-center py-4 px-2 mb-6 border-b border-gray-200">
-                            <button onClick={pauseGame} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
-                                <Menu className="w-6 h-6" />
-                            </button>
-                            <div className="flex items-center gap-2">
-                                <Star className="w-8 h-8 text-emerald-500" />
-                                <span className="text-2xl font-bold text-gray-800">{score}</span>
-                                <span className="text-gray-500 ml-4">Streak: {profile.streak || 0}</span>
+            <MainContainer>
+                <div className="w-full max-w-lg">
+                    {/* Header */}
+                    <div className="flex justify-between items-center py-4 px-2 mb-6 border-b border-gray-200">
+                        <button onClick={pauseGame} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
+                            <Menu className="w-6 h-6" />
+                        </button>
+                        <div className="flex items-center gap-2">
+                            <Star className="w-8 h-8 text-emerald-500" />
+                            <span className="text-2xl font-bold text-gray-800">{score}</span>
+                            <span className="text-gray-500 ml-4">Streak: {profile.streak || 0}</span>
+                        </div>
+                        <h2 className="text-xl font-bold text-gray-700 max-sm:hidden">
+                            {gameMode === 'words' ? 'Sight Words' : 'Sentences'}
+                        </h2>
+                    </div>
+
+                    {/* API Error Message */}
+                    {apiError && (
+                        <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
+                            <p className="font-bold">Audio Warning:</p>
+                            <p>{apiError}</p>
+                        </div>
+                    )}
+
+                    {/* Question Card */}
+                    <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl">
+                        <div className="text-center mb-8">
+                            <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
+                                <Image className="w-12 h-12 text-gray-400 mb-2" />
+                                <span className="text-xl font-semibold text-gray-700">MYSTERY ANIMAL</span>
+                                <p className="text-sm text-gray-500">Get it right to reveal the fact!</p>
                             </div>
-                            <h2 className="text-xl font-bold text-gray-700">
-                                {gameMode === 'words' ? 'Sight Words Quiz' : 'Sentence Quiz'}
-                            </h2>
+
+                            <button
+                                onClick={() => speak(mainText)}
+                                disabled={isSpeaking}
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center gap-3 mx-auto transition-all transform hover:scale-105 shadow-md shadow-emerald-500/20 disabled:bg-gray-400"
+                            >
+                                {isSpeaking ? (
+                                    <>
+                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        Listening...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Volume2 className="w-6 h-6" />
+                                        Listen
+                                    </>
+                                )}
+                            </button>
                         </div>
 
-                        {/* API Error Message */}
-                        {apiError && (
-                            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
-                                <p className="font-bold">Audio Warning:</p>
-                                <p>{apiError}</p>
-                            </div>
-                        )}
+                        {/* Answer Options */}
+                        <div className="space-y-4">
+                            <p className="text-center text-lg font-semibold text-gray-700 mb-4">
+                                Select the correct text:
+                            </p>
+                            {currentItem.options.map((option, idx) => {
+                                const isSelected = selectedAnswer === option;
+                                const isCorrect = option === currentItem.correct;
+                                const showResult = selectedAnswer !== null;
 
-                        {/* Question Card */}
-                        <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl">
-                            <div className="text-center mb-8">
-                                <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
-                                    <Image className="w-12 h-12 text-gray-400 mb-2" />
-                                    <span className="text-xl font-semibold text-gray-700">MYSTERY ANIMAL</span>
-                                    <p className="text-sm text-gray-500">Get it right to reveal the fact!</p>
-                                </div>
+                                let buttonClass = 'bg-gray-100 hover:bg-gray-200 text-gray-700';
+                                if (showResult && isSelected && isCorrect) {
+                                    buttonClass = 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-100';
+                                } else if (showResult && isSelected && !isCorrect) {
+                                    buttonClass = 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-100';
+                                } else if (showResult && isCorrect) {
+                                    buttonClass = 'bg-emerald-100 text-emerald-700 opacity-80'; // Hint correct
+                                } else if (showResult) {
+                                    buttonClass = 'bg-gray-50 text-gray-400 opacity-60'; // Dim unselected/incorrect
+                                }
 
-                                <button
-                                    onClick={() => speak(mainText)}
-                                    disabled={isSpeaking}
-                                    className="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center gap-3 mx-auto transition-all transform hover:scale-105 shadow-md shadow-emerald-500/20 disabled:bg-gray-400"
-                                >
-                                    {isSpeaking ? (
-                                        <>
-                                            <Loader2 className="w-6 h-6 animate-spin" />
-                                            Listening...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Volume2 className="w-6 h-6" />
-                                            Listen
-                                        </>
-                                    )}
-                                </button>
-                            </div>
+                                return (
+                                    <button
+                                        key={idx}
+                                        onClick={() => {
+                                            if (!selectedAnswer) handleAnswer(option);
+                                        }}
+                                        disabled={isSpeaking || selectedAnswer !== null}
+                                        className={`w-full font-medium py-3 px-6 rounded-xl text-lg text-center transition-all duration-300 transform disabled:cursor-not-allowed ${buttonClass}`}
+                                    >
+                                        {option}
+                                    </button>
+                                );
+                            })}
+                        </div>
 
-                            {/* Answer Options */}
-                            <div className="space-y-4">
-                                <p className="text-center text-lg font-semibold text-gray-700 mb-4">
-                                    Select the correct text:
-                                </p>
-                                {currentItem.options.map((option, idx) => {
-                                    const isSelected = selectedAnswer === option;
-                                    const isCorrect = option === currentItem.correct;
-                                    const showResult = selectedAnswer !== null;
-
-                                    let buttonClass = 'bg-gray-100 hover:bg-gray-200 text-gray-700';
-                                    if (showResult && isSelected && isCorrect) {
-                                        buttonClass = 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-100';
-                                    } else if (showResult && isSelected && !isCorrect) {
-                                        buttonClass = 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-100';
-                                    } else if (showResult && isCorrect) {
-                                        buttonClass = 'bg-emerald-100 text-emerald-700 opacity-80'; // Hint correct
-                                    } else if (showResult) {
-                                        buttonClass = 'bg-gray-50 text-gray-400 opacity-60'; // Dim unselected/incorrect
-                                    }
-
-                                    return (
-                                        <button
-                                            key={idx}
-                                            onClick={() => {
-                                                if (!selectedAnswer) handleAnswer(option);
-                                            }}
-                                            disabled={isSpeaking || selectedAnswer !== null}
-                                            className={`w-full font-medium py-3 px-6 rounded-xl text-lg text-center transition-all duration-300 transform disabled:cursor-not-allowed ${buttonClass}`}
-                                        >
-                                            {option}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <div className="mt-8 text-center text-sm text-gray-400">
-                                Question {currentIndex + 1} of {currentContent.length}
-                            </div>
+                        <div className="mt-8 text-center text-sm text-gray-400">
+                            Question {currentIndex + 1} of {currentContent.length}
                         </div>
                     </div>
                 </div>
-            </div>
+            </MainContainer>
         );
     };
 
     const CompletionScreen = () => (
-        <div className="flex h-screen w-screen">
-             <Sidebar />
-            <div className="flex-grow ml-64 flex flex-col items-center justify-center bg-gray-50 p-6 md:p-12">
-                <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
-                    <Trophy className="w-16 h-16 text-emerald-500 mx-auto mb-6 animate-bounce" />
-                    <h1 className="text-3xl font-bold text-gray-800 mb-4">Round Complete!</h1>
+        <MainContainer>
+            <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
+                <Trophy className="w-16 h-16 text-emerald-500 mx-auto mb-6 animate-bounce" />
+                <h1 className="text-3xl font-bold text-gray-800 mb-4">Round Complete!</h1>
 
-                    <div className="space-y-4 my-6">
-                        <div className="bg-emerald-50 p-4 rounded-xl">
-                            <p className="text-sm text-emerald-700">Final Score</p>
-                            <p className="text-4xl font-bold text-emerald-500">{score}</p>
-                        </div>
-                        <div className="bg-gray-100 p-4 rounded-xl">
-                            <p className="text-sm text-gray-600">High Score</p>
-                            <p className="text-4xl font-bold text-gray-700">{profile.highScore || 0}</p>
-                        </div>
+                <div className="space-y-4 my-6">
+                    <div className="bg-emerald-50 p-4 rounded-xl">
+                        <p className="text-sm text-emerald-700">Final Score</p>
+                        <p className="text-4xl font-bold text-emerald-500">{score}</p>
                     </div>
-
-                    <button
-                        onClick={() => setAppView('home')}
-                        className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xl font-bold py-3 rounded-xl flex items-center justify-center gap-3 transition-colors"
-                    >
-                        <Home className="w-6 h-6" />
-                        Main Menu
-                    </button>
+                    <div className="bg-gray-100 p-4 rounded-xl">
+                        <p className="text-sm text-gray-600">High Score</p>
+                        <p className="text-4xl font-bold text-gray-700">{profile.highScore || 0}</p>
+                    </div>
                 </div>
+
+                <button
+                    onClick={() => setAppView('home')}
+                    className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xl font-bold py-3 rounded-xl flex items-center justify-center gap-3 transition-colors"
+                >
+                    <Home className="w-6 h-6" />
+                    Main Menu
+                </button>
             </div>
-        </div>
+        </MainContainer>
     );
     
     const GalleryScreen = () => {
         const [factModalOpen, setFactModalOpen] = useState(false);
         const [currentAnimal, setCurrentAnimal] = useState(null);
 
+        // --- FIX: This is the function that was broken ---
         const openFactModal = async (animal) => {
-            const imageUrl = await generateAnimalImage(animal.name);
-            setCurrentAnimal({ ...animal, imageUrl });
-            setFactModalOpen(true);
+            // Use the new, corrected function from the hook
+            const animalWithData = await getAnimalDataForModal(animal.name);
+            if (animalWithData) {
+                setCurrentAnimal(animalWithData);
+                setFactModalOpen(true);
+            }
         };
 
         const closeFactModal = () => {
@@ -2798,80 +2716,96 @@ const AnimalReadingApp = () => {
         const totalAnimals = ANIMAL_DATABASE.length;
         const collected = (profile.collectedAnimals || []);
         
-        // --- Sorting Logic: Unlocked First ---
         const sortedAnimals = [...ANIMAL_DATABASE].sort((a, b) => {
             const aCollected = collected.includes(a.name);
             const bCollected = collected.includes(b.name);
             
-            if (aCollected && !bCollected) return -1; // a comes first
-            if (!aCollected && bCollected) return 1;  // b comes first
-            return a.name.localeCompare(b.name); // Alphabetical fallback
+            if (aCollected && !bCollected) return -1;
+            if (!aCollected && bCollected) return 1;
+            return a.name.localeCompare(b.name);
         });
         
+        // --- NEW: State for preloaded image URLs ---
+        const [imageUrls, setImageUrls] = useState({});
+        
+        useEffect(() => {
+            // --- NEW: Load all image URLs from manifest on mount for performance ---
+            const loadImages = async () => {
+                const manifest = await awLoadImageManifest();
+                if (manifest && manifest.images) {
+                    setImageUrls(manifest.images);
+                }
+            };
+            loadImages();
+        }, []);
+        
         return (
-             <div className="flex h-screen w-screen">
-                <Sidebar />
-                <div className="flex-grow ml-64 bg-gray-50 p-6 md:p-12 overflow-y-auto">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="flex justify-between items-center py-4 mb-6 border-b border-gray-200">
-                            <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                                <Image className="w-8 h-8 text-emerald-500" />
-                                Animal Collection
-                            </h1>
-                            <p className="text-lg text-gray-600">
-                                Collected: <span className="font-bold text-emerald-600">{collected.length}</span> / {totalAnimals}
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                            {sortedAnimals.map((animal) => {
-                                const isCollected = collected.includes(animal.name);
-                                const factCount = (profile.factIndices || {})[animal.name] || 0;
-                                const placeholderImage = `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
-                                
-                                return (
-                                    <div 
-                                        key={animal.name} 
-                                        className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
-                                        onClick={() => isCollected && openFactModal(animal)}
-                                    >
-                                        <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
-                                            {isCollected ? (
-                                                <img
-                                                    src={placeholderImage} 
-                                                    alt={animal.name}
-                                                    className="w-full h-full object-contain"
-                                                    onError={(e) => { e.target.onerror = null; e.target.src = placeholderImage; }}
-                                                />
-                                            ) : (
-                                                <span className="text-xl text-gray-400 font-semibold">LOCKED</span>
-                                            )}
-                                        </div>
-                                        <div className="p-4">
-                                            <h2 className={`text-lg font-bold ${isCollected ? 'text-gray-800' : 'text-gray-500'}`}>
-                                                {isCollected ? animal.name : '??????'}
-                                            </h2>
-                                            {isCollected && (
-                                                <p className="text-sm text-gray-500 mt-1">Facts: <span className="font-semibold text-emerald-600">{factCount} / {animal.facts.length}</span></p>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+            <MainContainer>
+                <div className="max-w-6xl w-full mx-auto">
+                    <div className="flex justify-between items-center py-4 mb-6 border-b border-gray-200">
+                        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
+                            <Image className="w-8 h-8 text-emerald-500" />
+                            Animal Collection
+                        </h1>
+                        <p className="text-lg text-gray-600">
+                            Collected: <span className="font-bold text-emerald-600">{collected.length}</span> / {totalAnimals}
+                        </p>
                     </div>
-                 {factModalOpen && currentAnimal && (
-                    <FactModal 
-                        animal={currentAnimal}
-                        factsEarned={(profile.factIndices || {})[currentAnimal.name] || 0}
-                        totalFacts={currentAnimal.facts.length}
-                        onClose={closeFactModal}
-                        speak={speak}
-                        isSpeaking={isSpeaking}
-                    />
-                )}
+
+                    {/* --- FIX: Grid is now responsive --- */}
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+                        {sortedAnimals.map((animal) => {
+                            const isCollected = collected.includes(animal.name);
+                            const factCount = (profile.factIndices || {})[animal.name] || 0;
+                            // --- FIX: Get image URL from state, not placeholder ---
+                            const slug = slugify(animal.name);
+                            const imageUrl = imageUrls[slug] || `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
+                            
+                            return (
+                                <div 
+                                    key={animal.name} 
+                                    className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
+                                    // --- FIX: This onClick is now fully functional ---
+                                    onClick={() => isCollected && openFactModal(animal)}
+                                >
+                                    <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                        {/* --- FIX: Show image if collected --- */}
+                                        {isCollected ? (
+                                            <img
+                                                src={imageUrl} 
+                                                alt={animal.name}
+                                                className="w-full h-full object-cover" // Use object-cover for better fill
+                                                onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
+                                            />
+                                        ) : (
+                                            <span className="text-xl text-gray-400 font-semibold">LOCKED</span>
+                                        )}
+                                    </div>
+                                    <div className="p-4">
+                                        <h2 className={`text-lg font-bold ${isCollected ? 'text-gray-800' : 'text-gray-500'}`}>
+                                            {isCollected ? animal.name : '??????'}
+                                        </h2>
+                                        {isCollected && (
+                                            <p className="text-sm text-gray-500 mt-1">Facts: <span className="font-semibold text-emerald-600">{factCount} / {animal.facts.length}</span></p>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
                 </div>
-            </div>
+                {/* --- FIX: This modal is now correctly wired --- */}
+                {factModalOpen && currentAnimal && (
+                <FactModal 
+                    animal={currentAnimal}
+                    factsEarned={(profile.factIndices || {})[currentAnimal.name] || 0}
+                    totalFacts={currentAnimal.facts.length}
+                    onClose={closeFactModal}
+                    speak={speak}
+                    isSpeaking={isSpeaking}
+                />
+                )}
+            </MainContainer>
         );
     };
 
@@ -2880,8 +2814,9 @@ const AnimalReadingApp = () => {
     switch (appView) {
         case 'loading':
             return <LoadingScreen />;
+        // --- FIX: Use AW_WelcomeScreen for the 'setup' view ---
         case 'setup':
-            return <ProfileSetupScreen />;
+            return <AW_WelcomeScreen onStart={handleStartPlaying} />;
         case 'home':
             return <WelcomeScreen />;
         case 'game':
@@ -2899,14 +2834,18 @@ const AnimalReadingApp = () => {
 const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 root.render(<AnimalReadingApp />);
-    </script>
-<script>
-  window.addEventListener('load', () => { setTimeout(() => { try { window.__precacheKnownImages?.(); } catch(e){} }, 600); });
 </script>
-
 <script>
-window.__kickPrecacheOnce = true;
-window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } catch(e){} });
+  // --- FIX: Use a safer preloader ---
+  window.addEventListener('load', () => { 
+      setTimeout(() => { 
+          try { 
+              if (window.awPreloadImages) window.awPreloadImages(); 
+          } catch(e){
+              console.error("Preload failed", e);
+          } 
+      }, 600); 
+  });
 </script>
   
   <script>
@@ -2916,9 +2855,8 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
       if (!el) return;
       try {
         localStorage.removeItem('playerName');
-        localStorage.removeItem('local_uid');
-        // Also clear any cached profile we may be using
-        localStorage.removeItem('PLAYER_PROFILES_KEY');
+        // --- FIX: Clear the full profile list on sign out ---
+        localStorage.removeItem('profiles_v1'); 
       } catch(_){}
       // Best-effort return to Welcome
       try { window.location.reload(); } catch(_){}
