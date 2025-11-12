@@ -1567,17 +1567,21 @@ const AnimalReadingApp = () => {
         // FIX 2: Added factsEarned to currentAnimal for passing to FactModal
         const [currentAnimal, setCurrentAnimal] = useState(null);
 
-        // FIX 2: Corrected open modal function logic
-        const openFactModal = async (animal) => {
-            // Use the new, corrected function from the hook
+        // FIX: Ensured this function is asynchronous and uses await
+        const openFactModal = useCallback(async (animal) => {
+            // Set a temporary loading state if desired, or just wait for the data
             const animalWithData = await getAnimalDataForModal(animal.name);
+            
             if (animalWithData) {
                 // Attach the earned fact count from the profile
                 const factsEarned = (profile.factIndices || {})[animal.name] || 0;
                 setCurrentAnimal({ ...animalWithData, factsEarned });
+                // Now that data is ready, open the modal
                 setFactModalOpen(true);
+            } else {
+                console.error("Failed to load full animal data for modal.");
             }
-        };
+        }, [getAnimalDataForModal, profile.factIndices]); // Added dependencies for safety
 
         const closeFactModal = () => {
             setFactModalOpen(false);
@@ -1637,7 +1641,7 @@ const AnimalReadingApp = () => {
                                 <div 
                                     key={animal.name} 
                                     className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
-                                    // FIX 2: This onClick is now fully functional and correctly uses the collected check
+                                    // FIX 2: Call openFactModal with the animal data
                                     onClick={() => isCollected && openFactModal(animal)}
                                 >
                                     <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -1669,11 +1673,11 @@ const AnimalReadingApp = () => {
                         })}
                     </div>
                 </div>
-                {/* FIX 2: Modal now receives factsEarned data from the currentAnimal state */}
+                {/* FIX 2: FactModal now uses the explicitly passed factsEarned count */}
                 {factModalOpen && currentAnimal && (
                 <FactModal 
                     animal={currentAnimal}
-                    factsEarned={currentAnimal.factsEarned} // Now receives correct data
+                    factsEarned={currentAnimal.factsEarned} 
                     totalFacts={currentAnimal.facts.length}
                     onClose={closeFactModal}
                     speak={speak}
