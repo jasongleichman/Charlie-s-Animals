@@ -1,17 +1,10 @@
-// sw.js — safe http/https-only caching + basic app shell
-
+// docs/sw.js — safe http/https-only caching
 const CACHE_NAME = "ca-v1";
-const CORE = [
-  "./",                 // docs/ root
-  "./index.html",
-  "./assets/manifest.json"
-  // add other local, http(s) files you own (css/js) if you have them
-];
+const CORE = ["./","./index.html","./assets/manifest.json"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
-    // Only cache http/https URLs you control
     const ok = CORE.filter(u => /^https?:/.test(new URL(u, self.location).href));
     await cache.addAll(ok);
     self.skipWaiting();
@@ -28,7 +21,6 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const url = event.request.url;
-  // Ignore non-http(s) schemes (chrome-extension, data, file, etc.)
   if (!url.startsWith("http")) return;
 
   event.respondWith((async () => {
@@ -38,7 +30,6 @@ self.addEventListener("fetch", (event) => {
 
     try {
       const resp = await fetch(event.request);
-      // Only cache GET + same-origin http(s)
       if (event.request.method === "GET" && new URL(url).origin === self.location.origin) {
         try { await cache.put(event.request, resp.clone()); } catch {}
       }
