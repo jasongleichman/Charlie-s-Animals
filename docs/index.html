@@ -1,16 +1,15 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta name="mobile-web-app-capable" content="yes">
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Charlie's Animal Words</title>
-
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
   <style>
     /* Fill viewport; prevent whole-page scroll jank on mobile */
     html, body, #root { height: 100%; margin: 0; padding: 0; }
@@ -18,8 +17,7 @@
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
-  
+ 
   <style>
     :root {
       --safe-top: env(safe-area-inset-top);
@@ -46,52 +44,38 @@
     /* Make main content areas naturally scroll if needed while keeping sidebar stable */
     #root, #app, main { min-height: 100vh; }
   </style>
-
-
   <style id="ipad-desktop-fixes">
     /* === Universal visibility & fit === */
     html, body, #root { height: 100%; }
     main { max-height: 100vh; overflow: auto; }
-
     /* Prevent any layout from bleeding off-screen */
     .max-w-screen, .max-w-full, .container { max-width: 100vw !important; }
     .w-screen, .min-w-screen { width: 100vw !important; }
-
     /* Sidebar tightening for iPad/desktop mid-heights */
     @media (min-width: 900px) and (max-height: 900px) {
-      /* Typical Tailwind widths used for sidebars */
-      .w-72 { width: 14rem !important; }   /* 16->14 */
-      .w-64 { width: 13rem !important; }   /* 16->13 */
+      .w-72 { width: 14rem !important; }
+      .w-64 { width: 13rem !important; }
       .w-60 { width: 12rem !important; }
-      /* Reduce common paddings */
       .p-10 { padding: 1.5rem !important; }
-      .p-8  { padding: 1.25rem !important; }
-      .p-6  { padding: 1rem !important; }
+      .p-8 { padding: 1.25rem !important; }
+      .p-6 { padding: 1rem !important; }
       .px-8 { padding-left: 1.25rem !important; padding-right: 1.25rem !important; }
-      .py-12{ padding-top: 1.5rem !important;  padding-bottom: 1.5rem !important; }
-      /* Slightly smaller hero headings/cards */
+      .py-12{ padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
       .text-5xl { font-size: 2rem !important; line-height: 1.15 !important; }
       .text-4xl { font-size: 1.75rem !important; line-height: 1.2 !important; }
       .text-3xl { font-size: 1.45rem !important; line-height: 1.2 !important; }
-      /* Card spacing */
       .gap-8 { gap: 1.25rem !important; }
       .gap-6 { gap: 1rem !important; }
       .space-y-8 > :not([hidden]) ~ :not([hidden]) { --tw-space-y-reverse: 0; margin-top: calc(1rem * calc(1 - var(--tw-space-y-reverse))); margin-bottom: calc(1rem * var(--tw-space-y-reverse)); }
     }
-
-    /* iPad landscape “quiz view” – ensure cards fit both right and bottom */
     @media (orientation: landscape) and (min-width: 900px) and (max-height: 820px) {
       main { padding-bottom: env(safe-area-inset-bottom); overflow: auto; }
-      /* Tighter layout inside grids/lists */
       .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
       .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .col-span-2 { grid-column: span 2 / span 2; }
-      /* Ensure no element overflows off the right edge */
       [class*="overflow-hidden"] { overflow: auto !important; }
       [class*="max-w-"] { max-width: 100% !important; }
     }
-
-    /* Phones & small iPads – keep it readable without cropping */
     @media (max-width: 834px) {
       .text-5xl { font-size: clamp(1.6rem, 5vw, 2rem) !important; }
       .text-4xl { font-size: clamp(1.4rem, 4.5vw, 1.8rem) !important; }
@@ -100,14 +84,10 @@
       .p-6 { padding: clamp(0.6rem, 2vw, 1rem) !important; }
       main { overflow: auto; }
     }
-
-    /* Desktop wide – avoid giant left padding on large screens */
     @media (min-width: 1280px) {
       .container, .mx-auto { padding-left: 1.25rem; padding-right: 1.25rem; }
     }
   </style>
-
-
   <style id="ipad-welcome-55">
     @media (orientation: landscape) and (min-width: 900px) {
       .welcome-card, .setup-card {
@@ -127,16 +107,13 @@
     }
     main { max-height: 100vh; overflow:auto; }
   </style>
-
 </head>
 <body>
-
   <script>
     // ---- Fallback: on-device SpeechSynthesis with male English voice ----
-    // This is the *only* thing that runs if the local .mp3 files are missing.
     (function(){
       let __voicesReady = false, __voices = [];
-      
+     
       function pickEnUSMale(){
         if (!__voices.length) return null;
         const pref = ["Aaron","Alex","Eddy","Evan","Reed","Tom","Google US English","Microsoft David","Daniel","Matthew","Oliver"];
@@ -144,30 +121,29 @@
         for (const n of pref){ const hit=en.find(v => (v.name||v.voiceURI||"").toLowerCase().includes(n.toLowerCase())); if (hit) return hit; }
         return en[0] || __voices[0] || null;
       }
-      
+     
       async function loadVoices() {
         return new Promise(res => {
-          const tryLoad=()=>{ 
-            const v = speechSynthesis.getVoices(); 
-            if (v && v.length){ 
-              __voices=v; 
-              __voicesReady=true; 
-              res(); 
+          const tryLoad=()=>{
+            const v = speechSynthesis.getVoices();
+            if (v && v.length){
+              __voices=v;
+              __voicesReady=true;
+              res();
             } else {
-              setTimeout(tryLoad, 100); 
+              setTimeout(tryLoad, 100);
             }
           };
           tryLoad();
         });
       }
-
       window.__speakLocal = window.__speakLocal || (async function(text){
         try{
           if (!__voicesReady) {
             await loadVoices();
           }
           const u = new SpeechSynthesisUtterance(text||"");
-          const v = pickEnUSMale(); 
+          const v = pickEnUSMale();
           if (v) {
             u.voice = v;
             u.lang = v.lang;
@@ -178,86 +154,75 @@
           return new Promise(r=>{ u.onend=r; speechSynthesis.speak(u); });
         } catch(e){ console.warn("WebSpeech error", e); }
       });
-
-      // Warm-up voices (iOS sometimes lazy-loads)
-      try { 
-        speechSynthesis.getVoices(); 
-        setTimeout(()=>speechSynthesis.getVoices(), 500); 
+      try {
+        speechSynthesis.getVoices();
+        setTimeout(()=>speechSynthesis.getVoices(), 500);
       } catch(_){}
     })();
   </script>
-
   <div id="root"></div>
-  
+ 
   <script src="./assets/app-data.js"></script>
   <script>
-    // Shim for local-only mode
     window.appInstance = {};
     window.firebase = {};
   </script>
 
 <script type="text/babel">
 /* ================== AW: Local Profiles (no Firebase) ================== */
-// --- FIX: Added 'avatar' to the profile data structure ---
-const AW_AVATAR_EMOJI = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
+const AW_AVATAR_EMOJI = ["fox","lion","tiger","bear","panda","koala","monkey","raccoon","zebra","giraffe","kangaroo","seal","sloth","hedgehog","eagle","owl","flamingo","peacock"];
 function awLoadProfiles(){ try { return JSON.parse(localStorage.getItem("profiles_v1")||"[]"); } catch { return []; } }
 function awSaveProfiles(list){ try { localStorage.setItem("profiles_v1", JSON.stringify(list)); } catch {} }
 function awGetSavedName(){ try { return localStorage.getItem("playerName") || ""; } catch { return ""; } }
 
-// --- FIX: This function now also saves all the other profile data (score, streak, etc.) ---
 function awSaveProfileData(profile) {
     if (!profile || !profile.name) return;
     const list = awLoadProfiles();
     const name = profile.name.trim();
     const idx = list.findIndex(p => (p.name||"").toLowerCase() === name.toLowerCase());
-    
-    const record = { 
-        ...profile, // Save all data (score, streak, etc.)
-        name: name, 
-        avatar: profile.avatar || "🦊", 
-        lastPlayed: Date.now() 
+   
+    const record = {
+        ...profile,
+        name: name,
+        avatar: profile.avatar || "fox",
+        lastPlayed: Date.now()
     };
-    
+   
     if (idx >= 0) {
-        // Merge, preserving existing data if not overwritten
-        list[idx] = { ...list[idx], ...record }; 
+        list[idx] = { ...list[idx], ...record };
     } else {
         list.push(record);
     }
-    
+   
     awSaveProfiles(list);
     try { localStorage.setItem("playerName", record.name); } catch {}
     return record;
 }
 
-// --- NEW: Function to load a specific profile by name ---
 function awLoadProfileByName(name) {
     if (!name) return null;
     const list = awLoadProfiles();
     const profile = list.find(p => (p.name||"").toLowerCase() === name.toLowerCase());
     return profile || null;
 }
-
 function awClearActiveProfile(){ try { localStorage.removeItem("playerName"); } catch {} }
 
 /* ================== AW: Asset Manifests + Helpers ================== */
-// --- NEW: Memoize the manifest to avoid re-fetching ---
 let __manifestCache = null;
-async function awLoadImageManifest(){ 
+async function awLoadImageManifest(){
     if (__manifestCache) return __manifestCache;
-    try { 
-        const r = await fetch("./assets/manifest.json", { cache: "no-store" }); 
+    try {
+        const r = await fetch("./assets/manifest.json", { cache: "no-store" });
         if (r.ok) {
             __manifestCache = await r.json();
             return __manifestCache;
         }
         return null;
-    } catch { 
-        return null; 
-    } 
+    } catch {
+        return null;
+    }
 }
 
-// --- NEW: Preloader function for performance ---
 async function awPreloadImages() {
     console.log("Starting image preload...");
     const manifest = await awLoadImageManifest();
@@ -273,106 +238,95 @@ async function awPreloadImages() {
                 const img = new Image();
                 img.src = url;
                 img.onload = resolve;
-                img.onerror = resolve; // Continue on error
+                img.onerror = resolve;
             }));
         }
     }
     await Promise.all(promises);
     console.log(`Image preload complete (${promises.length} images).`);
 }
-
 async function awGetLocalImageForAnimal(name, slug){
   const m = await awLoadImageManifest(); if (!m || !m.images) return null;
   const s = (slug||name||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
   return m.images[s] || null;
 }
-window.getLocalImageForAnimal = awGetLocalImageForAnimal; // Keep for old reference if any
+window.getLocalImageForAnimal = awGetLocalImageForAnimal;
 
 /* ================== AW: Welcome Screen (Login) ================== */
-// --- FIX: This is the component the user wanted for login. ---
-// --- It's now used as the 'setup' view in the main app. ---
 function AW_WelcomeScreen({ onStart }){
   const [profiles, setProfiles] = React.useState(() => awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
   const [tab, setTab] = React.useState(profiles.length ? "existing" : "new");
   const [name, setName] = React.useState(awGetSavedName());
   const [avatar, setAvatar] = React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
-  
-  // --- FIX: When selecting an existing player, update name/avatar state ---
   const [selectedProfileName, setSelectedProfileName] = React.useState(awGetSavedName());
-  
+ 
   const canStartNew = name.trim().length >= 2;
   const canStartExisting = selectedProfileName && profiles.some(p => p.name === selectedProfileName);
 
-  function handleStart(e){ 
-      e.preventDefault(); 
+  function handleStart(e){
+      e.preventDefault();
       let profileToLoad;
       if (tab === 'new' && canStartNew) {
-          // Create a new profile structure
-          profileToLoad = { 
-              name: name.trim(), 
-              avatar: avatar || "🦊",
+          profileToLoad = {
+              name: name.trim(),
+              avatar: avatar || "fox",
               highScore: 0,
               streak: 0,
-              collectedAnimals: [], 
+              collectedAnimals: [],
               rewardsEarned: 0,
-              highScores: [], 
+              highScores: [],
               factIndices: {}
           };
-          awSaveProfileData(profileToLoad); // Save the new profile
-          setProfiles(awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed)); // Update list
+          awSaveProfileData(profileToLoad);
+          setProfiles(awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
       } else if (tab === 'existing' && canStartExisting) {
-          // Load the existing profile
           profileToLoad = awLoadProfileByName(selectedProfileName);
           if (profileToLoad) {
              try { localStorage.setItem("playerName", profileToLoad.name); } catch {}
           }
       }
-      
+     
       if (profileToLoad) {
-          onStart && onStart(profileToLoad); // Pass the full profile up
+          onStart && onStart(profileToLoad);
       }
   }
 
-  // FIX 1: Add profile deletion logic
   function handleDeleteProfile(nameToDelete, e) {
-      e.stopPropagation(); // Prevent card click
+      e.stopPropagation();
       if (!window.confirm(`Are you sure you want to delete profile "${nameToDelete}"? This cannot be undone.`)) {
           return;
       }
       const updatedList = profiles.filter(p => (p.name || "").toLowerCase() !== nameToDelete.toLowerCase());
       awSaveProfiles(updatedList);
       setProfiles(updatedList.sort((a,b) => b.lastPlayed - a.lastPlayed));
-      if ((selectedProfileName || "").toLowerCase() === nameToDelete.toLowerCase()) { 
-          setSelectedProfileName(null); 
-          setName(""); 
-          awClearActiveProfile(); 
+      if ((selectedProfileName || "").toLowerCase() === nameToDelete.toLowerCase()) {
+          setSelectedProfileName(null);
+          setName("");
+          awClearActiveProfile();
       }
   }
 
-  function pickExisting(p){ 
+  function pickExisting(p){
       setSelectedProfileName(p.name);
-      setName(p.name); // Also update the input field for clarity
-      setAvatar(p.avatar || "🦊");
-      // --- FIX: Don't auto-start. Let user click "Start Playing" ---
+      setName(p.name);
+      setAvatar(p.avatar || "fox");
   }
-  
+ 
   React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab, profiles, name, avatar, selectedProfileName]);
-  
+ 
   return (
     <main className="app-shell grid place-items-center px-4 py-6">
       <div className="welcome-card bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[720px]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-bold text-2xl">Charlie’s Animal Words</h1>
-          {/* FIX 6: Show avatar for the selected/new user */}
           <span className="text-3xl select-none" aria-label="avatar">{avatar}</span>
         </div>
-        
+       
         <div className="inline-flex bg-gray-100 rounded-xl p-1 mb-6">
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='new'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('new')}>New Player</button>
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='existing'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('existing')} disabled={!profiles.length} title={!profiles.length?"No saved players yet":""}>Existing Player</button>
         </div>
-        
-        {/* FIX: Use a single form for both tabs */}
+       
         <form onSubmit={handleStart}>
           {tab === 'existing' ? (
             <div className="space-y-4">
@@ -382,14 +336,14 @@ function AW_WelcomeScreen({ onStart }){
                 {profiles.map((p,i)=>(
                     <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border transition text-left ${p.name === selectedProfileName ? "border-emerald-500 ring-1 ring-emerald-500" : "hover:border-emerald-400"}`}>
                         <button type="button" onClick={()=>pickExisting(p)} className="flex-grow flex items-center gap-3">
-                            <span className="text-2xl">{p.avatar||"🦊"}</span>
+                            <span className="text-2xl">{p.avatar||"fox"}</span>
                             <div className="min-w-0">
                                 <div className="font-semibold truncate">{p.name}</div>
                                 <div className="text-xs text-slate-500">Last played {new Date(p.lastPlayed).toLocaleDateString()}</div>
                             </div>
                         </button>
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={(e) => handleDeleteProfile(p.name, e)}
                             className="p-1 text-red-400 hover:text-red-600 rounded-full transition-colors flex-shrink-0"
                             title={`Delete ${p.name}`}
@@ -414,8 +368,7 @@ function AW_WelcomeScreen({ onStart }){
                 className="block w-full rounded-xl border px-4 py-3 bg-slate-50 focus:ring-2 focus:ring-emerald-400" maxLength={30} autoFocus />
             </div>
           )}
-          
-          {/* FIX: Single "Start" button, with updated style */}
+         
           <div className="flex justify-end mt-6">
             <button type="submit" disabled={(tab === 'new' && !canStartNew) || (tab === 'existing' && !canStartExisting)}
               className={`rounded-xl px-5 py-3 font-semibold flex items-center gap-2 transition-colors ${
@@ -431,79 +384,65 @@ function AW_WelcomeScreen({ onStart }){
 }
 
 // --- START OF APP CODE ---
-    const { useState, useEffect, useCallback, useRef } = React;
-    
-    /* Lucide wrappers - convert <Star/> to inline SVGs */
-    const LucideIcon = ({ name, className = "" }) => {
-      React.useEffect(() => { if (window.lucide?.createIcons) window.lucide.createIcons(); });
-      return <i data-lucide={name} className={className} />;
-    };
-    const Volume2       = (p) => <LucideIcon name="volume-2" {...p} />;
-    const Star          = (p) => <LucideIcon name="star" {...p} />;
-    const Trophy        = (p) => <LucideIcon name="trophy" {...p} />;
-    const ArrowRight    = (p) => <LucideIcon name="arrow-right" {...p} />;
-    const Loader2       = (p) => <LucideIcon name="loader-2" {...p} />;
-    const XCircle       = (p) => <LucideIcon name="x-circle" {...p} />;
-    const KeyRound      = (p) => <LucideIcon name="key-round" {...p} />;
-    const Play          = (p) => <LucideIcon name="play" {...p} />;
-    const Home          = (p) => <LucideIcon name="home" {...p} />;
-    const Award         = (p) => <LucideIcon name="award" {...p} />;
-    const BookOpen      = (p) => <LucideIcon name="book-open" {...p} />;
-    const MessageSquare = (p) => <LucideIcon name="message-square" {...p} />;
-    const Database      = (p) => <LucideIcon name="database" {...p} />;
-    const CheckCircle   = (p) => <LucideIcon name="check-circle" {...p} />;
-    const Users         = (p) => <LucideIcon name="users" {...p} />;
-    const Image         = (p) => <LucideIcon name="image" {...p} />;
-    const Zap           = (p) => <LucideIcon name="zap" {...p} />;
-    const ChevronRight  = (p) => <LucideIcon name="chevron-right" {...p} />;
-    const Lock          = (p) => <LucideIcon name="lock" {...p} />;
-    const Clock         = (p) => <LucideIcon name="clock" {...p} />;
-    const Video         = (p) => <LucideIcon name="video" {...p} />;
-    const Menu          = (p) => <LucideIcon name="menu" {...p} />;
-    const Settings      = (p) => <LucideIcon name="settings" {...p} />;
-    const LogOut        = (p) => <LucideIcon name="log-out" {...p} />;
-    const X             = (p) => <LucideIcon name="x" {...p} />;
-    const ChevronLeft   = (p) => <LucideIcon name="chevron-left" {...p} />;
+const { useState, useEffect, useCallback, useRef } = React;
 
-    // --- Slugify utility ---
-    const slugify = (s) => (s || "")
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-") // Convert to slug
-        .replace(/(^-|-$)/g, "");     // Trim leading/trailing dashes
+const LucideIcon = ({ name, className = "" }) => {
+  React.useEffect(() => { if (window.lucide?.createIcons) window.lucide.createIcons(); });
+  return <i data-lucide={name} className={className} />;
+};
+const Volume2 = (p) => <LucideIcon name="volume-2" {...p} />;
+const Star = (p) => <LucideIcon name="star" {...p} />;
+const Trophy = (p) => <LucideIcon name="trophy" {...p} />;
+const ArrowRight = (p) => <LucideIcon name="arrow-right" {...p} />;
+const Loader2 = (p) => <LucideIcon name="loader-2" {...p} />;
+const XCircle = (p) => <LucideIcon name="x-circle" {...p} />;
+const KeyRound = (p) => <LucideIcon name="key-round" {...p} />;
+const Play = (p) => <LucideIcon name="play" {...p} />;
+const Home = (p) => <LucideIcon name="home" {...p} />;
+const Award = (p) => <LucideIcon name="award" {...p} />;
+const BookOpen = (p) => <LucideIcon name="book-open" {...p} />;
+const MessageSquare = (p) => <LucideIcon name="message-square" {...p} />;
+const Database = (p) => <LucideIcon name="database" {...p} />;
+const CheckCircle = (p) => <LucideIcon name="check-circle" {...p} />;
+const Users = (p) => <LucideIcon name="users" {...p} />;
+const Image = (p) => <LucideIcon name="image" {...p} />;
+const Zap = (p) => <LucideIcon name="zap" {...p} />;
+const ChevronRight = (p) => <LucideIcon name="chevron-right" {...p} />;
+const Lock = (p) => <LucideIcon name="lock" {...p} />;
+const Clock = (p) => <LucideIcon name="clock" {...p} />;
+const Video = (p) => <LucideIcon name="video" {...p} />;
+const Menu = (p) => <LucideIcon name="menu" {...p} />;
+const Settings = (p) => <LucideIcon name="settings" {...p} />;
+const LogOut = (p) => <LucideIcon name="log-out" {...p} />;
+const X = (p) => <LucideIcon name="x" {...p} />;
+const ChevronLeft = (p) => <LucideIcon name="chevron-left" {...p} />;
 
-// --- PLAYER PROFILE CACHING UTILS ---
-// The functionality of these helpers has been merged into the 
-// awLoadProfiles, awSaveProfileData, and awLoadProfileByName functions above.
+const slugify = (s) => (s || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
 const PLAYER_PROFILES_KEY = 'cached_player_profiles';
 const savePlayerName = (userId, name) => {};
 const getCachedPlayerProfiles = () => [];
 const removePlayerProfile = (userId) => {};
 
-
-// --- CUSTOM HOOK: useAppState (LOCAL ONLY) ---
-
 const useAppState = () => {
-    // 🔥 State Hook 
     const [isAuthReady, setIsAuthReady] = useState(false);
-    
-    // --- Profile State (Loaded from localStorage) ---
     const [profile, setProfile] = useState({
-        name: '', 
-        avatar: '🦊',
+        name: '',
+        avatar: 'fox',
         highScore: 0,
         streak: 0,
-        collectedAnimals: [], 
+        collectedAnimals: [],
         rewardsEarned: 0,
-        highScores: [], 
+        highScores: [],
         factIndices: {}
     });
-
-    // --- Caching/API State ---
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); 
+    const [isLoading, setIsLoading] = useState(false);
     const [apiError, setApiError] = useState(null);
-    
-    // --- Local Persistence ---
+   
     const saveUserProfile = useCallback((profileToSave) => {
         if (!profileToSave || !profileToSave.name) return;
         try {
@@ -512,13 +451,13 @@ const useAppState = () => {
             console.error("Error saving user profile:", error);
             setApiError("Error saving profile data.");
         }
-    }, [setApiError]); 
-    
+    }, [setApiError]);
+   
     const loadUserProfile = useCallback((profileToLoad) => {
         try {
             const defaultProfile = {
                 name: 'Guest',
-                avatar: '🦊',
+                avatar: 'fox',
                 highScore: 0,
                 streak: 0,
                 collectedAnimals: [],
@@ -526,65 +465,44 @@ const useAppState = () => {
                 highScores: [],
                 factIndices: {}
             };
-            
             setProfile({ ...defaultProfile, ...profileToLoad });
-            
         } catch (error) {
             console.error("Error loading user profile:", error);
             setApiError("Error loading profile data.");
         }
-    }, [setProfile, setApiError]); 
+    }, [setProfile, setApiError]);
 
-
-    /**
-     * [NEW] Plays a pre-generated local audio file.
-     * Falls back to the browser's built-in voice if the file is missing.
-     */
     const speak = useCallback(async (text) => {
         if (!text) return;
         if (window.speechSynthesis && window.speechSynthesis.speaking) {
           window.speechSynthesis.cancel();
         }
-        
+       
         setIsSpeaking(true);
-
-        // 1. Create the file name slug from the text
         const slug = (text || "")
             .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-") // Convert to slug
-            .replace(/(^-|-$)/g, "");     // Trim leading/trailing dashes
-
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "");
         if (!slug) {
             setIsSpeaking(false);
             return;
         }
-
-        // 2. Try to play the local .mp3 file
         const audioUrl = `./assets/tts/${slug}.mp3`;
         const audio = new Audio(audioUrl);
-
         audio.oncanplaythrough = () => {
             audio.play().catch(e => {
                 console.warn(`Audio playback failed for ${audioUrl}`, e);
-                // If playback fails, use browser voice
                 window.__speakLocal(text).finally(() => setIsSpeaking(false));
             });
         };
-        
+       
         audio.onended = () => setIsSpeaking(false);
-
         audio.onerror = () => {
-            // 3. FALLBACK: If file is missing (404) or fails to load
             console.warn(`Audio file not found: ${audioUrl}. Using browser fallback.`);
-            
-            // Use the browser's built-in voice
             window.__speakLocal(text).finally(() => setIsSpeaking(false));
         };
+    }, [setIsSpeaking, setApiError]);
 
-    }, [setIsSpeaking, setApiError]); 
-
-
-    // --- Core Initialization Effect [LOCAL-ONLY] ---
     useEffect(() => {
         try {
             const savedName = awGetSavedName();
@@ -597,33 +515,24 @@ const useAppState = () => {
         } catch (e) {
             console.error("Error setting up local user:", e);
         }
-        
+       
         setIsAuthReady(true);
-        setApiError(null); 
-        
-        // --- NEW: Kick off image preloading for performance ---
+        setApiError(null);
         awPreloadImages();
-
-    }, []); 
-
-    
+    }, []);
+   
     const handleSignOut = async () => {
         awClearActiveProfile();
-        // Clear current state
-        setProfile({ name: '', avatar: '🦊', highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, highScores: [], factIndices: {} });
+        setProfile({ name: '', avatar: 'fox', highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, highScores: [], factIndices: {} });
     };
 
-    // --- NEW: Function to get animal data (inc. image) for modals ---
     const getAnimalDataForModal = useCallback(async (animalName) => {
-        // NOTE: We rely on the caller (GalleryScreen) to manage the modal-specific loading state.
-        
         const animal = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.find(a => a.name === animalName) : null;
         if (!animal) {
              console.error("Animal not found:", animalName);
              return null;
         }
-
-        let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`; // Default
+        let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
         try {
             const manifest = await awLoadImageManifest();
             const slug = slugify(animal.name);
@@ -633,41 +542,32 @@ const useAppState = () => {
         } catch (e) {
             console.warn("Could not load image manifest for modal", e);
         }
-
         return { ...animal, imageUrl };
-        
-    }, []); // Removed setIsLoading(true/false) as it conflicts with main screen loading.
-
+    }, []);
 
     const generateRewardAnimal = useCallback(async (isVideoReward = false, currentAppView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal) => {
         setIsLoading(true);
-        
+       
         const animalDatabase = window.ANIMAL_DATABASE || [];
-
         const uncollected = animalDatabase.filter(
             animal => !(profile.collectedAnimals || []).includes(animal.name)
         );
-
         const animalToReward = uncollected.length > 0
             ? uncollected[Math.floor(Math.random() * uncollected.length)]
             : animalDatabase[Math.floor(Math.random() * animalDatabase.length)];
-
         if (!animalToReward) {
             setIsLoading(false);
             return;
         }
-
         const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
         let nextFactIndex = currentFactIndex;
-
         if (currentFactIndex < animalToReward.facts.length) {
             nextFactIndex = currentFactIndex + 1;
-        } 
-
+        }
         const animalWithImage = await getAnimalDataForModal(animalToReward.name);
-        
+       
         setIsLoading(false);
-        
+       
         if (animalWithImage) {
             setAnimalData({ ...animalWithImage, earnedFactIndex: nextFactIndex });
             if (isVideoReward) {
@@ -676,30 +576,23 @@ const useAppState = () => {
                 setShowRewardModal(true);
             }
         }
-        
     }, [profile, setIsLoading, getAnimalDataForModal]);
 
-
-    // --- Return all state and functions ---
     return {
         isAuthReady,
         profile, setProfile,
         isSpeaking, isLoading, apiError, setApiError,
-        saveUserProfile, handleSignOut, speak, 
-        generateRewardAnimal, getAnimalDataForModal, 
+        saveUserProfile, handleSignOut, speak,
+        generateRewardAnimal, getAnimalDataForModal,
         loadUserProfile
     };
-}; // --- End of useAppState hook ---
+};
 
-
-// --- UI COMPONENTS & MODALS ---
-
-// Generic Modal Component (Sleek, Centered)
 const Modal = ({ title, children, onClose }) => (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4" onClick={onClose}>
-        <div 
-            className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100" 
-            onClick={e => e.stopPropagation()} // Prevent closing when clicking inside
+        <div
+            className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
+            onClick={e => e.stopPropagation()}
         >
             <div className="flex justify-between items-center pb-4 border-b border-gray-200">
                 <h2 className="text-2xl font-semibold text-emerald-600">{title}</h2>
@@ -714,66 +607,53 @@ const Modal = ({ title, children, onClose }) => (
     </div>
 );
 
-// Fact Modal Component (FIXED: Template literals, Lock logic)
 const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-    // Default to the newest earned fact, or fact 0 if no facts earned yet (for gallery view)
     const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
     const totalFactsCount = animal.facts.length;
-
     useEffect(() => {
-        // When factsEarned changes (e.g., in reward modal), update to show the *newest* fact
         if (factsEarned > 0) {
             setFactIndex(factsEarned - 1);
         }
     }, [factsEarned]);
-
     return (
         <Modal title={`${animal.name} Collection`} onClose={onClose}>
             <div className="space-y-4">
                 <div className="text-center">
                     <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
-                    {/* FIX 1: Correct template literal formatting */}
                     <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
                 </div>
-
                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
-                    <img 
-                        src={animal.imageUrl} 
-                        alt={animal.name} 
+                    <img
+                        src={animal.imageUrl}
+                        alt={animal.name}
                         className="max-h-full object-contain"
                         onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
                     />
                 </div>
-
                 <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
-
-                {/* FIX 2: Fact list shows lock for unearned */}
                 <div className="space-y-2 max-h-60 overflow-y-auto p-1">
                     {animal.facts.map((fact, index) => {
                         const isUnlocked = index < factsEarned;
                         const isCurrent = index === factIndex;
                         const factNumber = index + 1;
-                        
+                       
                         return (
-                            <div 
-                                key={index} 
-                                // OnClick is only enabled for unlocked facts
+                            <div
+                                key={index}
                                 className={`p-3 rounded-lg flex justify-between items-center transition-all ${
                                     isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
                                 } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
                                 onClick={() => { if (isUnlocked) setFactIndex(index); }}
                             >
                                 <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                                    {/* FIX 1: Correct template literal formatting */}
-                                    <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong> 
-                                    {/* FIX 2: Only display fact if unlocked */}
+                                    <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
                                     {isUnlocked ? fact : "Locked: Complete more quizzes!"}
                                 </span>
                                 {isUnlocked ? (
-                                    <button 
-                                        onClick={(e) => { 
-                                            e.stopPropagation(); 
-                                            speak(fact); 
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            speak(fact);
                                         }}
                                         disabled={isSpeaking && isCurrent}
                                         className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
@@ -788,7 +668,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                         );
                     })}
                 </div>
-                
+               
                 <button onClick={onClose} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
                     Back to Collection
                 </button>
@@ -797,35 +677,28 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
     );
 };
 
-// Video Reward Modal Component (Used only after a 10-streak)
 const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const [isPlaying, setIsPlaying] = useState(false);
-    
-    // Choose a random video 
     const videoDatabase = window.VIDEO_DATABASE || [];
     const videoIndex = Math.floor(Math.random() * (videoDatabase.length || 1));
     const actualVideo = videoDatabase[videoIndex] || { title: 'No Video Available', url: '' };
-
-    // FIX 3: Convert YouTube URL to embed URL for playback
     const embedUrl = actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be"))
                      ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
                      : actualVideo.url;
-
-
     return (
-        <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
+        <Modal title="10-Streak Reward!" onClose={onClose}>
             <div className="text-center space-y-4">
                 <h3 className="text-2xl font-bold text-gray-800">Video Unlocked: {actualVideo.title}</h3>
                 <p className="text-gray-500">You earned this video for 10 consecutive correct answers!</p>
-                
+               
                 <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center">
                     {!actualVideo.url || !embedUrl ? (
                         <div className="text-white">Video data missing.</div>
                     ) : !isPlaying ? (
                         <div className="flex flex-col items-center justify-center h-full w-full">
                             <Video className="w-16 h-16 text-gray-500 mb-4" />
-                            <button 
-                                onClick={() => setIsPlaying(true)} 
+                            <button
+                                onClick={() => setIsPlaying(true)}
                                 className="bg-emerald-500 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
                             >
                                 <Play className="w-6 h-6" /> Play Video
@@ -834,7 +707,6 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                     ) : (
                         <iframe
                             className="w-full h-full"
-                            // FIX 3: Use the embed URL for correct playback
                             src={embedUrl}
                             title={actualVideo.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -843,10 +715,10 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                         ></iframe>
                     )}
                 </div>
-                
-                <button 
-                    onClick={onClose} 
-                    className={`w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors mt-4 
+               
+                <button
+                    onClick={onClose}
+                    className={`w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors mt-4
                     ${!actualVideo.url ? 'opacity-50 cursor-not-allowed' : ''}`}
                     disabled={!actualVideo.url}
                 >
@@ -857,37 +729,29 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
     );
 };
 
-// Rewards Modal Component (FIXED: Shows tiles and embeds for all earned videos)
 const RewardsModal = ({ profile, onClose }) => {
     const videoDatabase = window.VIDEO_DATABASE || [];
-    // FIX 1: Correct template literal formatting
     const rewardsEarned = profile.rewardsEarned || 0;
     const totalVideos = videoDatabase.length;
-
     return (
         <Modal title="My Video Rewards" onClose={onClose}>
             <div className="space-y-4">
                 <div className="text-center mb-4">
                     <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
-                    {/* FIX 1: Correct template literal formatting */}
                     <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
                     <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
                 </div>
-
-                {/* FIX 3: Display videos as tiles */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
                     {videoDatabase.length === 0 ? (
                         <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
                     ) : videoDatabase.map((video, index) => {
-                        // FIX 3: Check if video is unlocked based on index (1-based count)
                         const isUnlocked = rewardsEarned > index;
-                        // FIX 3: Ensure YouTube URL is in embed format for playback in iframe
                         const embedUrl = (video.url.includes("youtube.com") || video.url.includes("youtu.be"))
                                         ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
-                                        : video.url; // Fallback for non-YouTube links
-                        
+                                        : video.url;
+                       
                         return (
-                            <div 
+                            <div
                                 key={index}
                                 className={`bg-white rounded-xl overflow-hidden shadow-md transition-all ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-70'}`}
                             >
@@ -922,13 +786,11 @@ const RewardsModal = ({ profile, onClose }) => {
     );
 };
 
-
-// Stats Modal Component
 const StatsModal = ({ profile, onClose }) => {
-    const sortedScores = profile.highScores 
-        ? [...profile.highScores].sort((a, b) => b.score - a.score) 
+    const sortedScores = profile.highScores
+        ? [...profile.highScores].sort((a, b) => b.score - a.score)
         : [];
-    
+   
     return (
         <Modal title="High Score History" onClose={onClose}>
             <div className="space-y-4">
@@ -959,36 +821,28 @@ const StatsModal = ({ profile, onClose }) => {
     );
 };
 
-
-// MAIN APP COMPONENT
-
 const AnimalReadingApp = () => {
-    // 🔥 State Hook 
     const {
         isAuthReady,
         profile, setProfile,
         isSpeaking, isLoading, apiError, setApiError,
-        saveUserProfile, handleSignOut, speak, 
+        saveUserProfile, handleSignOut, speak,
         generateRewardAnimal, getAnimalDataForModal,
         loadUserProfile
     } = useAppState();
-
-    // --- Local Game State ---
-    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'home', 'game', 'complete', 'gallery'
+    const [appView, setAppView] = useState('loading');
     const [gameMode, setGameMode] = useState('words');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
     const [showRewardModal, setShowRewardModal] = useState(false);
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
-    const [animalData, setAnimalData] = useState(null); // The animal object for the reward screen
-    const [pausedGame, setPausedGame] = useState(null); // Stores { mode, index, score } of a paused game
-    
-    // UI State (Modals that persist across main views)
+    const [animalData, setAnimalData] = useState(null);
+    const [pausedGame, setPausedGame] = useState(null);
+   
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [showRewardsModal, setShowRewardsModal] = useState(false);
-    
-    // FIX (Navigation Bug): Centralized navigation function to ensure modals are cleared on view change
+   
     const navigateTo = useCallback((newView, clearModals = true) => {
         if (clearModals) {
             setShowStatsModal(false);
@@ -997,20 +851,15 @@ const AnimalReadingApp = () => {
         setAppView(newView);
     }, [setAppView, setShowStatsModal, setShowRewardsModal]);
 
-
-    // --- Game Data Initializer & Shuffling ---
     const [shuffledWords, setShuffledWords] = useState([]);
     const [shuffledSentences, setShuffledSentences] = useState([]);
-
     useEffect(() => {
         const shuffleOptions = (item) => {
             let options = [...item.options];
             options.sort(() => Math.random() - 0.5);
             return { ...item, options: options };
         };
-
         const initialShuffle = () => {
-            // FIX: Safely check for global data objects before accessing properties
             if (window.sightWordsData && window.sentencesData) {
                 setShuffledWords(window.sightWordsData.map(shuffleOptions).sort(() => Math.random() - 0.5));
                 setShuffledSentences(window.sentencesData.map(shuffleOptions).sort(() => Math.random() - 0.5));
@@ -1018,14 +867,11 @@ const AnimalReadingApp = () => {
                 console.error("Data arrays not found. Check if app-data.js loaded correctly.");
             }
         };
-        
         initialShuffle();
     }, []);
 
-    // Effect to handle view transition after auth is ready and profile loaded
     useEffect(() => {
         if (isAuthReady && appView === 'loading') {
-            // FIX: Check profile.name instead of profile.userName
             if (!profile.name) {
                  navigateTo('setup', false);
             } else {
@@ -1034,55 +880,44 @@ const AnimalReadingApp = () => {
         }
     }, [isAuthReady, appView, profile.name]);
 
-
-    // FIX: This handler is now passed to AW_WelcomeScreen
     const handleStartPlaying = (loadedProfile) => {
         loadUserProfile(loadedProfile);
         navigateTo('home');
     };
-    
-    // FIX: This handler is now passed to the Sidebar
+   
     const handleSignOutAndReset = () => {
         handleSignOut();
-        navigateTo('setup', true); // Clear modals and go to setup
+        navigateTo('setup', true);
     };
-
-    
-    // Handlers: Game Flow
 
     const startNewGame = (mode) => {
         setGameMode(mode);
         setScore(0);
         setCurrentIndex(0);
         setSelectedAnswer(null);
-        setPausedGame(null); // Clear any paused state
-
-        // Re-shuffle full list and then shuffle options inside each question
+        setPausedGame(null);
         const shuffleOptions = (item) => {
             let options = [...item.options];
             options.sort(() => Math.random() - 0.5);
             return { ...item, options: options };
         };
-
         if (mode === 'words') {
             setShuffledWords(window.sightWordsData.map(shuffleOptions).sort(() => Math.random() - 0.5));
         } else {
             setShuffledSentences(window.sentencesData.map(shuffleOptions).sort(() => Math.random() - 0.5));
         }
-
         navigateTo('game', true);
     };
-    
+   
     const resumeGame = () => {
         if (!pausedGame) return;
-        
         setGameMode(pausedGame.mode);
         setCurrentIndex(pausedGame.index);
         setScore(pausedGame.score);
         setPausedGame(null);
         navigateTo('game', true);
     };
-    
+   
     const pauseGame = () => {
         setPausedGame({
             mode: gameMode,
@@ -1096,63 +931,50 @@ const AnimalReadingApp = () => {
         const newScoreEntry = {
             score: finalScore,
             mode: mode,
-            userName: profile.name, // FIX: Use profile.name
+            userName: profile.name,
             date: Date.now(),
         };
-
         const newHighScores = [...(profile.highScores || []), newScoreEntry];
-
         const newProfile = {
             ...profile,
-            streak: 0, 
+            streak: 0,
             highScore: Math.max(profile.highScore || 0, finalScore),
             highScores: newHighScores,
         };
-
         setProfile(newProfile);
-        saveUserProfile(newProfile); // Save to localStorage
+        saveUserProfile(newProfile);
         navigateTo('complete', true);
-        setPausedGame(null); // Clear pause on game over
+        setPausedGame(null);
     };
-
-    
+   
     const handleAnswer = (answer) => {
         if (selectedAnswer) return;
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
         const currentItem = currentContent[currentIndex];
-        
+       
         setSelectedAnswer(answer);
-        
+       
         const isCorrect = answer === currentItem.correct;
-
         if (isCorrect) {
             const newScore = score + 10;
             const newStreak = (profile.streak || 0) + 1;
             setScore(newScore);
-
             const newProfile = { ...profile, streak: newStreak };
-            setProfile(newProfile); 
-
+            setProfile(newProfile);
             if (newStreak >= 10 && (newStreak % 10) === 0) {
-                // Video Reward
                 const newRewardCount = (profile.rewardsEarned || 0) + 1;
                 const updatedProfile = {
                     ...newProfile,
                     rewardsEarned: newRewardCount,
                 };
                 setProfile(updatedProfile);
-                saveUserProfile(updatedProfile); 
-                
-                // FIX: Pass all required state setters to the reward function
+                saveUserProfile(updatedProfile);
                 generateRewardAnimal(true, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
             } else {
-                // Standard Animal/Fact Reward
                 generateRewardAnimal(false, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
             }
-
         } else {
-            // Game Over Logic
-            window.__speakLocal('Game Over!'); // Use fallback voice
+            window.__speakLocal('Game Over!');
             setTimeout(() => {
                  logScoreAndEndGame(score, gameMode);
             }, 1000);
@@ -1163,94 +985,70 @@ const AnimalReadingApp = () => {
         setSelectedAnswer(null);
         setShowRewardModal(false);
         setShowVideoModal(false);
-        setAnimalData(null); // Clear animal data for next round
+        setAnimalData(null);
         setApiError(null);
-
-        // Update profile with newly collected animal and fact count
         let newProfile = { ...profile };
-
         if (animalName && animalData) {
             const nextFactIndex = animalData.earnedFactIndex;
-
             if (nextFactIndex > (profile.factIndices[animalName] || 0)) {
-                // 1. Ensure the animal is added to the collection
                 if (!newProfile.collectedAnimals.includes(animalName)) {
                     newProfile.collectedAnimals = [...(newProfile.collectedAnimals || []), animalName];
                 }
-                
-                // 2. Update fact index
                 newProfile.factIndices = { ...(newProfile.factIndices || {}), [animalName]: nextFactIndex };
             }
         }
-        
+       
         if (score > (profile.highScore || 0)) {
             newProfile.highScore = score;
         }
-
         setProfile(newProfile);
-        saveUserProfile(newProfile); // Final save after fact unlock logic
-
+        saveUserProfile(newProfile);
         const currentList = gameMode === 'words' ? shuffledWords : shuffledSentences;
-
         if (currentIndex < currentList.length - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
-            // Round is complete without mistakes! Log max score.
             logScoreAndEndGame(score, gameMode);
         }
     };
-    
-    // Components
 
     const Sidebar = () => {
         const totalAnimals = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.length : 0;
         const collectedCount = (profile.collectedAnimals || []).length;
-        
-        // FIX (Navigation Bug): Handlers use the navigateTo function
+       
         const handleHomeClick = () => navigateTo('home', true);
         const handleCollectionClick = () => navigateTo('gallery', true);
         const handleScoresClick = () => setShowStatsModal(true);
         const handleRewardsClick = () => setShowRewardsModal(true);
-        
+       
         return (
-            // FIX: Responsive sidebar for mobile
-            <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200 
+            <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200
                             max-lg:w-full max-lg:h-auto max-lg:bottom-0 max-lg:top-auto max-lg:flex-row max-lg:items-center max-lg:justify-around max-lg:p-2 max-lg:border-t-2">
-                
-                {/* HIDE ON MOBILE */}
+               
                 <div className="flex flex-col mb-8 border-b pb-4 max-lg:hidden">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                         <Trophy className="w-6 h-6 text-emerald-500" /> Charlie's Words
                     </h2>
-                    {/* FIX 6: Add avatar to player name in sidebar */}
                     <p className="text-sm text-gray-500 mt-1">Player: {profile.name || 'Guest'} <span className="text-base ml-1">{profile.avatar}</span></p>
                 </div>
-                
-                {/* FIX: Horizontal nav for mobile */}
+               
                 <nav className="flex-grow space-y-3 max-lg:flex max-lg:space-y-0 max-lg:space-x-2 max-lg:flex-grow-0">
                     <SidebarButton icon={Home} label="Home" onClick={handleHomeClick} />
-                    <SidebarButton 
-                        icon={Image} 
-                        // FIX 4: Only show "Collection" without count
-                        label="Collection" 
-                        labelDesktop={`Collection`} 
-                        onClick={handleCollectionClick} 
+                    <SidebarButton
+                        icon={Image}
+                        label="Collection"
+                        labelDesktop={`Collection`}
+                        onClick={handleCollectionClick}
                     />
-                    {/* FIX (Navigation Bug): Modals must only set modal state, not change view */}
                     <SidebarButton icon={Trophy} label="Scores" labelDesktop="High Scores" onClick={handleScoresClick} />
-                    {/* FIX: Hook up rewards button */}
                     <SidebarButton icon={Video} label={`Rewards`} labelDesktop={`Rewards (${profile.rewardsEarned || 0})`} onClick={handleRewardsClick} />
                 </nav>
-
-                {/* HIDE ON MOBILE */}
                 <div className="mt-auto pt-6 border-t border-gray-200 space-y-3 max-lg:hidden">
                     <SidebarButton icon={Users} label="Change Player" data-action="signout" onClick={handleSignOutAndReset} />
                 </div>
             </div>
         );
     };
-    
-    // FIX: SidebarButton now supports different mobile/desktop labels
+   
     const SidebarButton = ({ icon: Icon, label, labelDesktop, onClick }) => (
         <button
             onClick={onClick}
@@ -1263,15 +1061,6 @@ const AnimalReadingApp = () => {
         </button>
     );
 
-    // Main Views
-    const LoadingScreen = () => (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
-            <Loader2 className="w-16 h-16 animate-spin text-emerald-500" />
-            <p className="text-xl font-bold mt-4 text-gray-700">Loading App...</p>
-        </div>
-    );
-    
-    // FIX: Main container styles for responsive sidebar
     const MainContainer = ({ children }) => (
         <div className="flex h-screen w-screen max-lg:flex-col">
             <Sidebar />
@@ -1281,15 +1070,20 @@ const AnimalReadingApp = () => {
         </div>
     );
 
+    const LoadingScreen = () => (
+        <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
+            <Loader2 className="w-16 h-16 animate-spin text-emerald-500" />
+            <p className="text-xl font-bold mt-4 text-gray-700">Loading App...</p>
+        </div>
+    );
+
     const WelcomeScreen = () => (
         <MainContainer>
             <div className="w-full max-w-4xl">
                 <div className="mb-8">
-                    {/* FIX 6: Add avatar to welcome message */}
                     <h1 className="text-4xl font-extrabold text-gray-800">Welcome, {profile.name}! <span className="text-4xl">{profile.avatar}</span></h1>
                 </div>
-                
-                {/* STATS INDICATORS */}
+               
                 <div className="flex flex-wrap justify-around items-center bg-white p-4 rounded-xl mb-10 shadow-lg border border-gray-200">
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Star className="w-6 h-6 text-emerald-500" />
@@ -1301,12 +1095,10 @@ const AnimalReadingApp = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Image className="w-6 h-6 text-emerald-500" />
-                        {/* FIX 1: Correct template literal formatting */}
                         Animals: {`${(profile.collectedAnimals || []).length}/${(window.ANIMAL_DATABASE || []).length}`}
                     </div>
                 </div>
 
-                {/* GAME TILES */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <button
                         onClick={() => pausedGame && pausedGame.mode === 'words' ? resumeGame() : startNewGame('words')}
@@ -1342,13 +1134,11 @@ const AnimalReadingApp = () => {
             {showRewardsModal && <RewardsModal profile={profile} onClose={() => setShowRewardsModal(false)} />}
         </MainContainer>
     );
-    
-    // Game Screen Logic
 
     const GameScreen = () => {
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
         const currentItem = currentContent[currentIndex];
-        
+       
         if (!currentItem) {
             return (
                 <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
@@ -1357,60 +1147,51 @@ const AnimalReadingApp = () => {
                 </div>
             );
         }
-
         const mainText = currentItem.word || currentItem.sentence;
-        
-        // Show reward modals if active, which interrupt the game flow
+       
         if (showRewardModal || showVideoModal) {
             const animal = animalData;
-            if (!animal) return <LoadingScreen />; // Should be pre-loaded, but just in case
-
+            if (!animal) return <LoadingScreen />;
             const totalFacts = (window.ANIMAL_DATABASE || []).find(a => a.name === animal.name)?.facts.length || 10;
-            
+           
             if (showVideoModal) {
                 return (
-                    <VideoRewardModal 
+                    <VideoRewardModal
                         rewardTitle={`Video Reward ${profile.rewardsEarned}`}
                         onClose={() => {
-                            // After video, trigger the fact modal flow
                             setShowVideoModal(false);
-                            setShowRewardModal(true); 
+                            setShowRewardModal(true);
                         }}
                     />
                 );
             }
-            
+           
             if (showRewardModal && animalData) {
                 const animal = animalData;
                 const totalFacts = (window.ANIMAL_DATABASE || []).find(a => a.name === animal.name)?.facts.length || 10;
-
-                // Render INSIDE the MainContainer (white background)
                 return (
                     <MainContainer>
                         <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-lg w-full text-center">
-                            
-                            {/* This is the content from the old modal, now on a white card */}
-                            <h2 className="text-2xl font-semibold text-emerald-600 mb-4">🎉 Fact Unlocked!</h2>
+                           
+                            <h2 className="text-2xl font-semibold text-emerald-600 mb-4">Fact Unlocked!</h2>
                             <div className="text-center space-y-4">
                                 <h3 className="text-2xl font-bold text-gray-800">{animal.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                    {/* FIX 1: Correct template literal formatting */}
                                     Total Facts Earned: <span className="font-semibold text-emerald-600">{`${animal.earnedFactIndex} / ${totalFacts}`}</span>
                                 </p>
-
                                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
                                     {isLoading ? (
                                         <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
                                     ) : (
-                                        <img 
-                                            src={animal.imageUrl} 
-                                            alt={animal.name} 
+                                        <img
+                                            src={animal.imageUrl}
+                                            alt={animal.name}
                                             className="max-h-full object-contain"
                                             onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
                                         />
                                     )}
                                 </div>
-                                
+                               
                                 <h4 className="text-lg font-semibold text-gray-700 mt-4 pt-4 border-t">New Fact:</h4>
                                 <button
                                     onClick={() => speak(animal.facts[animal.earnedFactIndex - 1])}
@@ -1420,7 +1201,7 @@ const AnimalReadingApp = () => {
                                     {isSpeaking ? <Loader2 className="w-6 h-6 animate-spin" /> : <Volume2 className="w-6 h-6" />}
                                     {animal.facts[animal.earnedFactIndex - 1]}
                                 </button>
-                                
+                               
                                 <button
                                     onClick={() => moveToNextQuestion(animal.name)}
                                     className="w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors mt-4"
@@ -1428,19 +1209,15 @@ const AnimalReadingApp = () => {
                                     Next Question <ArrowRight className="w-6 h-6 inline ml-2" />
                                 </button>
                             </div>
-                            {/* End of copied content */}
-
                         </div>
                     </MainContainer>
                 );
             }
         }
-        
-        // Main Quiz UI
+       
         return (
             <MainContainer>
                 <div className="w-full max-w-lg">
-                    {/* Header */}
                     <div className="flex justify-between items-center py-4 px-2 mb-6 border-b border-gray-200">
                         <button onClick={pauseGame} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
                             <Menu className="w-6 h-6" />
@@ -1454,16 +1231,12 @@ const AnimalReadingApp = () => {
                             {gameMode === 'words' ? 'Sight Words' : 'Sentences'}
                         </h2>
                     </div>
-
-                    {/* API Error Message */}
                     {apiError && (
                         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
                             <p className="font-bold">Audio Warning:</p>
                             <p>{apiError}</p>
                         </div>
                     )}
-
-                    {/* Question Card */}
                     <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl">
                         <div className="text-center mb-8">
                             <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
@@ -1471,7 +1244,6 @@ const AnimalReadingApp = () => {
                                 <span className="text-xl font-semibold text-gray-700">MYSTERY ANIMAL</span>
                                 <p className="text-sm text-gray-500">Get it right to reveal the fact!</p>
                             </div>
-
                             <button
                                 onClick={() => speak(mainText)}
                                 disabled={isSpeaking}
@@ -1490,8 +1262,6 @@ const AnimalReadingApp = () => {
                                 )}
                             </button>
                         </div>
-
-                        {/* Answer Options */}
                         <div className="space-y-4">
                             <p className="text-center text-lg font-semibold text-gray-700 mb-4">
                                 Select the correct text:
@@ -1500,18 +1270,16 @@ const AnimalReadingApp = () => {
                                 const isSelected = selectedAnswer === option;
                                 const isCorrect = option === currentItem.correct;
                                 const showResult = selectedAnswer !== null;
-
                                 let buttonClass = 'bg-gray-100 hover:bg-gray-200 text-gray-700';
                                 if (showResult && isSelected && isCorrect) {
                                     buttonClass = 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/30 scale-100';
                                 } else if (showResult && isSelected && !isCorrect) {
                                     buttonClass = 'bg-red-500 text-white shadow-lg shadow-red-500/30 scale-100';
                                 } else if (showResult && isCorrect) {
-                                    buttonClass = 'bg-emerald-100 text-emerald-700 opacity-80'; // Hint correct
+                                    buttonClass = 'bg-emerald-100 text-emerald-700 opacity-80';
                                 } else if (showResult) {
-                                    buttonClass = 'bg-gray-50 text-gray-400 opacity-60'; // Dim unselected/incorrect
+                                    buttonClass = 'bg-gray-50 text-gray-400 opacity-60';
                                 }
-
                                 return (
                                     <button
                                         key={idx}
@@ -1526,7 +1294,6 @@ const AnimalReadingApp = () => {
                                 );
                             })}
                         </div>
-
                         <div className="mt-8 text-center text-sm text-gray-400">
                             Question {currentIndex + 1} of {currentContent.length}
                         </div>
@@ -1541,7 +1308,6 @@ const AnimalReadingApp = () => {
             <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
                 <Trophy className="w-16 h-16 text-emerald-500 mx-auto mb-6 animate-bounce" />
                 <h1 className="text-3xl font-bold text-gray-800 mb-4">Round Complete!</h1>
-
                 <div className="space-y-4 my-6">
                     <div className="bg-emerald-50 p-4 rounded-xl">
                         <p className="text-sm text-emerald-700">Final Score</p>
@@ -1552,7 +1318,6 @@ const AnimalReadingApp = () => {
                         <p className="text-4xl font-bold text-gray-700">{profile.highScore || 0}</p>
                     </div>
                 </div>
-
                 <button
                     onClick={() => navigateTo('home')}
                     className="w-full bg-gray-200 hover:bg-gray-300 text-gray-700 text-xl font-bold py-3 rounded-xl flex items-center justify-center gap-3 transition-colors"
@@ -1563,37 +1328,26 @@ const AnimalReadingApp = () => {
             </div>
         </MainContainer>
     );
-    
-    // FIX (Collection Modal): Added local loading state and verified async function structure.
+   
     const GalleryScreen = () => {
         const [factModalOpen, setFactModalOpen] = useState(false);
-        const [modalLoading, setModalLoading] = useState(false); // NEW: Local loading state
+        const [modalLoading, setModalLoading] = useState(false);
         const [currentAnimal, setCurrentAnimal] = useState(null);
         const [imageUrls, setImageUrls] = useState({});
-
         const openFactModal = useCallback(async (animal) => {
-            if (modalLoading) return; 
-
-            setModalLoading(true); // Start loading indicator
-
-            // Await the asynchronous data fetch
+            if (modalLoading) return;
+            setModalLoading(true);
             const animalWithData = await getAnimalDataForModal(animal.name);
-
-            // Once data is returned, stop loading, update data, and open modal
-            setModalLoading(false); 
-
+            setModalLoading(false);
             if (animalWithData) {
                 const factsEarned = (profile.factIndices || {})[animal.name] || 0;
-                
                 setCurrentAnimal({ ...animalWithData, factsEarned });
                 setFactModalOpen(true);
             } else {
                 console.error("Failed to load full animal data for modal.");
-                // Optionally show a user-facing error message here
             }
         }, [getAnimalDataForModal, profile.factIndices, modalLoading]);
-        
-        // Logic for preloading image manifest remains the same
+       
         useEffect(() => {
             const loadImages = async () => {
                 const manifest = await awLoadImageManifest();
@@ -1603,19 +1357,18 @@ const AnimalReadingApp = () => {
             };
             loadImages();
         }, []);
-
         const totalAnimals = (window.ANIMAL_DATABASE || []).length;
         const collected = (profile.collectedAnimals || []);
-        
+       
         const sortedAnimals = [...(window.ANIMAL_DATABASE || [])].sort((a, b) => {
             const aCollected = collected.includes(a.name);
             const bCollected = collected.includes(b.name);
-            
+           
             if (aCollected && !bCollected) return -1;
             if (!aCollected && bCollected) return 1;
             return a.name.localeCompare(b.name);
         });
-        
+       
         return (
             <MainContainer>
                 <div className="max-w-6xl w-full mx-auto">
@@ -1628,26 +1381,25 @@ const AnimalReadingApp = () => {
                             Collected: <span className="font-bold text-emerald-600">{`${collected.length} / ${totalAnimals}`}</span>
                         </p>
                     </div>
-
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
                         {sortedAnimals.map((animal) => {
                             const isCollected = collected.includes(animal.name);
                             const factCount = (profile.factIndices || {})[animal.name] || 0;
                             const slug = slugify(animal.name);
                             const imageUrl = imageUrls[slug] || `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
-                            
+                           
                             return (
-                                <div 
-                                    key={animal.name} 
+                                <div
+                                    key={animal.name}
                                     className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
                                     onClick={() => isCollected && openFactModal(animal)}
                                 >
                                     <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
                                         {isCollected ? (
                                             <img
-                                                src={imageUrl} 
+                                                src={imageUrl}
                                                 alt={animal.name}
-                                                className="w-full h-full object-cover" 
+                                                className="w-full h-full object-cover"
                                                 onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
                                             />
                                         ) : (
@@ -1669,20 +1421,16 @@ const AnimalReadingApp = () => {
                         })}
                     </div>
                 </div>
-                {/* NEW: Local Loading Indicator for the modal */}
                 {modalLoading && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
                          <Loader2 className="w-16 h-16 animate-spin text-emerald-400" />
                     </div>
                 )}
-
-                {/* FactModal should only render if open AND data is available */}
                 {factModalOpen && currentAnimal && (
-                <FactModal 
+                <FactModal
                     animal={currentAnimal}
-                    factsEarned={currentAnimal.factsEarned} 
+                    factsEarned={currentAnimal.factsEarned}
                     totalFacts={currentAnimal.facts.length}
-                    //onClose={() => { setFactModalOpen(false); setCurrentAnimal(null); }}
                     speak={speak}
                     isSpeaking={isSpeaking}
                 />
@@ -1691,12 +1439,9 @@ const AnimalReadingApp = () => {
         );
     };
 
-
-    // View Controller
     switch (appView) {
         case 'loading':
             return <LoadingScreen />;
-        // FIX: Use AW_WelcomeScreen for the 'setup' view
         case 'setup':
             return <AW_WelcomeScreen onStart={handleStartPlaying} />;
         case 'home':
@@ -1707,45 +1452,38 @@ const AnimalReadingApp = () => {
             return <CompletionScreen />;
         case 'gallery':
             return <GalleryScreen />;
-        default: 
-            return <LoadingScreen />; // Default to loading
+        default:
+            return <LoadingScreen />;
     }
 };
 
-// React Render Mount
 const container = document.getElementById("root");
 const root = ReactDOM.createRoot(container);
 root.render(<AnimalReadingApp />);
-; 
-
 </script>
+
 <script>
-  // FIX: Use a safer preloader
-  window.addEventListener('load', () => { 
-      setTimeout(() => { 
-          try { 
-              if (window.awPreloadImages) window.awPreloadImages(); 
+  window.addEventListener('load', () => {
+      setTimeout(() => {
+          try {
+              if (window.awPreloadImages) window.awPreloadImages();
           } catch(e){
               console.error("Preload failed", e);
-          } 
-      }, 600); 
+          }
+      }, 600);
   });
 </script>
-  
-  <script>
-    // Make the Change Player/Sign Out area always work as a safety net
-    document.addEventListener('click', function(e){
-      const el = e.target.closest('[data-action="signout"], [data-action="change-player"]');
-      if (!el) return;
-      try {
-        localStorage.removeItem('playerName');
-        // FIX: Clear the full profile list on sign out
-        localStorage.removeItem('profiles_v1'); 
-      } catch(_){}
-      // Best-effort return to Welcome
-      try { window.location.reload(); } catch(_){}
-    }, true);
-  </script>
-
+ 
+<script>
+  document.addEventListener('click', function(e){
+    const el = e.target.closest('[data-action="signout"], [data-action="change-player"]');
+    if (!el) return;
+    try {
+      localStorage.removeItem('playerName');
+      localStorage.removeItem('profiles_v1');
+    } catch(_){}
+    try { window.location.reload(); } catch(_){}
+  }, true);
+</script>
 </body>
 </html>
