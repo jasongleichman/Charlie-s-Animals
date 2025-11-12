@@ -1,26 +1,12 @@
-#!/usr/bin/env node
-/**
- * [NEW & IMPROVED] Diff-only TTS builder using AWS Polly (CommonJS)
- * - Reads ANIMAL_DATABASE, sightWordsData, and sentencesData from docs/assets/app-data.js
- * - Collects ALL unique text (names, facts, words, sentences)
- * - Generates only missing files at docs/assets/tts/<slug>.mp3
- * - Throttles requests via --rate (ms) (default 7000)
- * - Voice from --voice (default Matthew)
- *
- * Usage:
- * node scripts/build_tts_polly.cjs --db=docs/index.html --out=./docs/assets --rate=7000 --voice=Matthew
- */
-
 const fs = require("fs");
 const path = require("path");
 const vm = require("vm"); // Added to read JS variables
 const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly");
-
 // -------- CLI ARGS --------
 function arg(key, def = null) {
   const hit = process.argv.find(a => a.startsWith(`--${key}=`));
   return hit ?
-  hit.split("=").slice(1).join("=") : def;
+hit.split("=").slice(1).join("=") : def;
 }
 const DB_PATH   = arg("db", "docs/index.html");
 const OUT_ROOT  = arg("out", "./docs/assets");
@@ -30,31 +16,31 @@ const VOICE_ID  = arg("voice", "Matthew");
 
 const TTS_DIR   = path.join(OUT_ROOT, "tts");
 fs.mkdirSync(TTS_DIR, { recursive: true });
-
 // -------- UTILS --------
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 const toSlug = (s) => (s || "")
   .toLowerCase()
   .replace(/[^a-z0-9]+/g, "-")
   .replace(/(^-|-$)/g, "");
-
 /**
  * [FIXED] Extracts all JS databases from the app-data.js file
  */
 function readDatabases(dataPath) {
   console.log(`Reading data from: ${dataPath}`);
-  const jsContent = fs.readFileSync(dataPath, "utf8");
+const jsContent = fs.readFileSync(dataPath, "utf8");
   const ctx = {}; 
   vm.createContext(ctx);
 
-  const animalMatch = jsContent.match(/const\s+ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
-  const sightMatch = jsContent.match(/const\s+sightWordsData\s*=\s*(\[[\s\S]*?\]);/);
-  const sentenceMatch = jsContent.match(/const\s+sentencesData\s*=\s*(\[[\s\S]*?\]);/);
+  // FIX: Change regex to look for window.ANIMAL_DATABASE
+  const animalMatch = jsContent.match(/window\.ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
+  // FIX: Change regex to look for window.sightWordsData
+  const sightMatch = jsContent.match(/window\.sightWordsData\s*=\s*(\[[\s\S]*?\]);/);
+  // FIX: Change regex to look for window.sentencesData
+  const sentenceMatch = jsContent.match(/window\.sentencesData\s*=\s*(\[[\s\S]*?\]);/);
 
   if (!animalMatch) throw new Error(`Could not find ANIMAL_DATABASE in ${dataPath}`);
   if (!sightMatch) throw new Error(`Could not find sightWordsData in ${dataPath}`);
   if (!sentenceMatch) throw new Error(`Could not find sentencesData in ${dataPath}`);
-
   const animals = vm.runInContext("(" + animalMatch[1] + ")", ctx);
   const sightWords = vm.runInContext("(" + sightMatch[1] + ")", ctx);
   const sentences = vm.runInContext("(" + sentenceMatch[1] + ")", ctx);
@@ -149,7 +135,8 @@ async function synthesizeToFile(text, outFile) {
   const { animals, sightWords, sentences } = readDatabases(DATA_FILE_PATH);
   const allText = collectAllText({ animals, sightWords, sentences });
   
-  console.log(`\nFound ${allText.length} unique text strings to synthesize.`);
+  console.log(`\nFound ${allText.length} 
+unique text strings to synthesize.`);
 
   // 2. Loop and generate
   let created = 0, skipped = 0, failed = 0;
@@ -162,29 +149,30 @@ async function synthesizeToFile(text, outFile) {
     }
 
     // Handle very long slugs (from facts/sentences) by truncating
-    const safeSlug = slug.length > 100 ? slug.substring(0, 100) : slug;
+    const safeSlug = slug.length > 100 ?
+slug.substring(0, 100) : slug;
     const outFile = path.join(TTS_DIR, `${safeSlug}.mp3`);
 
     if (fs.existsSync(outFile)) {
       // console.log(`✅ exists: ${text.substring(0, 50)}...`);
-      skipped++;
+skipped++;
       continue;
     }
 
     // Synthesize the full, original text
     try {
       console.log(`🎙  TTS: [${text.substring(0, 60)}...]`);
-      await synthesizeToFile(text, outFile);
+await synthesizeToFile(text, outFile);
       created++;
       console.log(`   -> Saved ${outFile}`);
       await sleep(RATE_MS);
-      // Throttle requests
+// Throttle requests
     } catch (e) {
       failed++;
-      console.error(`❌ TTS fail: ${text.substring(0, 60)}... :: ${e.message || e}`);
+console.error(`❌ TTS fail: ${text.substring(0, 60)}... :: ${e.message || e}`);
       if (e.message && e.message.includes("TextLengthExceededException")) {
-         console.warn(`   ---> This text was too long for Polly. You may need to shorten it in app-data.js.`); 
-      }
+         console.warn(`   ---> This text was too long for Polly. You may need to shorten it in app-data.js.`);
+}
       // Don't stop the whole script, just skip this one
     }
   }
