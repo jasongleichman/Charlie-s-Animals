@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [NEW & IMPROVED] Diff-only TTS builder using AWS Polly (CommonJS)
- * - Reads ANIMAL_DATABASE, sightWordsData, and sentencesData from docs/index.html
+ * - Reads ANIMAL_DATABASE, sightWordsData, and sentencesData from docs/assets/app-data.js
  * - Collects ALL unique text (names, facts, words, sentences)
  * - Generates only missing files at docs/assets/tts/<slug>.mp3
  * - Throttles requests via --rate (ms) (default 7000)
@@ -20,7 +20,7 @@ const { PollyClient, SynthesizeSpeechCommand } = require("@aws-sdk/client-polly"
 function arg(key, def = null) {
   const hit = process.argv.find(a => a.startsWith(`--${key}=`));
   return hit ?
-    hit.split("=").slice(1).join("=") : def;
+  hit.split("=").slice(1).join("=") : def;
 }
 const DB_PATH   = arg("db", "docs/index.html");
 const OUT_ROOT  = arg("out", "./docs/assets");
@@ -39,25 +39,25 @@ const toSlug = (s) => (s || "")
   .replace(/(^-|-$)/g, "");
 
 /**
- * [NEW] Extracts all JS databases from the index.html file
+ * [FIXED] Extracts all JS databases from the app-data.js file
  */
-function readDatabases(dbFile) {
-  const html = fs.readFileSync(dbFile, "utf8");
+function readDatabases(dataPath) {
+  console.log(`Reading data from: ${dataPath}`);
+  const jsContent = fs.readFileSync(dataPath, "utf8");
   const ctx = {}; 
   vm.createContext(ctx);
 
-  const animalMatch = html.match(/const\s+ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
-  const sightMatch = html.match(/const\s+sightWordsData\s*=\s*(\[[\s\S]*?\]);/);
-  const sentenceMatch = html.match(/const\s+sentencesData\s*=\s*(\[[\s\S]*?\]);/);
+  const animalMatch = jsContent.match(/const\s+ANIMAL_DATABASE\s*=\s*(\[[\s\S]*?\]);/);
+  const sightMatch = jsContent.match(/const\s+sightWordsData\s*=\s*(\[[\s\S]*?\]);/);
+  const sentenceMatch = jsContent.match(/const\s+sentencesData\s*=\s*(\[[\s\S]*?\]);/);
 
-  if (!animalMatch) throw new Error("Could not find ANIMAL_DATABASE in index.html");
-  if (!sightMatch) throw new Error("Could not find sightWordsData in index.html");
-  if (!sentenceMatch) throw new Error("Could not find sentencesData in index.html");
+  if (!animalMatch) throw new Error(`Could not find ANIMAL_DATABASE in ${dataPath}`);
+  if (!sightMatch) throw new Error(`Could not find sightWordsData in ${dataPath}`);
+  if (!sentenceMatch) throw new Error(`Could not find sentencesData in ${dataPath}`);
 
   const animals = vm.runInContext("(" + animalMatch[1] + ")", ctx);
   const sightWords = vm.runInContext("(" + sightMatch[1] + ")", ctx);
   const sentences = vm.runInContext("(" + sentenceMatch[1] + ")", ctx);
-
   return { animals, sightWords, sentences };
 }
 
@@ -66,8 +66,7 @@ function readDatabases(dbFile) {
  */
 function collectAllText({ animals, sightWords, sentences }) {
   const textSet = new Set();
-
-  // 1. Animal Names
+// 1. Animal Names
   console.log(`... collecting ${animals.length} animal names`);
   animals.forEach(animal => {
     if (animal.name) textSet.add(animal.name);
@@ -106,7 +105,6 @@ function collectAllText({ animals, sightWords, sentences }) {
 // -------- AWS POLLY --------
 const REGION = process.env.AWS_REGION || "us-east-1";
 const polly = new PollyClient({ region: REGION });
-
 async function synthesizeToFile(text, outFile) {
   const cmd = new SynthesizeSpeechCommand({
     OutputFormat: "mp3",
@@ -116,7 +114,6 @@ async function synthesizeToFile(text, outFile) {
     LanguageCode: "en-US",      // clear American English
     SampleRate: "22050"
   });
-
   const { AudioStream } = await polly.send(cmd);
   if (!AudioStream) {
     throw new Error("No AudioStream returned from Polly.");
@@ -128,7 +125,6 @@ async function synthesizeToFile(text, outFile) {
     writer.write(chunk);
   }
   writer.end();
-  
   return new Promise((resolve, reject) => {
     writer.on('finish', resolve);
     writer.on('error', reject);
@@ -140,13 +136,17 @@ async function synthesizeToFile(text, outFile) {
 (async () => {
   console.log("📦 Args:", { db: DB_PATH, out: OUT_ROOT, rate: RATE_MS, voice: VOICE_ID, region: REGION });
 
-  if (!fs.existsSync(DB_PATH)) {
-    console.error(`❌ DB not found: ${DB_PATH}`);
+  // --- FIX: Read from app-data.js instead of index.html ---
+  const DATA_FILE_PATH = path.join(OUT_ROOT, "app-data.js");
+  
+  if (!fs.existsSync(DATA_FILE_PATH)) {
+    console.error(`❌ Data file not found: ${DATA_FILE_PATH}`);
     process.exit(1);
   }
 
   // 1. Get all data
-  const { animals, sightWords, sentences } = readDatabases(DB_PATH);
+  // Pass the correct data file path to the function
+  const { animals, sightWords, sentences } = readDatabases(DATA_FILE_PATH);
   const allText = collectAllText({ animals, sightWords, sentences });
   
   console.log(`\nFound ${allText.length} unique text strings to synthesize.`);
@@ -154,7 +154,8 @@ async function synthesizeToFile(text, outFile) {
   // 2. Loop and generate
   let created = 0, skipped = 0, failed = 0;
   for (const text of allText) {
-    const slug = toSlug(text);
+   
+  const slug = toSlug(text);
     if (!slug) {
         console.log(`⚠️  Skipping empty text.`);
         continue;
@@ -176,12 +177,13 @@ async function synthesizeToFile(text, outFile) {
       await synthesizeToFile(text, outFile);
       created++;
       console.log(`   -> Saved ${outFile}`);
-      await sleep(RATE_MS); // Throttle requests
+      await sleep(RATE_MS);
+      // Throttle requests
     } catch (e) {
       failed++;
       console.error(`❌ TTS fail: ${text.substring(0, 60)}... :: ${e.message || e}`);
       if (e.message && e.message.includes("TextLengthExceededException")) {
-         console.warn(`   ---> This text was too long for Polly. You may need to shorten it in index.html.`);
+         console.warn(`   ---> This text was too long for Polly. You may need to shorten it in app-data.js.`); 
       }
       // Don't stop the whole script, just skip this one
     }
