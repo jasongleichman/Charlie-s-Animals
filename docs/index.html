@@ -643,7 +643,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                 className={`p-3 rounded-lg flex justify-between items-center transition-all ${
                                     isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
                                 } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
-                                onClick={() => { if (isUnlocked) setFactIndex(index); }}
+                                onClick={(e) => { e.stopPropagation(); if (isUnlocked) setFactIndex(index); }}
                             >
                                 <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
                                     <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
