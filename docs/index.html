@@ -731,9 +731,9 @@ const Modal = ({ title, children, onClose }) => (
     </div>
 );
 
-// Fact Modal Component
+// Fact Modal Component (FIXED: Template literals, Lock logic)
 const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-    // --- FIX: Default to fact 0 if no facts earned yet (for gallery view) ---
+    // FIX 2: Default to the newest earned fact, or fact 0 if no facts earned
     const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
     const totalFactsCount = animal.facts.length;
 
@@ -749,7 +749,8 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
             <div className="space-y-4">
                 <div className="text-center">
                     <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
-                    <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">`${factsEarned} / ${totalFactsCount}`</span></p>
+                    {/* FIX 1: Correct template literal formatting */}
+                    <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
                 </div>
 
                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
@@ -763,7 +764,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
 
                 <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
 
-                {/* FIX: Fact list is now scrollable on its own */}
+                {/* FIX 2: Fact list is now scrollable on its own, and shows lock for unearned */}
                 <div className="space-y-2 max-h-60 overflow-y-auto p-1">
                     {animal.facts.map((fact, index) => {
                         const isUnlocked = index < factsEarned;
@@ -775,12 +776,13 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                 key={index} 
                                 // FIX 2: OnClick is only enabled for unlocked facts
                                 className={`p-3 rounded-lg flex justify-between items-center transition-all ${
-                                    isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400'
+                                    isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
                                 } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
                                 onClick={() => { if (isUnlocked) setFactIndex(index); }}
                             >
                                 <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                                    <strong className="text-emerald-600">Fact `${factNumber}`:</strong> 
+                                    {/* FIX 1: Correct template literal formatting */}
+                                    <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong> 
                                     {/* FIX 2: Only display fact if unlocked */}
                                     {isUnlocked ? fact : "Locked: Complete more quizzes!"}
                                 </span>
@@ -790,8 +792,9 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                             e.stopPropagation(); 
                                             speak(fact); 
                                         }}
-                                        disabled={isSpeaking}
+                                        disabled={isSpeaking && isCurrent}
                                         className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
+                                        aria-label="Read fact aloud"
                                     >
                                         <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
                                     </button>
@@ -811,13 +814,16 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
     );
 };
 
-// Video Reward Modal Component
+// Video Reward Modal Component (Used only after a 10-streak)
 const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     
     // Choose a random video 
     const videoIndex = Math.floor(Math.random() * (window.VIDEO_DATABASE || []).length);
     const actualVideo = (window.VIDEO_DATABASE || [])[videoIndex];
+
+    // FIX 3: Convert YouTube URL to embed URL
+    const embedUrl = actualVideo ? actualVideo.url.replace("watch?v=", "embed/") : null;
 
     return (
         <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
@@ -826,7 +832,7 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                 <p className="text-gray-500">You earned this video for 10 consecutive correct answers!</p>
                 
                 <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center">
-                    {!actualVideo || !actualVideo.url ? (
+                    {!actualVideo || !embedUrl ? (
                         <div className="text-white">Video data missing.</div>
                     ) : !isPlaying ? (
                         <div className="flex flex-col items-center justify-center h-full w-full">
@@ -841,7 +847,8 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                     ) : (
                         <iframe
                             className="w-full h-full"
-                            src={actualVideo.url}
+                            // FIX 3: Use the embed URL for correct playback
+                            src={embedUrl}
                             title={actualVideo.title}
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
@@ -860,6 +867,7 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
         </Modal>
     );
 };
+
 
 // Stats Modal Component
 const StatsModal = ({ profile, onClose }) => {
@@ -897,15 +905,64 @@ const StatsModal = ({ profile, onClose }) => {
     );
 };
 
-// NEW: Simple Modal for "Rewards"
+// Video Rewards Gallery Modal Component (FIXED: Shows tiles and embeds)
 const RewardsModal = ({ profile, onClose }) => {
+    // FIX 3: Use the global VIDEO_DATABASE
+    const videoDatabase = window.VIDEO_DATABASE || [];
+    // FIX 1: Correct template literal formatting
+    const rewardsEarned = profile.rewardsEarned || 0;
+    const totalVideos = videoDatabase.length;
+
     return (
-        <Modal title="My Rewards" onClose={onClose}>
-            <div className="space-y-4 text-center">
-                <Award className="w-16 h-16 text-emerald-500 mx-auto" />
-                <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
-                <p className="text-6xl font-extrabold text-emerald-600">`${profile.rewardsEarned || 0}`</p>
-                <p className="text-gray-500">You earn a new video reward for every 10-question streak in the quiz!</p>
+        <Modal title="My Video Rewards" onClose={onClose}>
+            <div className="space-y-4">
+                <div className="text-center mb-4">
+                    <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
+                    {/* FIX 1: Correct template literal formatting */}
+                    <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
+                    <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
+                    {videoDatabase.length === 0 ? (
+                        <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
+                    ) : videoDatabase.map((video, index) => {
+                        // FIX 3: Check if video is unlocked based on index (1-based count)
+                        const isUnlocked = rewardsEarned > index;
+                        // FIX 3: Ensure YouTube URL is in embed format for playback in iframe
+                        const embedUrl = video.url.includes("youtube.com") || video.url.includes("youtu.be")
+                                        ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                                        : video.url; // Fallback for non-YouTube links
+                        
+                        return (
+                            <div 
+                                key={index}
+                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-70'}`}
+                            >
+                                <div className="relative w-full aspect-video">
+                                    {isUnlocked ? (
+                                        <iframe
+                                            className="w-full h-full"
+                                            src={embedUrl}
+                                            title={video.title}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            loading="lazy"
+                                        ></iframe>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                            <Lock className="w-8 h-8 text-gray-500" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3">
+                                    <h4 className={`font-semibold line-clamp-2 ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>{video.title}</h4>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </Modal>
     );
@@ -1236,7 +1293,8 @@ const AnimalReadingApp = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Image className="w-6 h-6 text-emerald-500" />
-                        Animals: {(profile.collectedAnimals || []).length}/{(window.ANIMAL_DATABASE || []).length}
+                        {/* FIX 1: Correct template literal formatting */}
+                        Animals: {`${(profile.collectedAnimals || []).length}/${(window.ANIMAL_DATABASE || []).length}`}
                     </div>
                 </div>
 
@@ -1324,11 +1382,12 @@ const AnimalReadingApp = () => {
                         <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-lg w-full text-center">
                             
                             {/* This is the content from the old modal, now on a white card */}
-                            <h2 className="text-2xl font-semibold text-emerald-600 mb-4">`🎉 Fact Unlocked!`</h2>
+                            <h2 className="text-2xl font-semibold text-emerald-600 mb-4">🎉 Fact Unlocked!</h2>
                             <div className="text-center space-y-4">
                                 <h3 className="text-2xl font-bold text-gray-800">{animal.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                    Total Facts Earned: <span className="font-semibold text-emerald-600">`${animal.earnedFactIndex} / ${totalFacts}`</span>
+                                    {/* FIX 1: Correct template literal formatting */}
+                                    Total Facts Earned: <span className="font-semibold text-emerald-600">{`${animal.earnedFactIndex} / ${totalFacts}`}</span>
                                 </p>
 
                                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
@@ -1501,12 +1560,13 @@ const AnimalReadingApp = () => {
         const [factModalOpen, setFactModalOpen] = useState(false);
         const [currentAnimal, setCurrentAnimal] = useState(null);
 
-        // FIX: This is the function that was broken
+        // FIX 2: Updated logic to correctly set currentAnimal data including earned facts
         const openFactModal = async (animal) => {
-            // Use the new, corrected function from the hook
             const animalWithData = await getAnimalDataForModal(animal.name);
             if (animalWithData) {
-                setCurrentAnimal(animalWithData);
+                // Attach the earned fact count from the profile
+                const factsEarned = (profile.factIndices || {})[animal.name] || 0;
+                setCurrentAnimal({ ...animalWithData, factsEarned });
                 setFactModalOpen(true);
             }
         };
@@ -1550,8 +1610,9 @@ const AnimalReadingApp = () => {
                             <Image className="w-8 h-8 text-emerald-500" />
                             Animal Collection
                         </h1>
+                        {/* FIX 1: Correct template literal formatting */}
                         <p className="text-lg text-gray-600">
-                            Collected: <span className="font-bold text-emerald-600">`${collected.length}`</span> / {totalAnimals}
+                            Collected: <span className="font-bold text-emerald-600">{`${collected.length} / ${totalAnimals}`}</span>
                         </p>
                     </div>
 
@@ -1568,7 +1629,7 @@ const AnimalReadingApp = () => {
                                 <div 
                                     key={animal.name} 
                                     className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
-                                    // FIX: This onClick is now fully functional
+                                    // FIX 2: This onClick is now fully functional
                                     onClick={() => isCollected && openFactModal(animal)}
                                 >
                                     <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
@@ -1589,7 +1650,10 @@ const AnimalReadingApp = () => {
                                             {isCollected ? animal.name : '??????'}
                                         </h2>
                                         {isCollected && (
-                                            <p className="text-sm text-gray-500 mt-1">Facts: <span className="font-semibold text-emerald-600">`${factCount} / ${animal.facts.length}`</span></p>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                {/* FIX 1: Correct template literal formatting */}
+                                                Facts: <span className="font-semibold text-emerald-600">{`${factCount} / ${animal.facts.length}`}</span>
+                                            </p>
                                         )}
                                     </div>
                                 </div>
@@ -1597,11 +1661,11 @@ const AnimalReadingApp = () => {
                         })}
                     </div>
                 </div>
-                {/* FIX: This modal is now correctly wired */}
+                {/* FIX 2: Modal now receives factsEarned data */}
                 {factModalOpen && currentAnimal && (
                 <FactModal 
                     animal={currentAnimal}
-                    factsEarned={(profile.factIndices || {})[currentAnimal.name] || 0}
+                    factsEarned={currentAnimal.factsEarned} // Now receives correct data
                     totalFacts={currentAnimal.facts.length}
                     onClose={closeFactModal}
                     speak={speak}
