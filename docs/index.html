@@ -2778,14 +2778,14 @@ const AnimalReadingApp = () => {
                  setAppView('setup');
             } else if (!userApiKey && !profile.geminiApiKey) {
                 // If profile is loaded but key is missing, go to API setup
-                setAppView('apikey');
+                setAppView('welcome');
             } else if (cacheStatus === 0 || cacheStatus === 3) {
                 // If caching status is unknown (0) or skipped (3), check status and transition
                 const checkCache = async () => {
                     const status = await loadUserCacheStatus();
                     setCacheStatus(status);
                     if (status === 0) {
-                         setAppView('caching');
+                         setAppView('welcome');
                     } else {
                          setAppView('home');
                     }
@@ -2815,7 +2815,7 @@ const AnimalReadingApp = () => {
         const success = await saveUserNameProfile(userName);
 
         if (success) {
-            setAppView('apikey');
+            setAppView('welcome');
         }
         setIsSigningIn(false);
     };
@@ -2856,7 +2856,7 @@ const AnimalReadingApp = () => {
             
             // 3. Move to Caching screen
             setCacheStatus(await loadUserCacheStatus());
-            setAppView('caching');
+            setAppView('welcome');
         }
         setIsVerifyingKey(false);
     };
@@ -3760,10 +3760,8 @@ setApiError(null);
             return <LoadingScreen />;
         case 'setup':
             return <ProfileSetupScreen />;
-        case 'apikey':
-            return <AW_WelcomeScreen onStart={(rec)=>{ setPlayerName(rec.name); setAppView('home'); }} />;
-        case 'caching':
-            return <AW_WelcomeScreen onStart={(rec)=>{ setPlayerName(rec.name); setAppView('home'); }} />;
+        setAppView('home'); }} />;
+        setAppView('home'); }} />;
         case 'welcome': return <AW_WelcomeScreen onStart={()=>setAppView('game')} />;
         case 'game':
             return <GameScreen />;
@@ -3771,8 +3769,7 @@ setApiError(null);
             return <CompletionScreen />;
         case 'gallery':
             return <GalleryScreen />;
-        default:
-            return <WelcomeScreen />;
+        default: return <AW_WelcomeScreen />;
     }
 };
 
