@@ -11,7 +11,7 @@
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
-    /* Fill viewport; prevent whole-page scroll jank on mobile */
+ 
     html, body, #root { height: 100%; margin: 0; padding: 0; }
   </style>
   <link rel="manifest" href="./manifest.webmanifest">
@@ -34,24 +34,24 @@
       padding-left: var(--safe-left);
       padding-right: var(--safe-right);
     }
-    /* Scale base font-size down a touch on shorter landscapes so headings don't clip */
+  
     @media (orientation: landscape) {
       html { font-size: clamp(14px, 1.9vh, 16px); }
     }
     @media (max-width: 420px) {
       html { font-size: clamp(14px, 2.2vw, 16px); }
     }
-    /* Make main content areas naturally scroll if needed while keeping sidebar stable */
+  
     #root, #app, main { min-height: 100vh; }
   </style>
   <style id="ipad-desktop-fixes">
-    /* === Universal visibility & fit === */
+   
     html, body, #root { height: 100%; }
     main { max-height: 100vh; overflow: auto; }
-    /* Prevent any layout from bleeding off-screen */
+
     .max-w-screen, .max-w-full, .container { max-width: 100vw !important; }
     .w-screen, .min-w-screen { width: 100vw !important; }
-    /* Sidebar tightening for iPad/desktop mid-heights */
+  
     @media (min-width: 900px) and (max-height: 900px) {
       .w-72 { width: 14rem !important; }
       .w-64 { width: 13rem !important; }
@@ -168,7 +168,7 @@
     window.firebase = {};
   </script>
 <script type="text/babel">
-/* ================== AW: Local Profiles (no Firebase) ================== */
+
 // --- FIX: Added 'avatar' to the profile data structure ---
 const AW_AVATAR_EMOJI = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
 function awLoadProfiles(){ try { return JSON.parse(localStorage.getItem("profiles_v1")||"[]"); } catch { return []; } }
@@ -207,7 +207,7 @@ function awLoadProfileByName(name) {
     return profile || null;
 }
 function awClearActiveProfile(){ try { localStorage.removeItem("playerName"); } catch {} }
-/* ================== AW: Asset Manifests + Helpers ================== */
+
 // --- NEW: Memoize the manifest to avoid re-fetching ---
 let __manifestCache = null;
 async function awLoadImageManifest(){
@@ -252,7 +252,7 @@ async function awGetLocalImageForAnimal(name, slug){
   return m.images[s] || null;
 }
 window.getLocalImageForAnimal = awGetLocalImageForAnimal; // Keep for old reference if any
-/* ================== AW: Welcome Screen (Login) ================== */
+
 // --- FIX: This is the component the user wanted for login. ---
 // --- It's now used as the 'setup' view in the main app. ---
 function AW_WelcomeScreen({ onStart }){
@@ -324,7 +324,7 @@ function AW_WelcomeScreen({ onStart }){
       <div className="welcome-card bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[720px]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-bold text-2xl">Charlie’s Animal Words</h1>
-          /* FIX 6: Show avatar for the selected/new user */
+      
           <span className="text-3xl select-none" aria-label="avatar">{avatar}</span>
         </div>
        
@@ -333,7 +333,6 @@ function AW_WelcomeScreen({ onStart }){
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='existing'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('existing')} disabled={!profiles.length} title={!profiles.length?"No saved players yet":""}>Existing Player</button>
         </div>
        
-        /* FIX: Use a single form for both tabs */
         <form onSubmit={handleStart}>
           {tab === 'existing' ? (
             <div className="space-y-4">
@@ -376,7 +375,6 @@ function AW_WelcomeScreen({ onStart }){
             </div>
           )}
          
-          /* FIX: Single "Start" button, with updated style */
           <div className="flex justify-end mt-6">
             <button type="submit" disabled={(tab === 'new' && !canStartNew) || (tab === 'existing' && !canStartExisting)}
               className={`rounded-xl px-5 py-3 font-semibold flex items-center gap-2 transition-colors ${
@@ -393,7 +391,6 @@ function AW_WelcomeScreen({ onStart }){
 // --- START OF APP CODE ---
     const { useState, useEffect, useCallback, useRef } = React;
    
-    /* Lucide wrappers - convert <Star/> to inline SVGs */
     const LucideIcon = ({ name, className = "" }) => {
       React.useEffect(() => { if (window.lucide?.createIcons) window.lucide.createIcons(); });
       return <i data-lucide={name} className={className} />;
@@ -488,10 +485,7 @@ const useAppState = () => {
             setApiError("Error loading profile data.");
         }
     }, [setProfile, setApiError]);
-    /**
-     * [NEW] Plays a pre-generated local audio file.
-     * Falls back to the browser's built-in voice if the file is missing.
-     */
+
     const speak = useCallback(async (text) => {
         if (!text) return;
         if (window.speechSynthesis && window.speechSynthesis.speaking) {
@@ -655,7 +649,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
             <div className="space-y-4">
                 <div className="text-center">
                     <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
-                    {/* FIX 1: Correct template literal formatting */}
+                    
                     <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
                 </div>
                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
@@ -667,7 +661,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                     />
                 </div>
                 <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
-                {/* FIX 2: Fact list shows lock for unearned */}
+                
                 <div className="space-y-2 max-h-60 overflow-y-auto p-1">
                     {animal.facts.map((fact, index) => {
                         const isUnlocked = index < factsEarned;
@@ -687,9 +681,9 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                 }}
                             >
                                 <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                                    {/* FIX 1: Correct template literal formatting */}
+                                   
                                     <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
-                                    {/* FIX 2: Only display fact if unlocked */}
+                                  
                                     {isUnlocked ? fact : "Locked: Complete more quizzes!"}
                                 </span>
                                 {isUnlocked ? (
@@ -786,11 +780,11 @@ const RewardsModal = ({ profile, onClose }) => {
             <div className="space-y-4">
                 <div className="text-center mb-4">
                     <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
-                    {/* FIX 1: Correct template literal formatting */}
+                  
                     <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
                     <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
                 </div>
-                {/* FIX 3: Display videos as tiles */}
+         
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
                     {videoDatabase.length === 0 ? (
                         <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
@@ -1098,16 +1092,16 @@ const AnimalReadingApp = () => {
             <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200
                             max-lg:w-full max-lg:h-auto max-lg:bottom-0 max-lg:top-auto max-lg:flex-row max-lg:items-center max-lg:justify-around max-lg:p-2 max-lg:border-t-2">
                
-                {/* HIDE ON MOBILE */}
+             
                 <div className="flex flex-col mb-8 border-b pb-4 max-lg:hidden">
                     <h2 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
                         <Trophy className="w-6 h-6 text-emerald-500" /> Charlie's Words
                     </h2>
-                    {/* FIX 6: Add avatar to player name in sidebar */}
+                    
                     <p className="text-sm text-gray-500 mt-1">Player: {profile.name || 'Guest'} <span className="text-base ml-1">{profile.avatar}</span></p>
                 </div>
                
-                {/* FIX: Horizontal nav for mobile */}
+              
                 <nav className="flex-grow space-y-3 max-lg:flex max-lg:space-y-0 max-lg:space-x-2 max-lg:flex-grow-0">
                     <SidebarButton icon={Home} label="Home" onClick={handleHomeClick} />
                     <SidebarButton
@@ -1117,12 +1111,12 @@ const AnimalReadingApp = () => {
                         labelDesktop={`Collection`}
                         onClick={handleCollectionClick}
                     />
-                    {/* FIX (Navigation Bug): Modals must only set modal state, not change view */}
+                
                     <SidebarButton icon={Trophy} label="Scores" labelDesktop="High Scores" onClick={handleScoresClick} />
-                    {/* FIX: Hook up rewards button */}
+                    
                     <SidebarButton icon={Video} label={`Rewards`} labelDesktop={`Rewards (${profile.rewardsEarned || 0})`} onClick={handleRewardsClick} />
                 </nav>
-                {/* HIDE ON MOBILE */}
+               
                 <div className="mt-auto pt-6 border-t border-gray-200 space-y-3 max-lg:hidden">
                     <SidebarButton icon={Users} label="Change Player" data-action="signout" onClick={handleSignOutAndReset} />
                 </div>
@@ -1163,11 +1157,11 @@ const AnimalReadingApp = () => {
         <MainContainer>
             <div className="w-full max-w-4xl">
                 <div className="mb-8">
-                    {/* FIX 6: Add avatar to welcome message */}
+                 
                     <h1 className="text-4xl font-extrabold text-gray-800">Welcome, {profile.name}! <span className="text-4xl">{profile.avatar}</span></h1>
                 </div>
                
-                {/* STATS INDICATORS */}
+            
                 <div className="flex flex-wrap justify-around items-center bg-white p-4 rounded-xl mb-10 shadow-lg border border-gray-200">
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Star className="w-6 h-6 text-emerald-500" />
@@ -1179,11 +1173,11 @@ const AnimalReadingApp = () => {
                     </div>
                     <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2 max-sm:text-base">
                         <Image className="w-6 h-6 text-emerald-500" />
-                        {/* FIX 1: Correct template literal formatting */}
+                     
                         Animals: {`${(profile.collectedAnimals || []).length}/${(window.ANIMAL_DATABASE || []).length}`}
                     </div>
                 </div>
-                {/* GAME TILES */}
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <button
                         onClick={() => pausedGame && pausedGame.mode === 'words' ? resumeGame() : startNewGame('words')}
@@ -1262,12 +1256,12 @@ const AnimalReadingApp = () => {
                     <MainContainer>
                         <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-lg w-full text-center">
                            
-                            {/* This is the content from the old modal, now on a white card */}
+                            
                             <h2 className="text-2xl font-semibold text-emerald-600 mb-4">🎉 Fact Unlocked!</h2>
                             <div className="text-center space-y-4">
                                 <h3 className="text-2xl font-bold text-gray-800">{animal.name}</h3>
                                 <p className="text-sm text-gray-500">
-                                    {/* FIX 1: Correct template literal formatting */}
+                                  
                                     Total Facts Earned: <span className="font-semibold text-emerald-600">{`${animal.earnedFactIndex} / ${totalFacts}`}</span>
                                 </p>
                                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
@@ -1300,7 +1294,7 @@ const AnimalReadingApp = () => {
                                     Next Question <ArrowRight className="w-6 h-6 inline ml-2" />
                                 </button>
                             </div>
-                            {/* End of copied content */}
+                        
                         </div>
                     </MainContainer>
                 );
@@ -1311,7 +1305,7 @@ const AnimalReadingApp = () => {
         return (
             <MainContainer>
                 <div className="w-full max-w-lg">
-                    {/* Header */}
+                 
                     <div className="flex justify-between items-center py-4 px-2 mb-6 border-b border-gray-200">
                         <button onClick={pauseGame} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
                             <Menu className="w-6 h-6" />
@@ -1325,14 +1319,14 @@ const AnimalReadingApp = () => {
                             {gameMode === 'words' ? 'Sight Words' : 'Sentences'}
                         </h2>
                     </div>
-                    {/* API Error Message */}
+                 
                     {apiError && (
                         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
                             <p className="font-bold">Audio Warning:</p>
                             <p>{apiError}</p>
                         </div>
                     )}
-                    {/* Question Card */}
+                 
                     <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl">
                         <div className="text-center mb-8">
                             <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
@@ -1358,7 +1352,7 @@ const AnimalReadingApp = () => {
                                 )}
                             </button>
                         </div>
-                        {/* Answer Options */}
+                    
                         <div className="space-y-4">
                             <p className="text-center text-lg font-semibold text-gray-700 mb-4">
                                 Select the correct text:
@@ -1523,13 +1517,13 @@ const AnimalReadingApp = () => {
                         })}
                     </div>
                 </div>
-                {/* NEW: Local Loading Indicator for the modal */}
+              
                 {modalLoading && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
                          <Loader2 className="w-16 h-16 animate-spin text-emerald-400" />
                     </div>
                 )}
-                {/* FactModal should only render if open AND data is available */}
+              
                 {factModalOpen && currentAnimal && (
                 <FactModal
                     animal={currentAnimal}
