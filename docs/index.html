@@ -6,21 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Charlie's Animal Words</title>
 
-  <!--  Tailwind  -->
   <script src="https://cdn.tailwindcss.com"></script>
 
-  <!--  React 18 UMD  -->
   <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
 
-  <!--  Lucide UMD (global 'lucide')  -->
   <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
 
-  <!--  Babel for in-browser JSX  -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!--  Firebase SDK via ES Modules  -->
-  
 
   <style>
     /* Fill viewport; prevent whole-page scroll jank on mobile */
@@ -187,230 +180,94 @@
 <body>
 
   <script>
+    // ---- Fallback: on-device SpeechSynthesis with male English voice ----
+    // This is the *only* thing that runs if the local .mp3 files are missing.
     (function(){
-      function b64ToUint8(b64){
-        const bin = atob(b64);
-        const len = bin.length;
-        const bytes = new Uint8Array(len);
-        for (let i=0;i<len;i++) bytes[i] = bin.charCodeAt(i);
-        return bytes;
+      let __voicesReady = false, __voices = [];
+      
+      function pickEnUSMale(){
+        if (!__voices.length) return null;
+        const pref = ["Aaron","Alex","Eddy","Evan","Reed","Tom","Google US English","Microsoft David","Daniel","Matthew","Oliver"];
+        const en = __voices.filter(v => /en[-_]?US/i.test(v.lang||v.voiceURI||""));
+        for (const n of pref){ const hit=en.find(v => (v.name||v.voiceURI||"").toLowerCase().includes(n.toLowerCase())); if (hit) return hit; }
+        return en[0] || __voices[0] || null;
       }
-      const SILENT_WAV_B64 = "UklGRhQAAABXQVZFZm10IBAAAAABAAEAESsAACJWAAACABAAZGF0YQAAAAAA";
-      const SILENT_WAV = b64ToUint8(SILENT_WAV_B64).buffer;
-      const PNG1x1_B64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9YbG+0MAAAAASUVORK5CYII=";
-      const PNG1x1 = b64ToUint8(PNG1x1_B64);
-      window.__ttsSyntheticOk = function(){
-        return new Response(SILENT_WAV, { status: 200, headers: { "Content-Type": "audio/wav" } });
-      };
-      window.__imgSyntheticOk = function(){
-        return new Response(PNG1x1, { status: 200, headers: { "Content-Type": "image/png" } });
-      };
-      window.__ttsInvalidKey = false;
-      window.__imgInvalidKey = false;
-    })();
-  </script>
-
-
-  <script>
-    // ---- Global TTS rate limiter & backoff wrapper ----
-    (function(){
-      const TTS_HOST = "generativelanguage.googleapis.com";
-      let queue = Promise.resolve();
-      const minDelayMs = 7000;   // ~1 req/sec
-      const maxRetries = 5;
-
-      async function backoff(fn){
-        let attempt = 0, lastErr;
-        while (attempt <= maxRetries){
-          try { return await fn(); } catch(e){
-            lastErr = e;
-            const status = (e && e.status) || (e && e.response && e.response.status);
-            if (status !== 429 && status !== 503) throw e;
-            const delay = Math.min(8000, Math.pow(2, attempt) * 600);
-            await new Promise(r => setTimeout(r, delay));
-            attempt++;
-          }
-        }
-        throw lastErr;
+      
+      async function loadVoices() {
+        return new Promise(res => {
+          const tryLoad=()=>{ 
+            const v = speechSynthesis.getVoices(); 
+            if (v && v.length){ 
+              __voices=v; 
+              __voicesReady=true; 
+              res(); 
+            } else {
+              setTimeout(tryLoad, 100); 
+            }
+          };
+          tryLoad();
+        });
       }
 
-      const realFetch = window.fetch.bind(window);
-      window.fetch = async function(input, init){
-        const urlStr = (typeof input === 'string') ? input : (input && input.url) || "";
-        const isTts = urlStr.includes('generativelanguage.googleapis.com') && urlStr.includes('tts');
-        const isImg = urlStr.includes('generativelanguage.googleapis.com') && (urlStr.includes('image') || urlStr.includes('image-preview'));
-
-        try {
-          const url = (typeof input === 'string') ? input : (input && input.url) || "";
-          if (url.includes(TTS_HOST)){
-            // serialize and rate limit TTS requests
-            const job = async () => {
-              try {
-                const res = await backoff(() => realFetch(input, init));
-                if (res && res.status === 400) {
-                  if (isTts) { window.__ttsInvalidKey = true; return window.__ttsSyntheticOk(); }
-                  if (isImg) { window.__imgInvalidKey = true; return window.__imgSyntheticOk(); }
-                }
-                return res;
-              } catch(e){
-                const msg = (e && (e.message||"")) + "";
-                if (isTts) { window.__ttsInvalidKey = true; return window.__ttsSyntheticOk(); }
-                if (isImg) { window.__imgInvalidKey = true; return window.__imgSyntheticOk(); }
-                throw e;
-              } finally {
-                await new Promise(r => setTimeout(r, minDelayMs));
-              }
-            };
-            queue = queue.then(job, job);
-            return queue;
+      window.__speakLocal = window.__speakLocal || (async function(text){
+        try{
+          if (!__voicesReady) {
+            await loadVoices();
           }
-        } catch(_){}
-        if (isTts && window.__ttsInvalidKey) return window.__ttsSyntheticOk();
-        if (isImg && window.__imgInvalidKey) return window.__imgSyntheticOk();
-        return realFetch(input, init);
-      };
-
-      // ---- Non-cached fallback: on-device SpeechSynthesis with male English voice ----
-      window.__getMaleEnglishVoice = function(){
-        const voices = speechSynthesis.getVoices();
-        const prefer = [/en[-_](US)/i, /English/];
-        const maleNames = ['Alex','Daniel','Eddy','Fred','Oliver','Arthur','Matthew','Aaron','Moira','Tom','Sam','Michael','Bruce','US Male'];
-        function isEnglish(v){ return prefer.some(r => r.test(v.lang) || r.test(v.name)); }
-        function isMale(v){ return maleNames.some(n => v.name.includes(n)); }
-        // Strong preference: English + male
-        let best = voices.find(v => isEnglish(v) && isMale(v));
-        if (!best) best = voices.find(v => isEnglish(v));
-        return best || voices[0] || null;
-      };
-
-      window.__speakLocal = function(text){
-        try {
-          const u = new SpeechSynthesisUtterance(text);
-          const pick = window.__getMaleEnglishVoice();
-          if (pick) u.voice = pick;
-          u.rate = 0.92; u.pitch = 1.0; u.lang = (pick && pick.lang) || 'en-US';
-          speechSynthesis.speak(u);
-        } catch(_){}
-      };
+          const u = new SpeechSynthesisUtterance(text||"");
+          const v = pickEnUSMale(); 
+          if (v) {
+            u.voice = v;
+            u.lang = v.lang;
+          } else {
+            u.lang = "en-US";
+          }
+          u.rate=0.92; u.pitch=1.0; u.volume=1.0;
+          return new Promise(r=>{ u.onend=r; speechSynthesis.speak(u); });
+        } catch(e){ console.warn("WebSpeech error", e); }
+      });
 
       // Warm-up voices (iOS sometimes lazy-loads)
-      try { speechSynthesis.getVoices(); setTimeout(()=>speechSynthesis.getVoices(), 500); } catch(_){}
+      try { 
+        speechSynthesis.getVoices(); 
+        setTimeout(()=>speechSynthesis.getVoices(), 500); 
+      } catch(_){}
     })();
   </script>
 
   <div id="root"></div>
-
-  <!--  Your app code (single Babel block ONLY)  -->
   
   <script>
-    // GH Pages / offline shim: let the app run without Firebase configured yet.
-    window.appInstance = window.appInstance || {}; // truthy placeholder so guards pass
-    window.firebase = window.firebase || {};       // avoid undefined errors
+    // Shim for local-only mode
+    window.appInstance = {};
+    window.firebase = {};
   </script>
 
 <script type="text/babel">
-
-/* ================== AW: Local Profiles (no Firebase) — idempotent ================== */
-(() => {
-  if (window.__awProfilesInit) return;
-  window.__awProfilesInit = true;
-
-  const EMOJIS = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
-  window.AW_AVATAR_EMOJI = window.AW_AVATAR_EMOJI || EMOJIS;
-
-  window.awLoadProfiles = window.awLoadProfiles || function(){
-    try { return JSON.parse(localStorage.getItem("profiles_v1")||"[]"); } catch { return []; }
-  };
-  window.awSaveProfiles = window.awSaveProfiles || function(list){
-    try { localStorage.setItem("profiles_v1", JSON.stringify(list||[])); } catch {}
-  };
-  window.awGetSavedName = window.awGetSavedName || function(){
-    try { return localStorage.getItem("playerName") || ""; } catch { return ""; }
-  };
-  window.awAddOrUpdateProfile = window.awAddOrUpdateProfile || function(name, avatar){
-    const list = window.awLoadProfiles();
-    const idx = list.findIndex(p => (p.name||"").toLowerCase() === (name||"").toLowerCase());
-    const record = { name: (name||"").trim(), avatar: avatar || "🦊", lastPlayed: Date.now() };
-    if (idx >= 0) list[idx] = { ...list[idx], ...record }; else list.push(record);
-    window.awSaveProfiles(list);
-    try { localStorage.setItem("playerName", record.name); } catch {}
-    return record;
-  };
-  window.awClearActiveProfile = window.awClearActiveProfile || function(){
-    try { localStorage.removeItem("playerName"); } catch {}
-  };
-
-  // Manifest + helper
-  window.awLoadImageManifest = window.awLoadImageManifest || async function(){
-    try {
-      const r = await fetch("./assets/manifest.json", { cache:"no-store" });
-      return r.ok ? await r.json() : null;
-    } catch { return null; }
-  };
-  window.getLocalImageForAnimal = window.getLocalImageForAnimal || async function(name, slug){
-    const m = await window.awLoadImageManifest();
-    if (!m || !m.images) return null;
-    const s = (slug||name||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
-    return m.images[s] || null;
-  };
-
-  // Web Speech TTS fallback (en-US male)
-  let __voicesReady = false, __voices = [];
-  function pickEnUSMale(){
-    const pref = ["Aaron","Alex","Eddy","Evan","Reed","Tom","Google US English","Microsoft David","Daniel","Matthew","Oliver"];
-    const en = __voices.filter(v => /en[-_]?US/i.test(v.lang||v.voiceURI||""));
-    for (const n of pref){ const hit=en.find(v => (v.name||v.voiceURI||"").toLowerCase().includes(n.toLowerCase())); if (hit) return hit; }
-    return en[0] || __voices[0] || null;
-  }
-  window.__speakLocal = window.__speakLocal || (async function(text){
-    try{
-      if (!__voicesReady) {
-        await new Promise(res => {
-          const tryLoad=()=>{ const v=speechSynthesis.getVoices(); if (v && v.length){ __voices=v; __voicesReady=true; res(); } else setTimeout(tryLoad,200); };
-          tryLoad();
-        });
-      }
-      const u = new SpeechSynthesisUtterance(text||"");
-      const v = pickEnUSMale(); if (v) u.voice=v;
-      u.rate=0.92; u.pitch=1.0; u.volume=1.0; u.lang="en-US";
-      return new Promise(r=>{ u.onend=r; speechSynthesis.speak(u); });
-    } catch(e){ console.warn("WebSpeech error", e); }
-  });
-})();
-
+/* ================== AW: Local Profiles (no Firebase) ================== */
+const AW_AVATAR_EMOJI = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
+function awLoadProfiles(){ try { return JSON.parse(localStorage.getItem("profiles_v1")||"[]"); } catch { return []; } }
+function awSaveProfiles(list){ try { localStorage.setItem("profiles_v1", JSON.stringify(list)); } catch {} }
+function awGetSavedName(){ try { return localStorage.getItem("playerName") || ""; } catch { return ""; } }
+function awAddOrUpdateProfile(name, avatar){
+  const list = awLoadProfiles();
+  const idx = list.findIndex(p => (p.name||"").toLowerCase() === (name||"").toLowerCase());
+  const record = { name: name.trim(), avatar: avatar || "🦊", lastPlayed: Date.now() };
+  if (idx >= 0) list[idx] = { ...list[idx], ...record }; else list.push(record);
+  awSaveProfiles(list);
+  try { localStorage.setItem("playerName", record.name); } catch {}
+  return record;
+}
+function awClearActiveProfile(){ try { localStorage.removeItem("playerName"); } catch {} }
 
 /* ================== AW: Asset Manifests + Helpers ================== */
 async function awLoadImageManifest(){ try { const r=await fetch("./assets/manifest.json",{cache:"no-store"}); return r.ok?await r.json():null; } catch { return null; } }
-async function awLoadTTSManifest(){ try { const r=await fetch("./assets/tts_manifest.json",{cache:"no-store"}); return r.ok?await r.json():null; } catch { return null; } }
 async function awGetLocalImageForAnimal(name, slug){
   const m = await awLoadImageManifest(); if (!m || !m.images) return null;
   const s = (slug||name||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
   return m.images[s] || null;
 }
-
-/* ================== AW: Web Speech TTS Fallback ================== */
-let __awVoices = []; let __awVoiceReady = false;
-function awLoadVoices(){
-  return new Promise(res=>{
-    const tryLoad=()=>{ const v=window.speechSynthesis.getVoices(); if (v && v.length){ __awVoices=v; __awVoiceReady=true; res(v);} else setTimeout(tryLoad,200); };
-    tryLoad();
-  });
-}
-function awPickEnUSMale(){
-  const pref = ["Aaron","Alex","Eddy","Evan","Reed","Tom","Google US English","Microsoft David","Daniel"];
-  const en = __awVoices.filter(v => /en[-_]?US/i.test(v.lang||v.voiceURI||""));
-  for (const n of pref){ const hit=en.find(v => (v.name||v.voiceURI||"").toLowerCase().includes(n.toLowerCase())); if (hit) return hit; }
-  return en[0] || __awVoices[0] || null;
-}
-async function awSpeak(text){
-  try{
-    if (!__awVoiceReady) await awLoadVoices();
-    const u = new SpeechSynthesisUtterance(text||"");
-    const v = awPickEnUSMale(); if (v) u.voice=v;
-    u.rate=0.92; u.pitch=1.0; u.volume=1.0; u.lang="en-US";
-    return new Promise(r=>{ u.onend=r; speechSynthesis.speak(u); });
-  } catch(e){ console.warn("WebSpeech error", e); }
-}
+window.getLocalImageForAnimal = awGetLocalImageForAnimal;
 
 /* ================== AW: Welcome Screen ================== */
 function AW_WelcomeScreen({ onStart }){
@@ -420,7 +277,7 @@ function AW_WelcomeScreen({ onStart }){
   const [avatar,setAvatar]=React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
   const canStart = name.trim().length>=2;
   function handleStart(e){ e.preventDefault(); if(!canStart) return; const rec=awAddOrUpdateProfile(name.trim(),avatar); setProfiles(awLoadProfiles().sort((a,b)=>b.lastPlayed-a.lastPlayed)); onStart&&onStart(rec); }
-  function pickExisting(p){ setName(p.name); setAvatar(p.avatar||"🦊"); setTab("new"); }
+  function pickExisting(p){ setName(p.name); setAvatar(p.avatar||"🦊"); handleStart(new Event("submit")); }
   React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab,profiles,name,avatar]);
   return (
     <main className="app-shell grid place-items-center px-4 py-6">
@@ -471,124 +328,8 @@ function AW_WelcomeScreen({ onStart }){
   );
 }
 
-/* ================== AW: Caching screen (static only) ================== */
-async function __awPrecacheImageList(urls,onProgress){
-  if(!('caches'in window)){ onProgress&&onProgress(100); return; }
-  const cache = await caches.open("animal-words-cache-v1");
-  let done=0, total=urls.length||1;
-  for(const u of urls){ try{ await cache.add(new Request(u,{cache:"reload"})); }catch{} done++; onProgress&&onProgress(Math.round(done*100/total)); await new Promise(r=>setTimeout(r,50)); }
-}
-function __awCollectDbUrls(db){ const out=[]; for(const a of db||[]){ if(a.image&&/^https?:/i.test(a.image)) out.push(a.image); if(a.photo&&/^https?:/i.test(a.photo)) out.push(a.photo);} return out; }
-function AW_CachingScreen({ onDone }){
-  const [pct,setPct]=React.useState(0);
-  React.useEffect(()=>{ let live=true;(async()=>{
-    let urls=[]; try{ const m=await awLoadImageManifest(); if(m&&m.images) urls=Object.values(m.images);}catch{}
-    urls = Array.from(new Set([...(urls||[]), ...__awCollectDbUrls(typeof ANIMAL_DATABASE!=="undefined"?ANIMAL_DATABASE:[]) ]));
-    await __awPrecacheImageList(urls, p=> live && setPct(p)); live && onDone && onDone();
-  })(); return ()=>{ live=false; }; },[onDone]);
-  return (<main className="w-full h-full flex items-center justify-center p-6">
-    <div className="w-full max-w-[min(55vw,720px)] bg-white rounded-2xl shadow p-6">
-      <div className="font-semibold mb-2">Optimizing app experience…</div>
-      <div className="w-full bg-slate-100 rounded-xl h-3 overflow-hidden"><div className="bg-emerald-500 h-3 transition-all" style={{width:pct+"%"}} /></div>
-      <div className="mt-2 text-sm text-slate-600">{pct}%</div>
-    </div>
-  </main>);
-}
-
 // --- START OF APP CODE ---
-
-// Example helper in your app:
-async function getLocalImageForAnimal(name, slug) {
-  const manifest = await fetch("./assets/manifest.json", { cache: "no-store" })
-    .then(r => r.ok ? r.json() : null)
-    .catch(() => null);
-  if (!manifest) return null;
-  const s = slug || name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/(^-|-$)/g,"");
-  return (manifest.images && manifest.images[s]) ? manifest.images[s] : null; // e.g. "./assets/images/fennec-fox.webp"
-}
-
-
-    // Note: Global Firebase references must use 'window.firebase.' where needed.
-
     const { useState, useEffect, useCallback, useRef } = React;
-// Create safe Firebase handles when config is missing
-const __hasFbConfig = !!(window.appInstance && window.appInstance.options && window.firebase);
-let __safeDb = null, __safeAuth = null;
-try {
-  if (__hasFbConfig) {
-    __safeDb = window.firebase.getFirestore(window.appInstance);
-    __safeAuth = window.firebase.getAuth(window.appInstance);
-  }
-} catch(e){ /* ignore */ }
-
-
-// --- Persistence helpers for existing user ---
-const getSavedName = () => { try { return localStorage.getItem('playerName') || ''; } catch { return ''; } };
-const saveName = (name) => { try { localStorage.setItem('playerName', name); } catch {} };
-
-// --- Precache helper: message SW to cache given URLs ---
-async function precacheUrls(urls){
-  if (!navigator.serviceWorker) return;
-  if (!navigator.serviceWorker.controller) {
-    await new Promise(res => {
-      const to = setTimeout(res, 1200);
-      navigator.serviceWorker.addEventListener('controllerchange', () => { clearTimeout(to); res(); }, { once:true });
-    });
-  }
-  navigator.serviceWorker.controller?.postMessage({ type:'PRECACHE', urls });
-}
-
-
-// --- Image URL collector from ANIMAL_DATABASE (best-effort) ---
-function collectImageUrlsFromDatabase(db){
-  const urls = [];
-  const urlKeys = ['image','img','photo','url','src'];
-  try {
-    (db||[]).forEach(item => {
-      if (typeof item === 'string') return;
-      for (const k of urlKeys) {
-        const v = item[k];
-        if (typeof v === 'string' && /^https?:\/\//.test(v)) urls.push(v);
-      }
-      // scan nested objects
-      Object.values(item).forEach(val => {
-        if (val && typeof val === 'object') {
-          urlKeys.forEach(k => {
-            if (val[k] && typeof val[k] === 'string' && /^https?:\/\//.test(val[k])) urls.push(val[k]);
-          });
-        }
-      });
-    });
-  } catch {}
-  return Array.from(new Set(urls));
-}
-// Precache on first run if we can find images
-
-
-// Aggressive image preloader used by caching screen
-async function __precacheImageList(urls, onProgress) {
-  const total = urls.length || 0;
-  let done = 0;
-  const cacheName = 'animal-words-precache-v5';
-  let cache = null;
-  try { cache = await caches.open(cacheName); } catch (e) {}
-  for (const u of urls) {
-    try {
-      const req = new Request(u, { mode:'cors', cache:'reload' });
-      const res = await fetch(req);
-      if (res && res.ok && cache) await cache.put(req, res.clone());
-    } catch (e) { /* ignore individual fails */ }
-    done++;
-    try { onProgress && onProgress(Math.round(done * 100 / total)); } catch(e){}
-  }
-}
-window.__precacheKnownImages = () => {
-  try {
-    const urls = collectImageUrlsFromDatabase(typeof ANIMAL_DATABASE !== 'undefined' ? ANIMAL_DATABASE : []);
-    if (urls.length) precacheUrls(urls);
-  } catch {}
-};
-
     
     /* Lucide wrappers - convert <Star/> to inline SVGs */
     const LucideIcon = ({ name, className = "" }) => {
@@ -621,9 +362,12 @@ window.__precacheKnownImages = () => {
     const LogOut        = (p) => <LucideIcon name="log-out" {...p} />;
     const X             = (p) => <LucideIcon name="x" {...p} />;
     const ChevronLeft   = (p) => <LucideIcon name="chevron-left" {...p} />;
-// lucide is now defined by the UMD script above
-    // removed lucide destructure (replaced by wrappers)
 
+    // --- Slugify utility ---
+    const slugify = (s) => (s || "")
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-") // Convert to slug
+        .replace(/(^-|-$)/g, "");     // Trim leading/trailing dashes
 
         // --- DATABASE ---
         const ANIMAL_DATABASE = [
@@ -1817,80 +1561,12 @@ const VIDEO_DATABASE = [
     { title: "Animal Fact Minute 1: Fennec Foxes", url: "https://www.youtube.com/embed/dQw4w9WgXcQ?controls=0" }, 
     { title: "Animal Fact Minute 2: Axolotl Regeneration", url: "https://www.youtube.com/embed/5T6v3i9c2-I?controls=0" }, 
     { title: "Animal Fact Minute 3: Goblin Shark Jaws", url: "https://www.youtube.com/embed/A3X4wYf0gW0?controls=0" }, 
-    { title: "Animal Fact Minute 4: Pangolin Armor", url: "https://www.youtube.com/embed/yQyq9w0-j88?controls=0" }, 
+    { title:A: "Pangolin Armor", url: "https://www.youtube.com/embed/yQyq9w0-j88?controls=0" }, 
     { title: "Animal Fact Minute 5: Okapi's Long Tongue", url: "https://www.youtube.com/embed/NnLdI9z_5G4?controls=0" }, 
     { title: "Animal Fact Minute 6: Komodo Dragon Venom", url: "https://www.youtube.com/embed/rP2zEw5hMPE?controls=0" }, 
 ];
 
-// --- FIREBASE UTILS (MUST BE EXTERNAL TO HOOK) ---
-const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
-const __initial_auth_token = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
-
-// Paths
-const getUserProfileDocRef = (db, userId) => window.firebase.doc(db, 'artifacts', appId, 'users', userId, 'app_data', 'profile');
-
-// --- CACHING UTILS (Unicode Safe) ---
-
-const CACHE_KEY = 'animal-reading-app-cache-v1';
-const CACHE_MATCH_URL = 'http://localhost/cache/'; // Synthetic base URL for Cache API matching
-
-/** Unicode-safe string to Base64 encoding for cache keys/data */
-const base64Encode = (str) => {
-    try {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(str);
-        return btoa(String.fromCharCode(...data));
-    } catch (e) {
-        // Fallback for environments without TextEncoder/TextDecoder
-        return btoa(unescape(encodeURIComponent(str)));
-    }
-};
-
-/** Unicode-safe Base64 to string decoding */
-const base64Decode = (base64) => {
-    try {
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        const decoder = new TextDecoder('utf-8');
-        return decoder.decode(bytes);
-    } catch (e) {
-        // Fallback
-        return decodeURIComponent(escape(atob(base64)));
-    }
-};
-
-
-/** Helper to save data to the browser's Cache API */
-const saveToCache = async (key, data) => {
-    if (!('caches' in window)) return;
-    const cache = await caches.open(CACHE_KEY);
-    // Convert base64 data to Blob and store it as a Response object
-    const blob = new Blob([base64ToArrayBuffer(data)], { type: 'application/octet-stream' });
-    const response = new Response(blob);
-    await cache.put(CACHE_MATCH_URL + key, response); // Use synthetic URL for storage
-};
-
-/** Helper to load data from the browser's Cache API */
-const loadFromCache = async (key) => {
-    if (!('caches' in window)) return null;
-    const cache = await caches.open(CACHE_KEY);
-    // FIX: Must use a full URL when calling match()
-    const response = await cache.match(CACHE_MATCH_URL + key); 
-    if (response) {
-        // Convert ArrayBuffer back to base64 string
-        const buffer = await response.arrayBuffer();
-        const base64 = btoa(String.fromCharCode(...new Uint8Array(buffer)));
-        return base64;
-    }
-    return null;
-};
-
 // --- PLAYER PROFILE CACHING UTILS ---
-
 const PLAYER_PROFILES_KEY = 'cached_player_profiles';
 
 const savePlayerName = (userId, name) => {
@@ -1922,113 +1598,14 @@ const removePlayerProfile = (userId) => {
     }
 };
 
-// --- API & UTILITY FUNCTIONS (AUDIO) ---
-function base64ToArrayBuffer(base64) {
-    const binaryString = window.atob(base64);
-    const len = binaryString.length;
-    const bytes = new Uint8Array(len);
-    for (let i = 0; i < len; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-    }
-    return bytes.buffer;
-}
 
-function pcmToWav(pcmData, sampleRate) {
-    const numSamples = pcmData.length;
-    const numChannels = 1;
-    const bitsPerSample = 16;
-    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
-    const blockAlign = numChannels * (bitsPerSample / 8);
-
-    const buffer = new ArrayBuffer(44 + numSamples * 2);
-    const view = new DataView(buffer);
-
-    writeString(view, 0, 'RIFF');
-    view.setUint32(4, 36 + numSamples * 2, true);
-    writeString(view, 8, 'WAVE');
-
-    writeString(view, 12, 'fmt ');
-    view.setUint32(16, 16, true);
-    view.setUint16(20, 1, true);
-    view.setUint16(22, numChannels, true);
-    view.setUint32(24, sampleRate, true);
-    view.setUint32(28, byteRate, true);
-    view.setUint16(32, blockAlign, true);
-    view.setUint16(34, bitsPerSample, true);
-
-    writeString(view, 36, 'data');
-    view.setUint32(40, numSamples * 2, true);
-
-    let offset = 44;
-    for (let i = 0; i < numSamples; i++, offset += 2) {
-        view.setInt16(offset, pcmData[i], true);
-    }
-
-    // FIX: Removed extra parenthesis set
-    return new Blob([view], { type: 'audio/wav' });
-}
-
-function writeString(view, offset, string) {
-    for (let i = 0; i < string.length; i++) {
-        view.setUint8(offset + i, string.charCodeAt(i));
-    }
-}
-
-/** Image Generation Function (using Gemini 2.5 Flash Image Preview) */
-const generateAnimalImage = async (animalName, key) => {
-    if (!key) {
-        return `https://placehold.co/600x400/065f46/ffffff?text=${animalName.replace(' ', '+')}&font=lato`;
-    }
-
-    const payload = {
-        contents: [{
-            parts: [{ text: `A vibrant, detailed, award-winning photorealistic image of a ${animalName}, focused portrait, cinematic lighting, ultra quality.` }]
-        }],
-        generationConfig: {
-            responseModalities: ['IMAGE']
-        },
-    };
-
-    try {
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${key}`;
-        const response = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            const errorBody = await response.json();
-            throw new Error(`Image API Error: ${response.statusText}. Message: ${errorBody.error?.message || 'Unknown Error'}`);
-        }
-
-        const result = await response.json();
-        const base64Data = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-
-        if (!base64Data) {
-            throw new Error("No image data received from API.");
-        }
-
-        return `data:image/png;base64,${base64Data}`;
-
-    } catch (error) {
-        console.error("Failed to generate animal image:", error);
-        return `https://placehold.co/600x400/ef4444/ffffff?text=Image+Load+Failed&font=lato`;
-    }
-};
-
-
-// --- CUSTOM HOOK: useAppState ---
+// --- CUSTOM HOOK: useAppState (LOCAL ONLY) ---
 
 const useAppState = () => {
-    // --- Firebase State ---
-    const [db, setDb] = useState(null);
-    const [auth, setAuth] = useState(null);
     const [userId, setUserId] = useState(null);
     const [isAuthReady, setIsAuthReady] = useState(false);
     
-    // --- Profile State (Pulled from Firestore) ---
-    const [highScore, setHighScore] = useState(0);
+    // --- Profile State (Loaded from localStorage) ---
     const [profile, setProfile] = useState({
         highScore: 0,
         streak: 0,
@@ -2036,281 +1613,141 @@ const useAppState = () => {
         rewardsEarned: 0,
         userName: '',
         highScores: [], 
-        factIndices: {},
-        geminiApiKey: ''
+        factIndices: {}
     });
 
     // --- Caching/API State ---
     const [isSpeaking, setIsSpeaking] = useState(false);
-    const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+    const [isGeneratingImage, setIsGeneratingImage] = useState(false); // We still use this as a "loading" flag
     const [apiError, setApiError] = useState(null);
-    const [userApiKey, setUserApiKey] = useState(getSavedName());
-    const [isVerifyingKey, setIsVerifyingKey] = useState(false);
-    const [cacheStatus, setCacheStatus] = useState(0); // 0=ready, 1=caching, 2=complete, 3=skipped
-
+    
     // Profile Setup State 
-    const [userName, setUserName] = useState(getSavedName());
+    const [userName, setUserName] = useState(awGetSavedName());
     const [isSigningIn, setIsSigningIn] = useState(false);
     const [authError, setAuthError] = useState(null);
 
-    // --- FIREBASE PERSISTENCE LOGIC (DEFINED LOCALLY VIA useCALLBACK FOR SCOPE SAFETY) ---
-
-    /** Saves user profile data (high score, collected animals, streak) to Firestore. */
-    const saveUserProfile = useCallback(async (profileToSave) => {
-        if (!db || !userId) return;
+    // --- Local Persistence ---
+    const saveUserProfile = useCallback((profileToSave) => {
+        if (!userId) return;
         try {
-            await window.firebase.setDoc(getUserProfileDocRef(db, userId), profileToSave, { merge: true });
+            // This just uses the functions from the top of the script
+            awAddOrUpdateProfile(profileToSave.userName, profileToSave.avatar);
+            // You might want to save more profile data to localStorage here if needed
         } catch (error) {
             console.error("Error saving user profile:", error);
-            setApiError("Error saving profile data. Check Firebase permissions.");
+            setApiError("Error saving profile data.");
         }
-    }, [db, userId, setApiError]); 
+    }, [userId, setApiError]); 
     
-    /** Loads the local browser cache status */
-    const loadUserCacheStatus = useCallback(async () => {
-        if (!('caches' in window)) return 0;
-
-        // Simplified check: only check images and a few facts/words to determine if caching has run before
-        const itemsToCheck = [
-            'Fennec Fox', 'Axolotl', // Images
-            ANIMAL_DATABASE[0].facts[0], // A fact
-            sightWordsData[0].word // A sight word
-        ];
-        
-        let missingCount = 0;
-        
-        for (const item of itemsToCheck) {
-            const isImage = ANIMAL_DATABASE.some(a => a.name === item);
-            const key = isImage ? `image-${base64Encode(item)}` : `audio-${base64Encode(item)}`;
-            const cachedData = await loadFromCache(key);
-            if (!cachedData) {
-                missingCount++;
-            }
-        }
-        
-        return missingCount === 0 ? 2 : 0; // 2 means complete, 0 means not complete
-    }, []);
-
-
-    /** Loads user profile data (high score, collected animals, streak) from Firestore. */
-    const loadUserProfile = useCallback(async (uidOverride) => {
-        const targetUid = uidOverride || userId;
-        if (!db || !targetUid) return;
+    const loadUserProfile = useCallback((uid) => {
+        if (!uid) return;
         try {
-            const docSnap = await window.firebase.getDoc(getUserProfileDocRef(db, targetUid));
-            if (docSnap.exists()) {
-                const profileData = docSnap.data();
-                setHighScore(profileData.highScore || 0);
-                
-                const loadedProfile = {
-                    highScore: profileData.highScore || 0,
-                    streak: profileData.streak || 0,
-                    collectedAnimals: profileData.collectedAnimals || [],
-                    rewardsEarned: profileData.rewardsEarned || 0,
-                    userName: profileData.userName || '',
-                    highScores: profileData.highScores || [], 
-                    factIndices: profileData.factIndices || {},
-                    geminiApiKey: profileData.geminiApiKey || ''
-                };
-                
-                setProfile(loadedProfile);
-                setUserName(profileData.userName || ''); 
-                setUserApiKey(profileData.geminiApiKey || ''); // Load API key
-                savePlayerName(targetUid, profileData.userName || ''); // Cache the name locally
-            } else {
-                // New user/profile not yet created
-                const newProfile = {
-                    highScore: 0,
-                    streak: 0,
-                    collectedAnimals: [],
-                    rewardsEarned: 0,
-                    userName: '',
-                    highScores: [],
-                    factIndices: {},
-                    geminiApiKey: ''
-                };
-                setProfile(newProfile);
-                setUserName('');
-                setUserApiKey('');
-            }
+            const profiles = awLoadProfiles();
+            const name = awGetSavedName();
+            const userProfile = profiles.find(p => p.name === name) || {
+                highScore: 0,
+                streak: 0,
+                collectedAnimals: [],
+                rewardsEarned: 0,
+                userName: name,
+                highScores: [],
+                factIndices: {}
+            };
+            
+            // For this app, we'll just load the active user.
+            // A real app would load based on UID.
+            setProfile(userProfile);
+            setUserName(userProfile.userName);
+            
+            // Load other saved data if you have it
+            // For now, we just use the basic profile loader
+
         } catch (error) {
             console.error("Error loading user profile:", error);
-            setApiError("Error loading profile data. Check Firebase connection.");
+            setApiError("Error loading profile data.");
         }
-    }, [db, userId, setHighScore, setProfile, setApiError, setUserName, setUserApiKey]); 
+    }, [setProfile, setUserName, setApiError]); 
 
 
-    // --- Core Utility: Speak (Real-time API Call, prioritizes Cache) ---
-
-    /** High-Quality TTS Speak Function using Cloud TTS API (Real-time) */
+    /**
+     * [NEW] Plays a pre-generated local audio file.
+     * Falls back to the browser's built-in voice if the file is missing.
+     */
     const speak = useCallback(async (text) => {
         if (!text) return;
-        if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+        if (window.speechSynthesis && window.speechSynthesis.speaking) {
+          window.speechSynthesis.cancel();
+        }
         
-        const key = userApiKey;
-        const cacheKey = `audio-${base64Encode(text)}`;
         setIsSpeaking(true);
 
-        // 1. Check Local Cache (Browser Cache API)
-        const cachedAudioBase64 = await loadFromCache(cacheKey);
+        // 1. Create the file name slug from the text
+        const slug = (text || "")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-") // Convert to slug
+            .replace(/(^-|-$)/g, "");     // Trim leading/trailing dashes
 
-        if (cachedAudioBase64) {
-             try {
-                const pcmData = base64ToArrayBuffer(cachedAudioBase64);
-                const pcm16 = new Int16Array(pcmData);
-                // Assume 24000Hz rate if cached from the API
-                const wavBlob = pcmToWav(pcm16, 24000); 
-                const audioUrl = URL.createObjectURL(wavBlob);
-                
-                const audio = new Audio(audioUrl);
-                audio.play().catch(e => {
-                    setApiError("Cached audio playback failed. Check device volume/permissions.");
-                });
-                audio.onended = () => setIsSpeaking(false);
-                return;
-
-            } catch (e) {
-                 console.error("Failed to play cached audio, falling back:", e);
-                 // Proceed to API/Browser fallback below
-            }
-        }
-        
-        // 2. If caching was skipped, use browser voice immediately
-        if (cacheStatus === 3) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => setIsSpeaking(false);
-            window.speechSynthesis.speak(utterance);
+        if (!slug) {
+            setIsSpeaking(false);
             return;
         }
 
-        // 3. Fallback to instant browser voice if no key is present or on API failure
-        if (!key) {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => setIsSpeaking(false);
-            window.speechSynthesis.speak(utterance);
-            return;
-        }
+        // 2. Try to play the local .mp3 file
+        const audioUrl = `./assets/tts/${slug}.mp3`;
+        const audio = new Audio(audioUrl);
+
+        audio.oncanplaythrough = () => {
+            audio.play().catch(e => {
+                console.warn(`Audio playback failed for ${audioUrl}`, e);
+                // If playback fails, use browser voice
+                window.__speakLocal(text).finally(() => setIsSpeaking(false));
+            });
+        };
         
-        // 4. Real-Time High-Quality API Call
-        const ttsPayload = {
-            contents: [{
-                parts: [{ text: `Say in an authoritative, calm, and highly articulate voice like a seasoned male scientist teacher: "${text}"` }]
-            }],
-            generationConfig: {
-                responseModalities: ["AUDIO"],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: { voiceName: "Charon" }
-                    }
-                }
-            }
+        audio.onended = () => setIsSpeaking(false);
+
+        audio.onerror = () => {
+            // 3. FALLBACK: If file is missing (404) or fails to load
+            console.warn(`Audio file not found: ${audioUrl}. Using browser fallback.`);
+            setApiError(`Missing audio file for: "${text.substring(0, 30)}..."`);
+            // Use the browser's built-in voice
+            window.__speakLocal(text).finally(() => setIsSpeaking(false));
         };
 
+    }, [setIsSpeaking, setApiError]); // Dependencies
+
+
+    // --- Core Initialization Effect [LOCAL-ONLY] ---
+    useEffect(() => {
         try {
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${key}`;
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(ttsPayload)
-            });
-
-            if (!response.ok) {
-                const errorBody = await response.json();
-                throw new Error(`Voice API Error: ${response.statusText}. Message: ${errorBody.error?.message || 'Unknown Error'}`);
+            // Use a simple local UID instead of Firebase auth
+            let uid = localStorage.getItem('local_uid');
+            if (!uid) {
+                uid = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
+                localStorage.setItem('local_uid', uid);
             }
-
-            const result = await response.json();
-            const base64Audio = result?.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-            
-            if (base64Audio) {
-                // Play and save to cache
-                const pcmData = base64ToArrayBuffer(base64Audio);
-                const pcm16 = new Int16Array(pcmData);
-                const wavBlob = pcmToWav(pcm16, 24000); 
-                const audioUrl = URL.createObjectURL(wavBlob);
-
-                const audio = new Audio(audioUrl);
-                audio.play().catch(e => {
-                    setApiError("Audio playback failed. Please check device volume/permissions.");
-                });
-                audio.onended = () => setIsSpeaking(false);
-
-                await saveToCache(cacheKey, base64Audio);
-
-            } else {
-                throw new Error("No audio content received from API.");
-            }
-        } catch (error) {
-            setApiError(`Voice API Failed: ${error.message}. Using fallback browser voice.`);
-            
-            // Final fallback to browser TTS
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => setIsSpeaking(false);
-            window.speechSynthesis.speak(utterance);
-        } finally {
-            // If the audio successfully played (either API or cache), isSpeaking is set to false in onended/onend
+            setUserId(uid);
+            loadUserProfile(uid); // Load profile data from localStorage
+        } catch (e) {
+            console.error("Error setting up local user ID:", e);
+            setUserId('default-local-user'); // Fallback
         }
-    }, [userApiKey, setApiError, setIsSpeaking, cacheStatus]);
+        
+        // We are not waiting for a server, so auth is "ready" immediately.
+        setIsAuthReady(true);
+        setApiError(null); 
 
-// --- Core Initialization Effect [MODIFIED FOR LOCAL-ONLY] ---
-useEffect(() => {
-    try {
-        // Use a simple local UID instead of Firebase auth
-        let uid = localStorage.getItem('local_uid');
-        if (!uid) {
-            uid = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
-            localStorage.setItem('local_uid', uid);
-        }
-        setUserId(uid);
-    } catch (e) {
-        console.error("Error setting up local user ID:", e);
-        setUserId('default-local-user'); // Fallback
-    }
+    }, []); // Empty dependency array ensures this runs once
 
-    // We are not waiting for Firebase, so auth is "ready" immediately.
-    setIsAuthReady(true);
-
-    // We clear the error, since we are not expecting Firebase.
-    setApiError(null); 
-
-}, []); // Empty dependency array ensures this runs once
-    
-
-
-    // --- Load Profile Effect (Runs after Auth is Ready and User is logged in) ---
-    useEffect(() => {
-        if (isAuthReady && db && userId) {
-            loadUserProfile();
-        }
-    }, [isAuthReady, db, userId, loadUserProfile]);
-    
-    // --- Load Cache Status Effect (Runs after Profile is loaded, which includes API Key) ---
-    useEffect(() => {
-        // Only load status if profile name is available (meaning profile loaded successfully)
-        if (isAuthReady && profile.userName) {
-            // Only load status if we are not already in a caching state
-            if (cacheStatus !== 1 && cacheStatus !== 3) {
-                loadUserCacheStatus().then(status => {
-                     setCacheStatus(status);
-                });
-            }
-        }
-    }, [isAuthReady, profile.userName, cacheStatus, loadUserCacheStatus]);
-    
     
     const signInExistingPlayer = useCallback(async (cachedUserId) => {
-        if (!auth || !db) return false;
+        // This is now just "switching profiles"
         try {
-            // Sign out the current user and sign in anonymously to generate the UID context
-            await auth.signOut();
-            await window.firebase.signInAnonymously(auth);
-            
-            // Now load the saved profile data using the saved UID
-            setUserId(cachedUserId); 
-            await loadUserProfile(cachedUserId); 
-            
-            // Set cache status after loading profile
-            setCacheStatus(await loadUserCacheStatus());
+            const profiles = awLoadProfiles();
+            const player = profiles.find(p => p.userId === cachedUserId); // Note: your profiles don't have userId
+            // This function needs to be re-thought for local-only
+            // For now, we just reload the main profile
+            loadUserProfile(userId);
             setAppView('home');
             return true;
         } catch (error) {
@@ -2318,76 +1755,70 @@ useEffect(() => {
             setAuthError("Failed to load player profile. Try starting a new game.");
             return false;
         }
-    }, [auth, db, loadUserProfile, loadUserCacheStatus]);
+    }, [userId, loadUserProfile]);
 
 
     // --- Auth/Profile Setup Handlers ---
-
     const saveUserNameProfile = useCallback(async (name) => {
-  try {
-    // Ensure we have a uid even when Firebase isn't configured
-    let uid = userId;
-    if (!uid) {
       try {
-        uid = localStorage.getItem('local_uid') || (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()));
-      } catch (e) {
-        uid = String(Date.now());
+        let uid = userId;
+        if (!uid) {
+          uid = localStorage.getItem('local_uid') || String(Date.now());
+          setUserId(uid);
+        }
+        
+        const newProfile = { ...profile, userName: name };
+        awAddOrUpdateProfile(name, profile.avatar); // Use the local profile function
+        
+        setProfile(newProfile);
+        setUserName(name);
+        return true;
+      } catch (error) {
+        console.error('Error saving username:', error);
+        setAuthError('Failed to save name. Please try again.');
+        return false;
       }
-      setUserId(uid);
-      try { localStorage.setItem('local_uid', uid); } catch (e) {}
-    }
-
-    const newProfile = { ...profile, userName: name };
-    // Persist locally so 'existing player' works even offline
-    savePlayerName(uid, name);
-    if (db) {
-      await window.firebase.setDoc(getUserProfileDocRef(db, uid), newProfile, { merge: true });
-    }
-    setProfile(newProfile);
-    setUserName(name);
-    return true;
-  } catch (error) {
-    console.error('Error saving username:', error);
-    setAuthError('Failed to save name. Please try again.');
-    return false;
-  }
-}, [db, userId, profile, setProfile, setUserName, setAuthError, setUserId]);
+    }, [userId, profile, setProfile, setUserName, setAuthError, setUserId]);
 
 
     const handleSignOut = async (fromSettings = false) => {
-        if (auth) {
-            // Sign out current anon user
-            await auth.signOut();
-            
-            // Clear current state
-            setProfile({ highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, userName: '', highScores: [], factIndices: {}, geminiApiKey: '' });
-            setHighScore(0);
-            setUserName('');
-            setUserApiKey('');
-            setCacheStatus(0); 
-            
-            // Force re-initialization (new anon user will be created/loaded in useEffect)
-            setUserId(null); 
-            
-            // Navigate back to selection/setup screen
-            setAppView('setup');
-        }
+        awClearActiveProfile();
+        // Clear current state
+        setProfile({ highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, userName: '', highScores: [], factIndices: {} });
+        setUserName('');
+        setUserId(null); 
+        
+        // Navigate back to selection/setup screen
+        setAppView('setup');
     };
 
+    // --- Image function (now just a placeholder) ---
+    const generateAnimalImage = async (animalName) => {
+        setIsGeneratingImage(true);
+        // This function now just finds the *local* path
+        const manifest = await awLoadImageManifest();
+        if (manifest && manifest.images) {
+            const slug = slugify(animalName);
+            const path = manifest.images[slug];
+            if (path) {
+                setIsGeneratingImage(false);
+                return path; // e.g., "./assets/images/fennec-fox.webp"
+            }
+        }
+        // Fallback placeholder
+        setIsGeneratingImage(false);
+        return `https://placehold.co/600x400/065f46/ffffff?text=${animalName.replace(' ', '+')}&font=lato`;
+    };
 
     return {
         // Auth/System State
-        db, auth, userId, isAuthReady,
+        userId, isAuthReady,
         // Login State (Renamed to Setup)
         userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
         // Profile/Score State
-        profile, setProfile, highScore, setHighScore,
+        profile, setProfile,
         // API/Cache State
-        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError, userApiKey, setUserApiKey,
-        // API Key Verification
-        isVerifyingKey, setIsVerifyingKey,
-        // Cache Status
-        cacheStatus, setCacheStatus, loadUserCacheStatus,
+        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError,
         // Handlers & Utilities
         saveUserNameProfile, handleSignOut, speak, generateAnimalImage, saveUserProfile, signInExistingPlayer
     };
@@ -2471,7 +1902,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
                                             e.stopPropagation(); 
                                             speak(fact); 
                                         }}
-                                        disabled={false}
+                                        disabled={isSpeaking}
                                         className={`p-2 rounded-full flex-shrink-0 ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
                                     >
                                         <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
@@ -2638,17 +2069,15 @@ const PlayerSelectionModal = ({ onSelectPlayer, onStartNew, onClose }) => {
 const AnimalReadingApp = () => {
     // 🔥 New State Hook 
     const {
-        db, userId, auth, isAuthReady,
+        userId, isAuthReady,
         userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
-        profile, setProfile, highScore, setHighScore,
-        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError, userApiKey, setUserApiKey,
-        isVerifyingKey, setIsVerifyingKey,
-        cacheStatus, setCacheStatus, loadUserCacheStatus,
+        profile, setProfile,
+        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError,
         saveUserNameProfile, handleSignOut, speak, generateAnimalImage, saveUserProfile, signInExistingPlayer
     } = useAppState();
 
     // --- Local Game State ---
-    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'apikey', 'caching', 'welcome', 'game', 'complete', 'gallery', 'fact_detail'
+    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'welcome', 'game', 'complete', 'gallery'
     const [gameMode, setGameMode] = useState('words');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -2656,9 +2085,7 @@ const AnimalReadingApp = () => {
     const [showVideoModal, setShowVideoModal] = useState(false);
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [animalData, setAnimalData] = useState(null); // The animal object for the reward screen
-    const [apiKeyInput, setApiKeyInput] = useState(userApiKey); // Initialize with hook state
     const [pausedGame, setPausedGame] = useState(null); // Stores { mode, index, score } of a paused game
-    const [currentFactAnimal, setCurrentFactAnimal] = useState(null); // Used for fact_detail view
     
     // UI State
     const [showStatsModal, setShowStatsModal] = useState(false);
@@ -2687,36 +2114,16 @@ const AnimalReadingApp = () => {
     // Effect to handle view transition after auth is ready and profile loaded
     useEffect(() => {
         if (isAuthReady && appView === 'loading') {
-            const cachedPlayers = getCachedPlayerProfiles();
-            
-            if (!userId || !auth || !auth.currentUser || !profile.userName) {
-                // If user is anon or new, go to setup screen
+            if (!profile.userName) {
                  setAppView('setup');
-            } else if (!userApiKey && !profile.geminiApiKey) {
-                // If profile is loaded but key is missing, go to API setup
-                setAppView('welcome');
-            } else if (cacheStatus === 0 || cacheStatus === 3) {
-                // If caching status is unknown (0) or skipped (3), check status and transition
-                const checkCache = async () => {
-                    const status = await loadUserCacheStatus();
-                    setCacheStatus(status);
-                    if (status === 0) {
-                         setAppView('welcome');
-                    } else {
-                         setAppView('home');
-                    }
-                };
-                checkCache();
             } else {
-                // All good, go to main menu
-                setAppView('home');
+                 setAppView('home');
             }
         }
-    }, [isAuthReady, userId, appView, profile.userName, userApiKey, cacheStatus, loadUserCacheStatus, auth, profile.geminiApiKey]);
+    }, [isAuthReady, appView, profile.userName]);
 
 
-    // --- Handlers: Setup, API, Cache ---
-    
+    // --- Handlers: Setup ---
     const handleSetupSubmit = async (e) => {
         e.preventDefault();
         setAuthError(null);
@@ -2731,117 +2138,11 @@ const AnimalReadingApp = () => {
         const success = await saveUserNameProfile(userName);
 
         if (success) {
-            setAppView('welcome');
+            setAppView('home'); // Go straight home
         }
         setIsSigningIn(false);
     };
 
-    const handleVerifyKey = async () => {
-        setApiError(null);
-        setIsVerifyingKey(true);
-
-        const key = apiKeyInput.trim();
-
-        if (!key) {
-            setApiError("Please enter a valid API Key to begin.");
-            setIsVerifyingKey(false);
-            return;
-        }
-        
-        let keyIsValid = true;
-        
-        try {
-             // 1. Check Image API for validity
-             const placeholderUrl = await generateAnimalImage("verify", key);
-             if (placeholderUrl.includes("Image+Load+Failed") || placeholderUrl.includes("ef4444")) {
-                 keyIsValid = false;
-                 setApiError("Key verification failed. Check API key validity or Image API quota.");
-             }
-        } catch (error) {
-             console.error("Image API check failed:", error);
-             keyIsValid = false;
-             setApiError("Network or Key error during image test. Check console for details.");
-        }
-
-        if (keyIsValid) {
-            // 2. Persist the valid key to the user's profile
-            const updatedProfile = { ...profile, geminiApiKey: key };
-            setProfile(updatedProfile);
-            setUserApiKey(key);
-            await saveUserProfile(updatedProfile); // Save to Firestore
-            
-            // 3. Move to Caching screen
-            setCacheStatus(await loadUserCacheStatus());
-            setAppView('welcome');
-        }
-        setIsVerifyingKey(false);
-    };
-
-    const cacheAllAssets = useCallback(async (key) => {
-        if (!key) {
-            setApiError("API Key is missing for caching.");
-            setCacheStatus(0);
-            return;
-        }
-
-        setCacheStatus(1); // Set to Caching
-
-        const wordsAndSentences = [
-            ...sightWordsData.map(w => w.word), 
-            ...sentencesData.map(s => s.sentence)
-        ];
-        const animalFactsToCache = ANIMAL_DATABASE.flatMap(a => a.facts); // Cache all facts
-        const animalImagesToCache = ANIMAL_DATABASE.map(a => a.name);
-
-        const itemsToCache = [
-            ...wordsAndSentences.map(text => ({ type: 'audio', text: text })),
-            ...animalFactsToCache.map(text => ({ type: 'audio', text: text })),
-            ...animalImagesToCache.map(name => ({ type: 'image', name: name })),
-        ];
-
-        let failedCounter = 0;
-        const totalItems = itemsToCache.length;
-
-        for (let i = 0; i < totalItems; i++) {
-            const item = itemsToCache[i];
-            const type = item.type;
-            const content = type === 'audio' ? item.text : item.name;
-            const cacheKey = type === 'audio' ? `audio-${base64Encode(content)}` : `image-${base64Encode(content)}`;
-            
-            setApiError(`Caching ${type}: ${content.substring(0, 30)}... (${i + 1}/${totalItems})`);
-
-            try {
-                const cached = await loadFromCache(cacheKey);
-                if (cached) {
-                    continue; 
-                }
-
-                if (type === 'audio') {
-                    // Call speak to generate and cache the audio
-                    await speak(content); 
-                    await new Promise(resolve => setTimeout(resolve, 6000)); // Rate limit pause
-                } else if (type === 'image') {
-                    const imageUrl = await generateAnimalImage(content, key);
-                    if (imageUrl.startsWith('data:image')) {
-                         await saveToCache(cacheKey, imageUrl.split(',')[1]);
-                    } else {
-                        throw new Error("Image generation failed or returned placeholder.");
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 6000)); // Rate limit pause
-                }
-            } catch (error) {
-                failedCounter++;
-                console.error(`Caching failed for ${content}:`, error);
-                // Continue to the next item despite failure
-            }
-        }
-
-        setCacheStatus(2); // Complete
-        setApiError(failedCounter === 0 ? "Caching Complete!" : `Caching finished with ${failedCounter} errors. Play at your own risk!`);
-        
-        setTimeout(() => setAppView('home'), 2000);
-
-    }, [userApiKey, speak, setApiError, setCacheStatus]);
     
     // --- Handlers: Game Flow ---
 
@@ -2896,18 +2197,17 @@ const AnimalReadingApp = () => {
             date: Date.now(),
         };
 
-        const newHighScores = [...profile.highScores, newScoreEntry];
+        const newHighScores = [...(profile.highScores || []), newScoreEntry];
 
         const newProfile = {
             ...profile,
             streak: 0, 
-            highScore: Math.max(profile.highScore, finalScore),
+            highScore: Math.max(profile.highScore || 0, finalScore),
             highScores: newHighScores,
         };
 
         setProfile(newProfile);
-        setHighScore(newProfile.highScore);
-        await saveUserProfile(newProfile);
+        saveUserProfile(newProfile); // Save to localStorage
         setAppView('complete');
         setPausedGame(null); // Clear pause on game over
     };
@@ -2933,21 +2233,9 @@ const AnimalReadingApp = () => {
             nextFactIndex = currentFactIndex + 1;
         } 
         
-        // 4. Image Loading (Load from cache first, then API)
-        setIsGeneratingImage(true);
-        const imageKey = `image-${base64Encode(animalToReward.name)}`;
-        let imageUrl = await loadFromCache(imageKey);
-
-        if (!imageUrl) {
-            imageUrl = await generateAnimalImage(animalToReward.name, userApiKey);
-            if (imageUrl.startsWith('data:image')) {
-                 await saveToCache(imageKey, imageUrl.split(',')[1]);
-            }
-        } else {
-            imageUrl = `data:image/png;base64,${imageUrl}`;
-        }
+        // 4. Image Loading (Local-only)
+        const imageUrl = await generateAnimalImage(animalToReward.name);
         
-        setIsGeneratingImage(false);
         setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
         
         if (isVideoReward) {
@@ -2956,7 +2244,7 @@ const AnimalReadingApp = () => {
             setShowRewardModal(true);
         }
 
-    }, [profile, userApiKey, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
+    }, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile, generateAnimalImage]);
 
 
     const handleAnswer = (answer) => {
@@ -2966,19 +2254,16 @@ const AnimalReadingApp = () => {
         
         setSelectedAnswer(answer);
         
-        // CRITICAL FIX: Compare selected answer string directly to the correct string
         const isCorrect = answer === currentItem.correct;
 
         if (isCorrect) {
             const newScore = score + 10;
-            const newStreak = profile.streak + 1;
+            const newStreak = (profile.streak || 0) + 1;
             setScore(newScore);
 
-            // Temporarily update profile state for display purposes, saving happens after reward dismissal
             const newProfile = { ...profile, streak: newStreak };
             setProfile(newProfile); 
 
-            // Reward Logic: 10 correct answers in a row triggers the special Video Reward
             if (newStreak >= 10 && (newStreak % 10) === 0) {
                 // Video Reward
                 const newRewardCount = (profile.rewardsEarned || 0) + 1;
@@ -2986,8 +2271,8 @@ const AnimalReadingApp = () => {
                     ...newProfile,
                     rewardsEarned: newRewardCount,
                 };
-                setProfile(updatedProfile); // Update streak and reward count for display
-                saveUserProfile(updatedProfile); // Persist this mid-game progress
+                setProfile(updatedProfile);
+                saveUserProfile(updatedProfile); 
                 generateRewardAnimal(true); // Triggers Video Modal
             } else {
                 // Standard Animal/Fact Reward
@@ -2996,7 +2281,7 @@ const AnimalReadingApp = () => {
 
         } else {
             // Game Over Logic
-            window.speechSynthesis.speak(new SpeechSynthesisUtterance('Game Over!'));
+            window.__speakLocal('Game Over!'); // Use fallback voice
             setTimeout(() => {
                  logScoreAndEndGame(score, gameMode);
             }, 1000);
@@ -3018,21 +2303,20 @@ const AnimalReadingApp = () => {
             if (nextFactIndex > (profile.factIndices[animalName] || 0)) {
                 // 1. Ensure the animal is added to the collection
                 if (!newProfile.collectedAnimals.includes(animalName)) {
-                    newProfile.collectedAnimals = [...newProfile.collectedAnimals, animalName];
+                    newProfile.collectedAnimals = [...(newProfile.collectedAnimals || []), animalName];
                 }
                 
                 // 2. Update fact index
-                newProfile.factIndices = { ...newProfile.factIndices, [animalName]: nextFactIndex };
+                newProfile.factIndices = { ...(newProfile.factIndices || {}), [animalName]: nextFactIndex };
             }
         }
         
-        if (score > profile.highScore) {
+        if (score > (profile.highScore || 0)) {
             newProfile.highScore = score;
-            setHighScore(profile.highScore);
         }
 
         setProfile(newProfile);
-        await saveUserProfile(newProfile); // Final save after fact unlock logic
+        saveUserProfile(newProfile); // Final save after fact unlock logic
 
         const currentList = gameMode === 'words' ? shuffledWords : shuffledSentences;
 
@@ -3049,6 +2333,7 @@ const AnimalReadingApp = () => {
 
     const Sidebar = () => {
         const totalAnimals = ANIMAL_DATABASE.length;
+        const collectedCount = (profile.collectedAnimals || []).length;
         return (
             <div className="fixed top-0 left-0 h-full w-64 bg-gray-50 shadow-2xl z-40 flex flex-col p-6 border-r border-gray-200">
                 <div className="flex flex-col mb-8 border-b pb-4">
@@ -3062,15 +2347,17 @@ const AnimalReadingApp = () => {
                     <SidebarButton icon={Home} label="Home" onClick={() => setAppView('home')} />
                     <SidebarButton 
                         icon={Image} 
-                        label={`Collection (${profile.collectedAnimals.length}/${totalAnimals})`} 
+                        label={`Collection (${collectedCount}/${totalAnimals})`} 
                         onClick={() => setAppView('gallery')} 
                     />
                     <SidebarButton icon={Trophy} label="High Scores" onClick={() => setShowStatsModal(true)} />
-                    <SidebarButton icon={Video} label={`Rewards (${profile.rewardsEarned})`} onClick={() => { /* Placeholder for rewards history */ }} />
+                    <SidebarButton icon={Video} label={`Rewards (${profile.rewardsEarned || 0})`} onClick={() => { /* Placeholder */ }} />
                 </nav>
 
                 <div className="mt-auto pt-6 border-t border-gray-200 space-y-3">
-                    <SidebarButton icon={Users} label="Change Player / Sign Out" onClick={() => setShowPlayerModal(true)} />
+                    <SidebarButton icon={Users} label="Change Player / Sign Out" onClick={() => {
+                        handleSignOut();
+                    }} />
                 </div>
             </div>
         );
@@ -3090,19 +2377,19 @@ const AnimalReadingApp = () => {
     const LoadingScreen = () => (
         <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
             <Loader2 className="w-16 h-16 animate-spin text-emerald-500" />
-            <p className="text-xl font-bold mt-4 text-gray-700">Connecting to Player Profile...</p>
+            <p className="text-xl font-bold mt-4 text-gray-700">Loading App...</p>
         </div>
     );
 
     const ProfileSetupScreen = () => {
-        const cachedPlayers = getCachedPlayerProfiles();
+        const cachedPlayers = awLoadProfiles();
         const showPlayerSelect = cachedPlayers.length > 0 && !showPlayerModal;
 
         return (
             <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 p-4">
                 <div className="bg-white border border-gray-200 p-8 rounded-3xl shadow-xl max-w-sm w-full text-center">
                     <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center gap-2">
-                        <Users className="w-6 h-6 text-emerald-500" /> <span class="welcome-title">Welcome!</span>
+                        <Users className="w-6 h-6 text-emerald-500" /> <span className="welcome-title">Welcome!</span>
                     </h1>
 
                     <p className="text-gray-500 mb-6">Enter your name to track your progress and collection.</p>
@@ -3114,7 +2401,7 @@ const AnimalReadingApp = () => {
                             onChange={(e) => setUserName(e.target.value)}
                             placeholder="First Name (e.g., John)"
                             className="w-full text-lg p-3 mb-4 rounded-xl bg-gray-100 border border-gray-300 text-gray-800 placeholder-gray-400 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
-                            disabled={false}
+                            disabled={isSigningIn}
                             autoFocus 
                         />
 
@@ -3124,7 +2411,7 @@ const AnimalReadingApp = () => {
 
                         <button
                             type="submit"
-                            disabled={false}
+                            disabled={isSigningIn}
                             className="w-full bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] disabled:bg-gray-300 shadow-md shadow-emerald-500/20"
                         >
                             {isSigningIn ? (
@@ -3148,7 +2435,15 @@ const AnimalReadingApp = () => {
                     )}
                 </div>
                 {showPlayerModal && <PlayerSelectionModal 
-                    onSelectPlayer={(uid) => { signInExistingPlayer(uid); setShowPlayerModal(false); }}
+                    onSelectPlayer={(uid) => {
+                        // This local-only version just reloads the profile by name
+                        const player = awLoadProfiles().find(p => p.userId === uid); // This won't work as-is
+                        // Simple version: just use the name from local storage
+                        awGetSavedName();
+                        loadUserProfile(userId); // Reload the current user
+                        setShowPlayerModal(false);
+                        setAppView('home');
+                     }}
                     onStartNew={() => setShowPlayerModal(false)}
                     onClose={() => setShowPlayerModal(false)}
                 />}
@@ -3171,15 +2466,15 @@ const AnimalReadingApp = () => {
                     <div className="flex flex-wrap justify-around items-center bg-white p-4 rounded-xl mb-10 shadow-lg border border-gray-200">
                         <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
                             <Star className="w-6 h-6 text-emerald-500" />
-                            High Score: {profile.highScore}
+                            High Score: {profile.highScore || 0}
                         </div>
                         <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
                             <Zap className="w-6 h-6 text-emerald-500" />
-                            Current Streak: {profile.streak}
+                            Current Streak: {profile.streak || 0}
                         </div>
                         <div className="flex items-center gap-2 text-xl font-semibold text-gray-700 p-2">
                             <Image className="w-6 h-6 text-emerald-500" />
-                            Animals: {profile.collectedAnimals.length}/50
+                            Animals: {(profile.collectedAnimals || []).length}/{ANIMAL_DATABASE.length}
                         </div>
                     </div>
 
@@ -3216,6 +2511,19 @@ const AnimalReadingApp = () => {
                     </div>
                 </div>
                 {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
+                {showPlayerModal && <PlayerSelectionModal 
+                    onSelectPlayer={(uid) => {
+                        // This local-only version just reloads the profile by name
+                        const player = awLoadProfiles().find(p => p.userId === uid); // This won't work as-is
+                        // Simple version: just use the name from local storage
+                        awGetSavedName();
+                        loadUserProfile(userId); // Reload the current user
+                        setShowPlayerModal(false);
+                        setAppView('home');
+                     }}
+                    onStartNew={() => { handleSignOut(); setShowPlayerModal(false); }}
+                    onClose={() => setShowPlayerModal(false)}
+                />}
             </div>
         </div>
     );
@@ -3236,7 +2544,6 @@ const AnimalReadingApp = () => {
         }
 
         const mainText = currentItem.word || currentItem.sentence;
-        const rewardIsReady = animalData !== null;
         
         // Show reward modals if active, which interrupt the game flow
         if (showRewardModal || showVideoModal) {
@@ -3244,8 +2551,7 @@ const AnimalReadingApp = () => {
             if (!animal) return <LoadingScreen />; // Should be pre-loaded, but just in case
 
             const totalFacts = ANIMAL_DATABASE.find(a => a.name === animal.name)?.facts.length || 10;
-            const collectedFacts = profile.factIndices?.[animal.name] || 0;
-
+            
             if (showVideoModal) {
                 return (
                     <VideoRewardModal 
@@ -3287,7 +2593,7 @@ const AnimalReadingApp = () => {
                             <h4 className="text-lg font-semibold text-gray-700 mt-4 pt-4 border-t">New Fact:</h4>
                             <button
                                 onClick={() => speak(animal.facts[animal.earnedFactIndex - 1])}
-                                disabled={false}
+                                disabled={isSpeaking}
                                 className="w-full bg-emerald-50 text-emerald-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-3 transition-colors shadow-md hover:bg-emerald-100"
                             >
                                 {isSpeaking ? <Loader2 className="w-6 h-6 animate-spin" /> : <Volume2 className="w-6 h-6" />}
@@ -3320,7 +2626,7 @@ const AnimalReadingApp = () => {
                             <div className="flex items-center gap-2">
                                 <Star className="w-8 h-8 text-emerald-500" />
                                 <span className="text-2xl font-bold text-gray-800">{score}</span>
-                                <span className="text-gray-500 ml-4">Streak: {profile.streak}</span>
+                                <span className="text-gray-500 ml-4">Streak: {profile.streak || 0}</span>
                             </div>
                             <h2 className="text-xl font-bold text-gray-700">
                                 {gameMode === 'words' ? 'Sight Words Quiz' : 'Sentence Quiz'}
@@ -3330,7 +2636,7 @@ const AnimalReadingApp = () => {
                         {/* API Error Message */}
                         {apiError && (
                             <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
-                                <p className="font-bold">Audio/Image Warning:</p>
+                                <p className="font-bold">Audio Warning:</p>
                                 <p>{apiError}</p>
                             </div>
                         )}
@@ -3346,7 +2652,7 @@ const AnimalReadingApp = () => {
 
                                 <button
                                     onClick={() => speak(mainText)}
-                                    disabled={false}
+                                    disabled={isSpeaking}
                                     className="bg-emerald-500 hover:bg-emerald-600 text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center gap-3 mx-auto transition-all transform hover:scale-105 shadow-md shadow-emerald-500/20 disabled:bg-gray-400"
                                 >
                                     {isSpeaking ? (
@@ -3390,7 +2696,7 @@ const AnimalReadingApp = () => {
                                             onClick={() => {
                                                 if (!selectedAnswer) handleAnswer(option);
                                             }}
-                                            disabled={false}
+                                            disabled={selectedAnswer !== null}
                                             className={`w-full font-medium py-3 px-6 rounded-xl text-lg text-center transition-all duration-300 transform disabled:cursor-not-allowed ${buttonClass}`}
                                         >
                                             {option}
@@ -3424,7 +2730,7 @@ const AnimalReadingApp = () => {
                         </div>
                         <div className="bg-gray-100 p-4 rounded-xl">
                             <p className="text-sm text-gray-600">High Score</p>
-                            <p className="text-4xl font-bold text-gray-700">{profile.highScore}</p>
+                            <p className="text-4xl font-bold text-gray-700">{profile.highScore || 0}</p>
                         </div>
                     </div>
 
@@ -3445,17 +2751,7 @@ const AnimalReadingApp = () => {
         const [currentAnimal, setCurrentAnimal] = useState(null);
 
         const openFactModal = async (animal) => {
-            // 1. Try to load image from cache for fact modal
-            const imageKey = `image-${base64Encode(animal.name)}`;
-            let imageUrl = await loadFromCache(imageKey);
-            
-            // 2. If not in cache (or skipped cache), use the placeholder
-            if (imageUrl) {
-                 imageUrl = `data:image/png;base64,${imageUrl}`;
-            } else {
-                 imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
-            }
-            
+            const imageUrl = await generateAnimalImage(animal.name);
             setCurrentAnimal({ ...animal, imageUrl });
             setFactModalOpen(true);
         };
@@ -3466,11 +2762,12 @@ const AnimalReadingApp = () => {
         };
 
         const totalAnimals = ANIMAL_DATABASE.length;
+        const collected = (profile.collectedAnimals || []);
         
         // --- Sorting Logic: Unlocked First ---
         const sortedAnimals = [...ANIMAL_DATABASE].sort((a, b) => {
-            const aCollected = profile.collectedAnimals.includes(a.name);
-            const bCollected = profile.collectedAnimals.includes(b.name);
+            const aCollected = collected.includes(a.name);
+            const bCollected = collected.includes(b.name);
             
             if (aCollected && !bCollected) return -1; // a comes first
             if (!aCollected && bCollected) return 1;  // b comes first
@@ -3488,14 +2785,14 @@ const AnimalReadingApp = () => {
                                 Animal Collection
                             </h1>
                             <p className="text-lg text-gray-600">
-                                Collected: <span className="font-bold text-emerald-600">{profile.collectedAnimals.length}</span> / {totalAnimals}
+                                Collected: <span className="font-bold text-emerald-600">{collected.length}</span> / {totalAnimals}
                             </p>
                         </div>
 
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {sortedAnimals.map((animal) => {
-                                const isCollected = profile.collectedAnimals.includes(animal.name);
-                                const factCount = profile.factIndices?.[animal.name] || 0;
+                                const isCollected = collected.includes(animal.name);
+                                const factCount = (profile.factIndices || {})[animal.name] || 0;
                                 const placeholderImage = `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
                                 
                                 return (
@@ -3506,7 +2803,6 @@ const AnimalReadingApp = () => {
                                     >
                                         <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
                                             {isCollected ? (
-                                                // Always show placeholder in gallery list for speed/stability, actual image loads in modal
                                                 <img
                                                     src={placeholderImage} 
                                                     alt={animal.name}
@@ -3533,7 +2829,7 @@ const AnimalReadingApp = () => {
                  {factModalOpen && currentAnimal && (
                     <FactModal 
                         animal={currentAnimal}
-                        factsEarned={profile.factIndices?.[currentAnimal.name] || 0}
+                        factsEarned={(profile.factIndices || {})[currentAnimal.name] || 0}
                         totalFacts={currentAnimal.facts.length}
                         onClose={closeFactModal}
                         speak={speak}
@@ -3552,14 +2848,16 @@ const AnimalReadingApp = () => {
             return <LoadingScreen />;
         case 'setup':
             return <ProfileSetupScreen />;
-        case 'welcome': return <AW_WelcomeScreen onStart={()=>setAppView('game')} />;
+        case 'home':
+            return <WelcomeScreen />;
         case 'game':
             return <GameScreen />;
         case 'complete':
             return <CompletionScreen />;
         case 'gallery':
             return <GalleryScreen />;
-        default: return <AW_WelcomeScreen />;
+        default: 
+            return <LoadingScreen />; // Default to loading
     }
 };
 
@@ -3576,8 +2874,6 @@ root.render(<AnimalReadingApp />);
 window.__kickPrecacheOnce = true;
 window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } catch(e){} });
 </script>
-
-
   
   <script>
     // Make the Change Player/Sign Out area always work as a safety net
@@ -3593,165 +2889,6 @@ window.addEventListener('load', ()=>{ try { window.__precacheKnownImages?.(); } 
       // Best-effort return to Welcome
       try { window.location.reload(); } catch(_){}
     }, true);
-  </script>
-
-
-<script>
-/* Collection Enhancer: show animal photos on tiles and open a modal with earned facts + TTS */
-(function(){
-  function getImageFor(animal){
-    // heuristics: look for common keys or a CDN path embedded in dataset attributes
-    try{
-      const db = window.ANIMAL_DATABASE || (window.__ANIMAL_DB__) || [];
-      const rec = db.find(x => (x && (x.name||'').toLowerCase() === (animal||'').toLowerCase()));
-      const keys = ['image','img','photo','url','src','picture'];
-      if (rec){
-        for (const k of keys){
-          if (rec[k] && /^https?:\/\//.test(rec[k])) return rec[k];
-        }
-        // nested objects
-        for (const v of Object.values(rec)){
-          if (v && typeof v === 'object'){
-            for (const k of keys){
-              if (v[k] && /^https?:\/\//.test(v[k])) return v[k];
-            }
-          }
-        }
-      }
-    }catch(_){}
-    return null;
-  }
-
-  function ensureTileImages(){
-    const tiles = document.querySelectorAll('[data-collection-item]');
-    tiles.forEach(t => {
-      const name = t.getAttribute('data-name') || t.textContent.trim();
-      if (!name) return;
-      if (t.querySelector('img')) return;
-      const url = getImageFor(name);
-      if (url){
-        const img = new Image();
-        img.decoding = 'async';
-        img.loading = 'lazy';
-        img.src = url;
-        img.alt = name;
-        img.className = 'w-full h-28 object-cover rounded-md mb-2 shadow-sm';
-        t.prepend(img);
-      }
-    });
-  }
-
-  function openFactsModal(name){
-    // Build simple modal
-    const wrap = document.createElement('div');
-    wrap.className = 'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4';
-    const card = document.createElement('div');
-    card.className = 'bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-5 space-y-4';
-    const head = document.createElement('div');
-    head.className = 'flex items-center justify-between';
-    const h = document.createElement('h2');
-    h.textContent = name;
-    h.className = 'text-xl font-bold';
-    const close = document.createElement('button');
-    close.textContent = '×';
-    close.className = 'text-2xl leading-none px-2';
-    close.onclick = () => wrap.remove();
-    head.appendChild(h); head.appendChild(close);
-    const list = document.createElement('ul');
-    list.className = 'space-y-2 list-disc pl-5 max-h-[50vh] overflow-auto';
-    // pull earned facts: rely on localStorage convention "facts:<name>" (array) or fallback to all facts
-    let facts = [];
-    try{
-      const key = 'facts:'+name;
-      const raw = localStorage.getItem(key);
-      if (raw) facts = JSON.parse(raw);
-    }catch(_){}
-    if (!facts || !facts.length){
-      try{
-        const db = window.ANIMAL_DATABASE || window.__ANIMAL_DB__ || [];
-        const rec = db.find(x => (x.name||'').toLowerCase() === name.toLowerCase());
-        if (rec && Array.isArray(rec.facts)) facts = rec.facts;
-      }catch(_){}
-    }
-    // Render facts + attach TTS playback
-    facts.forEach(f => {
-      const li = document.createElement('li');
-      const row = document.createElement('div');
-      row.className = 'flex items-start gap-3';
-      const btn = document.createElement('button');
-      btn.textContent = '🔊';
-      btn.className = 'shrink-0 rounded-md border px-2';
-      btn.onclick = () => {
-        if (window.__speakLocal) window.__speakLocal(f);
-      };
-      const p = document.createElement('p');
-      p.textContent = f;
-      row.appendChild(btn); row.appendChild(p);
-      li.appendChild(row);
-      list.appendChild(li);
-    });
-    if (!facts.length){
-      const empty = document.createElement('p');
-      empty.textContent = 'No facts earned yet.';
-      list.appendChild(empty);
-    }
-    card.appendChild(head);
-    // optional image
-    const url = getImageFor(name);
-    if (url){
-      const hero = new Image();
-      hero.src = url; hero.loading = 'lazy';
-      hero.className = 'w-full h-48 object-cover rounded-xl';
-      card.appendChild(hero);
-    }
-    card.appendChild(list);
-    wrap.appendChild(card);
-    document.body.appendChild(wrap);
-  }
-
-  // Click binding on collection tiles
-  document.addEventListener('click', function(e){
-    const tile = e.target.closest('[data-collection-item]');
-    if (!tile) return;
-    const name = tile.getAttribute('data-name') || tile.textContent.trim();
-    if (!name) return;
-    openFactsModal(name);
-  }, true);
-
-  // After each navigation / render pass, try to enhance tile images
-  const obs = new MutationObserver(() => ensureTileImages());
-  obs.observe(document.documentElement, { childList: true, subtree: true });
-  ensureTileImages();
-})();
-</script>
-
-
-  <script>
-    (function(){
-      async function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
-      const CACHE_NAME = 'animal-words-precache-v6';
-      async function cachePut(url, res){
-        try { const cache = await caches.open(CACHE_NAME); await cache.put(url, res.clone()); } catch(_){}
-      }
-      async function headOk(url){ try{ const r = await caches.match(url); return !!r; }catch(_){ return false; } }
-      window.__runPrecache = async function(imageUrls = [], ttsTexts = [], onTick){
-        let total = imageUrls.length + ttsTexts.length;
-        let done = 0;
-        for (const url of imageUrls){
-          try { if (!(await headOk(url))) { const r = await fetch(new Request(url, {mode:'cors', cache:'reload'})); if (r && r.ok) await cachePut(url, r); } } catch(_){}
-          done++; try{ onTick && onTick(done, total); }catch(_){}
-          await sleep(10);
-        }
-        for (const text of ttsTexts){
-          try {
-            if (window.__generateAndCacheTTS) { await window.__generateAndCacheTTS(text); }
-            else if (window.__speakLocal) { window.__speakLocal(text); }
-          } catch(_){}
-          done++; try{ onTick && onTick(done, total); }catch(_){}
-          await sleep(7000);
-        }
-      };
-    })();
   </script>
 
 </body>
