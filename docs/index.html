@@ -1792,37 +1792,55 @@ const useAppState = () => {
         setAppView('setup');
     };
 
-    // --- Image function (now just a placeholder) ---
-    const generateAnimalImage = async (animalName) => {
-        setIsGeneratingImage(true);
-        // This function now just finds the *local* path
-        const manifest = await awLoadImageManifest();
-        if (manifest && manifest.images) {
-            const slug = slugify(animalName);
-            const path = manifest.images[slug];
-            if (path) {
-                setIsGeneratingImage(false);
-                return path; // e.g., "./assets/images/fennec-fox.webp"
-            }
-        }
-        // Fallback placeholder
-        setIsGeneratingImage(false);
-        return `https://placehold.co/600x400/065f46/ffffff?text=${animalName.replace(' ', '+')}&font=lato`;
-    };
+    const generateRewardAnimal = useCallback(async (isVideoReward = false) => {
+    setIsGeneratingImage(true); // Use this to show a loading state
 
-    return {
-        // Auth/System State
-        userId, isAuthReady,
-        // Login State (Renamed to Setup)
-        userName, setUserName, isSigningIn, setIsSigningIn, authError, setAuthError,
-        // Profile/Score State
-        profile, setProfile,
-        // API/Cache State
-        isSpeaking, setIsSpeaking, isGeneratingImage, setIsGeneratingImage, apiError, setApiError,
-        // Handlers & Utilities
-        saveUserNameProfile, handleSignOut, speak, generateAnimalImage, saveUserProfile, signInExistingPlayer
-    };
-};
+    // 1. Filter for uncollected animals
+    const uncollected = ANIMAL_DATABASE.filter(
+        animal => !(profile.collectedAnimals || []).includes(animal.name)
+    );
+
+    // 2. Select a random animal (Prioritize uncollected, then fallback)
+    const animalToReward = uncollected.length > 0
+        ? uncollected[Math.floor(Math.random() * uncollected.length)]
+        : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
+
+    if (!animalToReward) {
+        setIsGeneratingImage(false);
+        return;
+    }
+
+    // 3. Determine next fact index
+    const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
+    let nextFactIndex = currentFactIndex;
+
+    if (currentFactIndex < animalToReward.facts.length) {
+        nextFactIndex = currentFactIndex + 1;
+    } 
+
+    // 4. [NEW] Get image path directly from the manifest
+    let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animalToReward.name.replace(' ', '+')}`; // Default placeholder
+    try {
+        // Use the existing helper function to load the manifest
+        const manifest = await awLoadImageManifest();
+        const slug = slugify(animalToReward.name); // Use the slugify function you already have
+        if (manifest && manifest.images && manifest.images[slug]) {
+            imageUrl = manifest.images[slug]; // Get the local path, e.g., "./assets/images/fennec-fox.webp"
+        }
+    } catch (e) {
+        console.warn("Could not load image manifest", e);
+    }
+
+    setIsGeneratingImage(false);
+    setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
+
+    if (isVideoReward) {
+        setShowVideoModal(true);
+    } else {
+        setShowRewardModal(true);
+    }
+
+}, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
 
 
 // --- UI COMPONENTS & MODALS ---
