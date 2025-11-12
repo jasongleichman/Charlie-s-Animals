@@ -2213,38 +2213,54 @@ const AnimalReadingApp = () => {
     };
 
     const generateRewardAnimal = useCallback(async (isVideoReward = false) => {
-        // 1. Filter for uncollected animals
-        const uncollected = ANIMAL_DATABASE.filter(
-            animal => !profile.collectedAnimals.includes(animal.name)
-        );
+    setIsGeneratingImage(true); // Use this to show a loading state
 
-        // 2. Select a random animal (Prioritize uncollected, then fallback)
-        const animalToReward = uncollected.length > 0
-            ? uncollected[Math.floor(Math.random() * uncollected.length)]
-            : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
+    // 1. Filter for uncollected animals
+    const uncollected = ANIMAL_DATABASE.filter(
+        animal => !(profile.collectedAnimals || []).includes(animal.name)
+    );
 
-        if (!animalToReward) return;
+    // 2. Select a random animal (Prioritize uncollected, then fallback)
+    const animalToReward = uncollected.length > 0
+        ? uncollected[Math.floor(Math.random() * uncollected.length)]
+        : ANIMAL_DATABASE[Math.floor(Math.random() * ANIMAL_DATABASE.length)];
 
-        // 3. Determine next fact index (even if collected, we give a new fact)
-        const currentFactIndex = profile.factIndices[animalToReward.name] || 0;
-        let nextFactIndex = currentFactIndex;
-        
-        if (currentFactIndex < animalToReward.facts.length) {
-            nextFactIndex = currentFactIndex + 1;
-        } 
-        
-        // 4. Image Loading (Local-only)
-        const imageUrl = await generateAnimalImage(animalToReward.name);
-        
-        setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
-        
-        if (isVideoReward) {
-            setShowVideoModal(true);
-        } else {
-            setShowRewardModal(true);
+    if (!animalToReward) {
+        setIsGeneratingImage(false);
+        return;
+    }
+
+    // 3. Determine next fact index
+    const currentFactIndex = (profile.factIndices || {})[animalToReward.name] || 0;
+    let nextFactIndex = currentFactIndex;
+
+    if (currentFactIndex < animalToReward.facts.length) {
+        nextFactIndex = currentFactIndex + 1;
+    } 
+
+    // 4. [NEW] Get image path directly from the manifest
+    let imageUrl = `https://placehold.co/400x192/f0fdf4/065f46?text=${animalToReward.name.replace(' ', '+')}`; // Default placeholder
+    try {
+        // Use the existing function to load the manifest
+        const manifest = await awLoadImageManifest();
+        const slug = slugify(animalToReward.name); // Use the slugify function you already have
+        if (manifest && manifest.images && manifest.images[slug]) {
+            imageUrl = manifest.images[slug]; // Get the local path, e.g., "./assets/images/fennec-fox.webp"
         }
+    } catch (e) {
+        console.warn("Could not load image manifest", e);
+    }
 
-    }, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile, generateAnimalImage]);
+    setIsGeneratingImage(false);
+    setAnimalData({ ...animalToReward, imageUrl: imageUrl, earnedFactIndex: nextFactIndex });
+
+    if (isVideoReward) {
+        setShowVideoModal(true);
+    } else {
+        setShowRewardModal(true);
+    }
+
+}, [profile, setAnimalData, setIsGeneratingImage, setShowRewardModal, setShowVideoModal, saveUserProfile]);
 
 
     const handleAnswer = (answer) => {
@@ -2696,7 +2712,7 @@ const AnimalReadingApp = () => {
                                             onClick={() => {
                                                 if (!selectedAnswer) handleAnswer(option);
                                             }}
-                                            disabled={selectedAnswer !== null}
+                                            disabled={isSpeaking || selectedAnswer !== null}
                                             className={`w-full font-medium py-3 px-6 rounded-xl text-lg text-center transition-all duration-300 transform disabled:cursor-not-allowed ${buttonClass}`}
                                         >
                                             {option}
