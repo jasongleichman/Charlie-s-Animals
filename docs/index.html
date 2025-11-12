@@ -324,7 +324,7 @@ function AW_WelcomeScreen({ onStart }){
       <div className="welcome-card bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[720px]">
         <div className="flex items-center justify-between mb-4">
           <h1 className="font-bold text-2xl">Charlie’s Animal Words</h1>
-          {/* FIX 6: Show avatar for the selected/new user */}
+          /* FIX 6: Show avatar for the selected/new user */
           <span className="text-3xl select-none" aria-label="avatar">{avatar}</span>
         </div>
        
@@ -333,7 +333,7 @@ function AW_WelcomeScreen({ onStart }){
           <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='existing'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('existing')} disabled={!profiles.length} title={!profiles.length?"No saved players yet":""}>Existing Player</button>
         </div>
        
-        {/* FIX: Use a single form for both tabs */}
+        /* FIX: Use a single form for both tabs */
         <form onSubmit={handleStart}>
           {tab === 'existing' ? (
             <div className="space-y-4">
@@ -376,7 +376,7 @@ function AW_WelcomeScreen({ onStart }){
             </div>
           )}
          
-          {/* FIX: Single "Start" button, with updated style */}
+          /* FIX: Single "Start" button, with updated style */
           <div className="flex justify-end mt-6">
             <button type="submit" disabled={(tab === 'new' && !canStartNew) || (tab === 'existing' && !canStartExisting)}
               className={`rounded-xl px-5 py-3 font-semibold flex items-center gap-2 transition-colors ${
@@ -639,16 +639,10 @@ const Modal = ({ title, children, onClose }) => (
         </div>
     </div>
 );
-
-<script type="text/babel">
-/* --------------------------------------------------------------
-   FACT MODAL – NO SYNTAX ERROR + INSTANT AUDIO (pre-loaded)
-   -------------------------------------------------------------- */
-let __factAudioCache = {};  // global cache: slug → Audio
-
-// PRE-LOAD ALL FACT MP3s (called once at app start)
+// Fact Modal Component (FIXED: Template literals, Lock logic)
+let __factAudioCache = {};               // slug → Audio object
 const preloadFactAudio = async () => {
-  if (Object.keys(__factAudioCache).length) return;
+  if (Object.keys(__factAudioCache).length) return;   // already done
 
   const facts = (window.ANIMAL_DATABASE || [])
     .flatMap(a => a.facts)
@@ -673,109 +667,85 @@ const preloadFactAudio = async () => {
   await Promise.allSettled(jobs);
   console.log(`Fact audio pre-loaded (${Object.keys(__factAudioCache).length} files)`);
 };
-
-/* --------------------------------------------------------------
-   FACT MODAL – FINAL FIXED VERSION
-   -------------------------------------------------------------- */
 const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-  const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
-  const totalFactsCount = animal.facts.length;
-
-  // FIXED: Correct useEffect syntax (was useEffect() =>)
-  useEffect(() => {
-    if (factsEarned > 0) setFactIndex(factsEarned - 1);
-  }, [factsEarned]);
-
-  const stop = e => e.stopPropagation();
-
-  const playFact = (text) => {
-    stop(new Event('click'));
-    const slug = text.toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-|-$)/g, "");
-
-    const cached = __factAudioCache[slug];
-    if (cached) {
-      cached.currentTime = 0;
-      cached.play().catch(() => window.__speakLocal(text));
-      return;
-    }
-    window.__speakLocal(text);
-  };
-
-  return (
-    <Modal title={`${animal.name} Collection`} onClose={onClose}>
-      <div className="space-y-4" onClick={stop}>
-        <div className="text-center">
-          <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
-          <p className="text-sm text-gray-500">
-            Facts Unlocked: <span className="font-semibold text-emerald-600">{factsEarned}/{totalFactsCount}</span>
-          </p>
-        </div>
-
-        <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
-          <img
-            src={animal.imageUrl}
-            alt={animal.name}
-            className="max-h-full object-contain"
-            onError={e => {
-              e.target.onerror = null;
-              e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}`;
-            }}
-          />
-        </div>
-
-        <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
-
-        <div className="space-y-2 max-h-60 overflow-y-auto p-1">
-          {animal.facts.map((f, i) => {
-            const unlocked = i < factsEarned;
-            const current = i === factIndex;
-
-            return (
-              <div
-                key={i}
-                className={`p-3 rounded-lg flex justify-between items-center transition-all
-                           ${unlocked
-                             ? (current ? 'border-2 border-emerald-500 bg-emerald-50' : 'hover:bg-emerald-50 cursor-pointer')
-                             : 'bg-gray-100 text-gray-400 opacity-80'}`}
-                onClick={e => { stop(e); if (unlocked) setFactIndex(i); }}
-              >
-                <span className={`text-sm font-medium pr-4 ${unlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                  <strong className="text-emerald-600">Fact {i + 1}:</strong>{' '}
-                  {unlocked ? f : 'Locked: Complete more quizzes!'}
-                </span>
-
-                {unlocked ? (
-                  <button
-                    type="button"
-                    onClick={e => { stop(e); playFact(f); }}
-                    className={`p-2 rounded-full flex-shrink-0 transition
-                               ${isSpeaking && current ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
-                  >
-                    <Volume2 className={`w-5 h-5 ${isSpeaking && current ? 'text-white' : 'text-emerald-600'}`} />
-                  </button>
-                ) : (
-                  <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        <button
-          type="button"
-          onClick={e => { stop(e); onClose(); }}
-          className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4"
-        >
-          Back to Collection
-        </button>
-      </div>
-    </Modal>
-  );
+    // Default to the newest earned fact, or fact 0 if no facts earned yet (for gallery view)
+    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
+    const totalFactsCount = animal.facts.length;
+    useEffect(() => {
+        // When factsEarned changes (e.g., in reward modal), update to show the *newest* fact
+        if (factsEarned > 0) {
+            setFactIndex(factsEarned - 1);
+        }
+    }, [factsEarned]);
+    return (
+        <Modal title={`${animal.name} Collection`} onClose={onClose}>
+            <div className="space-y-4">
+                <div className="text-center">
+                    <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
+                    {/* FIX 1: Correct template literal formatting */}
+                    <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
+                </div>
+                <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
+                    <img
+                        src={animal.imageUrl}
+                        alt={animal.name}
+                        className="max-h-full object-contain"
+                        onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
+                    />
+                </div>
+                <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
+                {/* FIX 2: Fact list shows lock for unearned */}
+                <div className="space-y-2 max-h-60 overflow-y-auto p-1">
+                    {animal.facts.map((fact, index) => {
+                        const isUnlocked = index < factsEarned;
+                        const isCurrent = index === factIndex;
+                        const factNumber = index + 1;
+                       
+                        return (
+                            <div
+                                key={index}
+                                // OnClick is only enabled for unlocked facts
+                                className={`p-3 rounded-lg flex justify-between items-center transition-all ${
+                                    isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
+                                } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (isUnlocked) setFactIndex(index);
+                                }}
+                            >
+                                <span className={`text-sm font-medium pr-4 ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
+                                    {/* FIX 1: Correct template literal formatting */}
+                                    <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
+                                    {/* FIX 2: Only display fact if unlocked */}
+                                    {isUnlocked ? fact : "Locked: Complete more quizzes!"}
+                                </span>
+                                {isUnlocked ? (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            speak(fact);
+                                        }}
+                                        disabled={isSpeaking && isCurrent}
+                                        className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100 hover:bg-emerald-200'}`}
+                                        aria-label="Read fact aloud"
+                                    >
+                                        <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
+                                    </button>
+                                ) : (
+                                    <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                )}
+                            </div>
+                        );
+                    })}
+                </div>
+               
+                <button onClick={onClose} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
+                    Back to Collection
+                </button>
+            </div>
+        </Modal>
+    );
 };
-</script>
-  
 // Video Reward Modal Component (Used only after a 10-streak)
 const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -786,7 +756,7 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const actualVideo = videoDatabase[videoIndex] || { title: 'No Video Available', url: '' };
     // FIX 3: Convert YouTube URL to embed URL for playback
     const embedUrl = actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be"))
-                     ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                     ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*, 'embed/$2')
                      : actualVideo.url;
     return (
         <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
