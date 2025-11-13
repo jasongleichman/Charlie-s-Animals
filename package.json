@@ -4,5 +4,8 @@
   "type": "module",
   "scripts": {
     "build:assets": "node scripts/build_assets.cjs --db=docs/index.html --out=./docs/assets --images --tts --rate=7000"
+  },
+  "dependencies": {
+    "@aws-sdk/client-polly": "^3.930.0"
   }
 }

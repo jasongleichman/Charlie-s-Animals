@@ -8,6 +8,7 @@
   "narwhal": "./assets/images/narwhal.webp",
   "platypus": "./assets/images/platypus.webp",
   "aye-aye": "./assets/images/aye-aye.webp",
+  "blobfish": "./assets/images/blobfish.webp",
   "dumbo-octopus": "./assets/images/dumbo-octopus.webp",
   "star-nosed-mole": "./assets/images/star-nosed-mole.webp",
   "yeti-crab": "./assets/images/yeti-crab.webp",
@@ -30,6 +31,7 @@
   "goliath-frog": "./assets/images/goliath-frog.webp",
   "tuatara": "./assets/images/tuatara.webp",
   "kakapo": "./assets/images/kakapo.webp",
+  "hydra": "./assets/images/hydra.webp",
   "red-lipped-batfish": "./assets/images/red-lipped-batfish.webp",
   "blue-dragon-sea-slug": "./assets/images/blue-dragon-sea-slug.webp",
   "hooded-seal": "./assets/images/hooded-seal.webp",
@@ -55,6 +57,7 @@
   "honduran-white-bat": "./assets/images/honduran-white-bat.webp",
   "liger": "./assets/images/liger.webp",
   "siberian-sturgeon": "./assets/images/siberian-sturgeon.webp",
+  "fossa": "./assets/images/fossa.webp",
   "warthog": "./assets/images/warthog.webp",
   "japanese-spider-crab": "./assets/images/japanese-spider-crab.webp",
   "harbor-seal": "./assets/images/harbor-seal.webp",
@@ -74,8 +77,5 @@
   "anglerfish": "./assets/images/anglerfish.webp",
   "flying-fish": "./assets/images/flying-fish.webp",
   "quetzalcoatlus": "./assets/images/quetzalcoatlus.webp",
-  "chinchilla": "./assets/images/chinchilla.webp",
-  "Hydra": "./assets/images/hydra.webp",
-  "Fossa": "./assets/images/fossa.webp",
-  "chinchilla": "./assets/images/blobfish.webp"
+  "chinchilla": "./assets/images/chinchilla.webp"
 }
