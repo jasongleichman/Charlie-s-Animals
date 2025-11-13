@@ -533,6 +533,15 @@ const useAppState = () => {
     }, [setIsSpeaking, setApiError]);
     // --- Core Initialization Effect [LOCAL-ONLY] ---
     useEffect(() => {
+        if (isAuthReady) {
+            // FIX: If we are not speaking, cancel any ongoing speech
+            if (!isSpeaking && window.speechSynthesis && window.speechSynthesis.speaking) {
+                window.speechSynthesis.cancel();
+            }
+        }
+    }, [isSpeaking, isAuthReady]);
+
+    useEffect(() => {
         try {
             const savedName = awGetSavedName();
             if (savedName) {
@@ -625,7 +634,8 @@ const useAppState = () => {
 // --- UI COMPONENTS & MODALS ---
 // Generic Modal Component (Sleek, Centered)
 const Modal = ({ title, children, onClose }) => (
-    // CRITICAL FIX: Removed onClick={onClose} from the outermost div
+    // CRITICAL FIX: Removed onClick={onClose} from the outermost div (the backdrop)
+    // The modal now only closes when 'X' or 'Back to Collection' is explicitly clicked.
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
         <div
             className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
@@ -658,7 +668,7 @@ const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking
 
     // NEW unified click handler for fact rows to prevent modal closure and handle new logic
     const handleFactClick = useCallback((e, fact, index, isUnlocked, isCurrent) => {
-        // Stop propagation at the fact row level to prevent the outside-click logic (even if it were still there)
+        // Stop propagation at the fact row level to prevent the outside-click logic
         e.stopPropagation();
         if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
         
@@ -776,6 +786,7 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                             // FIX 3: Use the embed URL for correct playback
                             src={embedUrl}
                             title={actualVideo.title}
+                            frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                             loading="lazy"
@@ -1107,11 +1118,20 @@ const AnimalReadingApp = () => {
         const totalAnimals = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.length : 0;
         const collectedCount = (profile.collectedAnimals || []).length;
        
-        // FIX (Navigation Bug): Handlers use the navigateTo function
-        const handleHomeClick = () => navigateTo('home', true);
-        const handleCollectionClick = () => navigateTo('gallery', true);
-        const handleScoresClick = () => setShowStatsModal(true);
-        const handleRewardsClick = () => setShowRewardsModal(true);
+        // FIX: Handlers use the navigateTo function
+        const handleHomeClick = () => {
+            setShowStatsModal(false);
+            setShowRewardsModal(false);
+            navigateTo('home', false); // Do not clear modals state on the way to home
+        };
+        const handleCollectionClick = () => {
+            setShowStatsModal(false);
+            setShowRewardsModal(false);
+            navigateTo('gallery', false); // Do not clear modals state on the way to gallery
+        };
+        // FIX: Toggle handlers for modals
+        const handleScoresClick = () => setShowStatsModal(s => !s);
+        const handleRewardsClick = () => setShowRewardsModal(s => !s);
        
         return (
             // FIX: Responsive sidebar for mobile
