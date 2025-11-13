@@ -376,10 +376,12 @@ const useAppState = () => {
 
 // Generic Modal Component
 const Modal = ({ title, children, onClose }) => (
+    // CRITICAL FIX: Removed onClick={onClose} from the outermost div (the backdrop)
+    // Modal now only closes when 'X' or a button explicitly calling onClose is clicked.
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
         <div
             className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
-            onClick={e => e.stopPropagation()}
+            onClick={e => e.stopPropagation()} // Prevent clicks inside the white box from bubbling out
         >
             <div className="flex justify-between items-center pb-4 border-b border-gray-200">
                 <h2 className="text-2xl font-semibold text-emerald-600">{title}</h2>
@@ -543,7 +545,6 @@ const StatsModal = ({ profile, onClose }) => {
     );
 };
 
-
 // Sidebar component (Hoisted)
 const Sidebar = ({ profile, handleHomeClick, handleCollectionClick, handleScoresClick, handleRewardsClick, handleSignOutAndReset }) => {
     const SidebarButton = ({ icon: Icon, label, labelDesktop, onClick }) => (
@@ -598,6 +599,235 @@ const MainContainer = ({ children, sidebarProps }) => (
     </div>
 );
 
+// New Player/Setup Screen (Hoisted)
+function AW_WelcomeScreen({ onStart }){
+  const [profiles, setProfiles] = React.useState(() => awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
+  const [tab, setTab] = React.useState(profiles.length ? "existing" : "new");
+  const [name, setName] = React.useState(awGetSavedName());
+  const [avatar, setAvatar] = React.useState(AW_AVATAR_EMOJI[Math.floor(Math.random()*AW_AVATAR_EMOJI.length)]);
+ 
+  const [selectedProfileName, setSelectedProfileName] = React.useState(awGetSavedName());
+ 
+  const canStartNew = name.trim().length >= 2;
+  const canStartExisting = selectedProfileName && profiles.some(p => p.name === selectedProfileName);
+  function handleStart(e){
+      e.preventDefault();
+      let profileToLoad;
+      if (tab === 'new' && canStartNew) {
+          profileToLoad = {
+              name: name.trim(), avatar: avatar || "🦊", highScore: 0, streak: 0, collectedAnimals: [], rewardsEarned: 0, highScores: [], factIndices: {}
+          };
+          awSaveProfileData(profileToLoad);
+          setProfiles(awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
+      } else if (tab === 'existing' && canStartExisting) {
+          profileToLoad = awLoadProfileByName(selectedProfileName);
+          if (profileToLoad) {
+             try { localStorage.setItem("playerName", profileToLoad.name); } catch {}
+          }
+      }
+     
+      if (profileToLoad) {
+          onStart && onStart(profileToLoad);
+      }
+  }
+  function handleDeleteProfile(nameToDelete, e) {
+      e.stopPropagation();
+      if (!window.confirm(`Are you sure you want to delete profile "${nameToDelete}"? This cannot be undone."`)) {
+          return;
+      }
+      const updatedList = profiles.filter(p => (p.name || "").toLowerCase() !== nameToDelete.toLowerCase());
+      awSaveProfiles(updatedList);
+      setProfiles(updatedList.sort((a,b) => b.lastPlayed - a.lastPlayed));
+      if ((selectedProfileName || "").toLowerCase() === nameToDelete.toLowerCase()) {
+          setSelectedProfileName(null);
+          setName("");
+          awClearActiveProfile();
+      }
+  }
+  function pickExisting(p){
+      setSelectedProfileName(p.name);
+      setName(p.name);
+      setAvatar(p.avatar || "🦊");
+  }
+ 
+  React.useEffect(()=>{ if (window.lucide) window.lucide.createIcons(); },[tab, profiles, name, avatar, selectedProfileName]);
+ 
+  return (
+    <main className="app-shell grid place-items-center px-4 py-6">
+      <div className="welcome-card bg-white/80 backdrop-blur rounded-2xl shadow-xl p-6 sm:p-8 w-full max-w-[720px]">
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="font-bold text-2xl">Charlie’s Animal Words</h1>
+      
+          <span className="text-3xl select-none" aria-label="avatar">{avatar}</span>
+        </div>
+       
+        <div className="inline-flex bg-gray-100 rounded-xl p-1 mb-6">
+          <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='new'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('new')}>New Player</button>
+          <button className={"px-3 py-1 rounded-lg text-sm font-semibold "+(tab==='existing'?'bg-emerald-600 text-white':'')} onClick={()=>setTab('existing')} disabled={!profiles.length} title={!profiles.length?"No saved players yet":""}>Existing Player</button>
+        </div>
+       
+        <form onSubmit={handleStart}>
+          {tab === 'existing' ? (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-600">Select your profile</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-2 max-h-60 overflow-y-auto">
+                {profiles.length === 0 && <div className="text-slate-500">No saved players yet.</div>}
+                {profiles.map((p,i)=>(
+                    <div key={i} className={`flex items-center gap-3 p-3 rounded-lg border transition text-left ${p.name === selectedProfileName ? "border-emerald-500 ring-1 ring-emerald-500" : "hover:border-emerald-400"}`}>
+                        <button type="button" onClick={()=>pickExisting(p)} className="flex-grow flex items-center gap-3">
+                            <span className="text-2xl">{p.avatar||"🦊"}</span>
+                            <div className="min-w-0">
+                                <div className="font-semibold truncate">{p.name}</div>
+                                <div className="text-xs text-slate-500">Last played {new Date(p.lastPlayed).toLocaleDateString()}</div>
+                            </div>
+                        </button>
+                        <button
+                            type="button"
+                            onClick={(e) => handleDeleteProfile(p.name, e)}
+                            className="p-1 text-red-400 hover:text-red-600 rounded-full transition-colors flex-shrink-0"
+                            title={`Delete ${p.name}`}
+                        >
+                            <XCircle className="w-5 h-5" />
+                        </button>
+                    </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-slate-600">Choose your avatar</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {AW_AVATAR_EMOJI.map((e,i)=>(
+                  <button type="button" key={i} onClick={()=>setAvatar(e)}
+                    className={"rounded-xl border px-3 py-2 "+(e===avatar?"border-emerald-500 ring-1 ring-emerald-500":"border-slate-200")} aria-label={"avatar "+(i+1)}>{e}</button>
+                ))}
+              </div>
+              <label className="block text-sm font-medium text-slate-600">Player name</label>
+              <input value={name} onChange={e=>setName(e.target.value)} placeholder="Your name"
+                className="block w-full rounded-xl border px-4 py-3 bg-slate-50 focus:ring-2 focus:ring-emerald-400" maxLength={30} autoFocus />
+            </div>
+          )}
+         
+          <div className="flex justify-end mt-6">
+            <button type="submit" disabled={(tab === 'new' && !canStartNew) || (tab === 'existing' && !canStartExisting)}
+              className={`rounded-xl px-5 py-3 font-semibold flex items-center gap-2 transition-colors ${
+                ((canStartNew && tab==='new') || (canStartExisting && tab==='existing')) ? "bg-emerald-600 text-white hover:bg-emerald-700 shadow-md shadow-emerald-500/30" : "bg-slate-200 text-slate-500 cursor-not-allowed"
+              }`}>
+              <i data-lucide="play" className="w-5 h-5"></i> Start Playing
+            </button>
+          </div>
+        </form>
+      </div>
+    </main>
+  );
+}
+
+
+// NEW SCREEN: Animal Details Screen (Full Screen replacement for FactModal in Gallery View)
+const AnimalDetailsScreen = ({ animal, profile, navigateTo, speak, isSpeaking, getAnimalDataForModal }) => {
+    // Note: 'animal' is already decorated with imageUrl from GalleryScreen's pre-fetch
+    const factsEarned = (profile.factIndices || {})[animal.name] || 0;
+    const totalFactsCount = animal.facts.length;
+    // State is managed by which fact is currently selected/highlighted
+    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Unified click handler for fact rows: handles selection AND audio playback
+    const handleFactClick = useCallback((e, fact, index, isUnlocked, isCurrent) => {
+        // Stop propagation at the fact row level to prevent accidental closure
+        e.stopPropagation();
+        if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
+        
+        if (!isUnlocked) return;
+        
+        if (isCurrent) {
+            // User clicked the currently selected (green) fact -> Play Audio
+            speak(fact);
+        } else {
+            // User clicked an unlocked but not selected fact -> Select it
+            setFactIndex(index);
+        }
+    }, [setFactIndex, speak]);
+
+    // Use MainContainer for full screen layout
+    return (
+        <MainContainer sidebarProps={{ profile, handleHomeClick: () => navigateTo('home'), handleCollectionClick: () => navigateTo('gallery'), handleScoresClick: () => {}, handleRewardsClick: () => {}, handleSignOutAndReset: () => {} }}>
+            <div className="w-full max-w-lg">
+                <div className="flex justify-between items-center py-4 mb-6 border-b border-gray-200">
+                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        {animal.name}
+                    </h1>
+                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
+                        <X className="w-6 h-6" />
+                    </button>
+                </div>
+                
+                <div className="bg-white border border-gray-200 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div className="text-center">
+                        <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
+                    </div>
+                    
+                    <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
+                        <img
+                            src={animal.imageUrl}
+                            alt={animal.name}
+                            className="max-h-full object-contain"
+                            onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
+                        />
+                    </div>
+                    
+                    <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
+                    
+                    <div className="space-y-2 max-h-[50vh] overflow-y-auto p-1">
+                        {animal.facts.map((fact, index) => {
+                            const isUnlocked = index < factsEarned;
+                            const isCurrent = index === factIndex;
+                            const factNumber = index + 1;
+                            
+                            return (
+                                <div
+                                    key={index}
+                                    role="button"
+                                    tabIndex={isUnlocked ? 0 : -1}
+                                    className={`p-3 rounded-xl flex justify-between items-center transition-all ${
+                                        isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
+                                    } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
+                                    
+                                    onClick={(e) => handleFactClick(e, fact, index, isUnlocked, isCurrent)}
+                                >
+                                    {/* Fact Text Container */}
+                                    <span className={`text-sm font-medium pr-4 flex-grow ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
+                                        <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
+                                        {isUnlocked ? fact : "Locked: Complete more quizzes!"}
+                                    </span>
+                                    
+                                    {/* Audio/Lock Icon - now just for visual feedback */}
+                                    {isUnlocked ? (
+                                        <div
+                                            className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100'}`}
+                                            aria-label="Read fact aloud"
+                                        >
+                                            <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
+                                        </div>
+                                    ) : (
+                                        <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    
+                    <button onClick={() => navigateTo('gallery')} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
+                        Back to Collection
+                    </button>
+                </div>
+            </div>
+        </MainContainer>
+    );
+};
 // Welcome Screen component (Hoisted)
 function AW_WelcomeScreen({ onStart }){
   const [profiles, setProfiles] = React.useState(() => awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
@@ -1144,6 +1374,8 @@ const AnimalReadingApp = () => {
                     <Home className="w-6 h-6" /> Main Menu
                 </button>
             </div>
+            {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
+            {showRewardsModal && <RewardsModal profile={profile} onClose={() => setShowRewardsModal(false)} />}
         </MainContainer>
     );
    
@@ -1159,7 +1391,7 @@ const AnimalReadingApp = () => {
                 const animalWithData = await getAnimalDataForModal(animalName);
                 if (animalWithData) {
                     setSelectedAnimalForDetails(animalWithData);
-                    navigateTo('animal-details', false);
+                    navigateTo('animal-details', false, animalName); // Pass animalName to navigateTo
                 } else {
                     console.error("Failed to load full animal data for details screen.");
                 }
