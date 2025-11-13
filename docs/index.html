@@ -1253,6 +1253,9 @@ const AnimalReadingApp = () => {
     const GameScreen = () => {
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
         const currentItem = currentContent[currentIndex];
+        
+        // FIX for Auto-Play Loop: Use a ref to track if audio has played in this modal instance
+        const autoPlayFlag = useRef(false);
        
         if (!currentItem) {
             return (
@@ -1270,13 +1273,18 @@ const AnimalReadingApp = () => {
             if (!animal) return <LoadingScreen />; // Should be pre-loaded, but just in case
             const totalFacts = (window.ANIMAL_DATABASE || []).find(a => a.name === animal.name)?.facts.length || 10;
            
-            // NEW FEATURE: Auto-play the earned fact when the modal loads
+            // FIX: Auto-play logic using useRef to ensure single execution per modal appearance
             useEffect(() => {
-                if (showRewardModal && animalData) {
+                if (showRewardModal && animalData && !autoPlayFlag.current) {
                     const factToPlay = animalData.facts[animalData.earnedFactIndex - 1];
                     if (factToPlay) {
                         speak(factToPlay);
+                        autoPlayFlag.current = true; // Mark as played
                     }
+                }
+                // Reset flag when modal closes (e.g., when moving to the next question)
+                if (!showRewardModal) {
+                    autoPlayFlag.current = false;
                 }
             }, [showRewardModal, animalData, speak]);
 
