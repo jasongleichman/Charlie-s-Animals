@@ -1,10 +1,11 @@
+```javascript
 /* ================== APP DATA ================== */
 // Contains all the static data for the application.
 // This file is loaded before the main app script in index.html.
 
 // --- ANIMAL DATABASE ---
 window.ANIMAL_DATABASE = [
-  {{
+  {
     name: 'Fennec Fox',
     facts: [
       `Fennec foxes are the smallest canid (dog family) in the world.`,
@@ -18,8 +19,8 @@ window.ANIMAL_DATABASE = [
       `They live in complex dens with multiple entrances, sometimes housing up to 10 foxes.`,
       `Their kidneys are specially adapted to conserve water in their harsh environment.`
     ]
+  },
   {
-
     name: 'Axolotl',
     facts: [
       `Axolotls are "neotenic," meaning they stay in their larval (water) form for their whole lives.`,
@@ -31,10 +32,10 @@ window.ANIMAL_DATABASE = [
       `In the wild, they are critically endangered and only found in Lake Xochimilco in Mexico City.`,
       `They have very simple, cartilage-based skeletons.`,
       `Wild axolotls are dark and mottled; the pink and white ones are bred in captivity.`,
-      `They have four different ways to breathe: gills, skin, rudimentary lungs, and through the lining of their mouth.`,
+      `They have four different ways to breathe: gills, skin, rudimentary lungs, and through the lining of their mouth.`
     ]
+  },
   {
-
     name: 'Goblin Shark',
     facts: [
       `The Goblin Shark is called a "living fossil" because it's the last member of a 125-million-year-old family.`,
@@ -46,10 +47,10 @@ window.ANIMAL_DATABASE = [
       `Because they live so deep, their muscles are flabby and they are very slow, sluggish swimmers.`,
       `Their teeth are long, thin, and needle-like, perfect for grasping slippery, deep-sea squid and fish.`,
       `A Goblin Shark was once found in the stomach of a giant deep-sea "ship worm" (a type of clam).`,
-      `Despite their terrifying look, they are no threat to humans, as they live far too deep.`,
+      `Despite their terrifying look, they are no threat to humans, as they live far too deep.`
     ]
+  },
   {
-
     name: 'Pangolin',
     facts: [
       `Pangolins are the only mammals in the world completely covered in scales.`,
@@ -61,10 +62,10 @@ window.ANIMAL_DATABASE = [
       `They can close their nostrils and ears completely to stop ants from crawling inside.`,
       `Pangolins are, sadly, the most illegally trafficked mammals in the world.`,
       `Baby pangolins ride on their mother's back by holding onto her scales.`,
-      `Some species, like the Black-bellied pangolin, have a prehensile (grasping) tail to hang from trees.`,
+      `Some species, like the Black-bellied pangolin, have a prehensile (grasping) tail to hang from trees.`
     ]
+  },
   {
-
     name: 'Okapi',
     facts: [
       `The Okapi is the only living relative of the giraffe, not the zebra.`,
@@ -76,10 +77,10 @@ window.ANIMAL_DATABASE = [
       `Okapis are "solitary," meaning they live alone, only meeting up to mate.`,
       `They communicate using very low-frequency "infrasonic" rumbles, too low for humans to hear.`,
       `They are only found in the Ituri Rainforest in the Democratic Republic of Congo.`,
-      `Like giraffes, males have short, skin-covered horns called "ossicones".`,
+      `Like giraffes, males have short, skin-covered horns called "ossicones".`
     ]
+  },
   {
-
     name: 'Komodo Dragon',
     facts: [
       `Komodo dragons are the largest and heaviest lizards on Earth.`,
@@ -91,10 +92,10 @@ window.ANIMAL_DATABASE = [
       `They "taste" the air with their forked tongue, using an organ in their mouth called the Jacobson's organ.`,
       `Young Komodo dragons roll in feces (poop) to smell bad so adult dragons won't eat them!`,
       `Females can reproduce through "parthenogenesis," meaning they can have babies without a male.`,
-      `They can see in color and have vision as good as a human's.`,
+      `They can see in color and have vision as good as a human's.`
     ]
+  },
   {
-
     name: 'Narwhal',
     facts: [
       `The narwhal's "tusk" is actually a single, 10-foot-long tooth that spirals out of its upper lip.`,
@@ -106,10 +107,10 @@ window.ANIMAL_DATABASE = [
       `They are related to beluga whales and, like them, live in the Arctic year-round.`,
       `Scientists have seen them using their tusks to tap and "stun" fish before eating them.`,
       `The tusk is almost always found on males, but about 15% of females can also grow a (smaller) tusk.`,
-      `They have no dorsal fin (fin on their back), which makes it easier to swim under large sheets of ice.`,
+      `They have no dorsal fin (fin on their back), which makes it easier to swim under large sheets of ice.`
     ]
+  },
   {
-
     name: 'Platypus',
     facts: [
       `The platypus is a "monotreme," a rare type of mammal that lays eggs instead of giving live birth.`,
@@ -121,10 +122,10 @@ window.ANIMAL_DATABASE = [
       `A baby platypus is called a "puggle" and is the size of a lima bean when it hatches.`,
       `They do not have a stomach; their food goes directly from their esophagus to their intestines.`,
       `Their fur is so dense (800 hairs per square millimeter) that it traps a layer of air to keep them warm and dry.`,
-      `Platypus milk seeps out of special pores in the mother's skin, and the puggles lap it up.`,
+      `Platypus milk seeps out of special pores in the mother's skin, and the puggles lap it up.`
     ]
+  },
   {
-
     name: 'Aye-Aye',
     facts: [
       `The Aye-Aye is a type of lemur from Madagascar, but it is one of a kind.`,
@@ -136,10 +137,10 @@ window.ANIMAL_DATABASE = [
       `The Aye-Aye is the world's largest nocturnal primate.`,
       `Its brain is, proportionally, very large, which it needs for its complex hunting technique.`,
       `It has a "third eyelid" (a nictitating membrane) that it can close to protect its eyes while it chews wood.`,
-      `It is the only primate known to use echolocation to find its food (though it's "tapping" echolocation).`,
+      `It is the only primate known to use echolocation to find its food (though it's "tapping" echolocation).`
     ]
+  },
   {
-
     name: 'Blobfish',
     facts: [
       `The blobfish looks "blobby" on land, but looks like a normal fish in its deep-sea home.`,
@@ -151,10 +152,10 @@ window.ANIMAL_DATABASE = [
       `Female blobfish lay thousands of pink eggs on the seafloor.`,
       `Blobfish are known to be "dedicated parents," with the mother or father sitting on the eggs to protect them.`,
       `They were "discovered" by accident when they were dragged up in deep-sea trawling nets.`,
-      `Its sad, "grumpy" face is just an accident of decompression (being brought up too fast).`,
+      `Its sad, "grumpy" face is just an accident of decompression (being brought up too fast).`
     ]
+  },
   {
-
     name: 'Dumbo Octopus',
     facts: [
       `Dumbo octopuses are named for the two large, ear-like fins on their "head" (which is really their body).`,
@@ -166,10 +167,10 @@ window.ANIMAL_DATABASE = [
       `They come in many colors, and some are "bioluminescent," meaning they can glow in the dark.`,
       `Females can store a male's sperm for long periods and lay eggs whenever they find a good spot.`,
       `They are part of the "cirrate" octopuses, which have small, hair-like strands called "cirri" on their arms.`,
-      `The largest Dumbo octopus ever found was over 5 feet 10 inches long!`,
+      `The largest Dumbo octopus ever found was over 5 feet 10 inches long!`
     ]
+  },
   {
-
     name: 'Star-Nosed Mole',
     facts: [
       `The "star" is an organ with 22 fleshy, pink "rays" or tentacles at the end of its snout.`,
@@ -181,10 +182,10 @@ window.ANIMAL_DATABASE = [
       `It is "functionally blind," meaning its eyes are almost useless and can only detect light from dark.`,
       `They are active 24/7, day and night, and even tunnel through snow in the winter.`,
       `It can store fat in its tail, making it swell up to 4 times its normal size to survive winter.`,
-      `They are fantastic swimmers and hunt for aquatic insects and small fish in ponds and marshes.`,
+      `They are fantastic swimmers and hunt for aquatic insects and small fish in ponds and marshes.`
     ]
+  },
   {
-
     name: 'Yeti Crab',
     facts: [
       `Yeti crabs (Kiwa hirsuta) were only discovered in 2005.`,
@@ -196,10 +197,10 @@ window.ANIMAL_DATABASE = [
       `The bacteria on their arms also helps them "detoxify" the poisonous minerals coming from the vents.`,
       `Their family name, Kiwa, is the name of the goddess of shellfish in Polynesian mythology.`,
       `They are about 6 inches long and are a pale, ghost-like white.`,
-      `They are not closely related to common crabs; they are a type of "squat lobster".`,
+      `They are not closely related to common crabs; they are a type of "squat lobster".`
     ]
+  },
   {
-
     name: 'Proboscis Monkey',
     facts: [
       `The male's large, fleshy nose (or "proboscis") is used as an "echo chamber" to make loud honking calls.`,
@@ -211,10 +212,10 @@ window.ANIMAL_DATABASE = [
       `They live only on the island of Borneo in mangrove and river-side forests.`,
       `A baby proboscis monkey is born with a bright blue face and a small, upturned nose.`,
       `The male's nose can get so large that it hangs down below his mouth.`,
-      `A single dominant male will lead a "harem" of up to 8 females and their young.`,
+      `A single dominant male will lead a "harem" of up to 8 females and their young.`
     ]
+  },
   {
-
     name: 'Saiga Antelope',
     facts: [
       `The Saiga is a "living fossil" that has lived on Earth since the Ice Age, alongside woolly mammoths.`,
@@ -226,10 +227,10 @@ window.ANIMAL_DATABASE = [
       `Only the males have horns, which are prized in traditional medicine, leading to poaching.`,
       `In 2015, a mysterious disease wiped out over 200,000 Saiga (60% of the *entire* world population) in just 3 weeks.`,
       `Their eyes are on the sides of their heads, giving them a 320-degree field of vision to spot predators.`,
-      `Their unique nose also helps them re-absorb moisture from their own breath, saving water.`,
+      `Their unique nose also helps them re-absorb moisture from their own breath, saving water.`
     ]
+  },
   {
-
     name: 'Gerenuk',
     facts: [
       `The Gerenuk is an antelope, but its name means "giraffe-necked" in the Somali language.`,
@@ -241,10 +242,10 @@ window.ANIMAL_DATABASE = [
       `They are "diurnal," meaning they are active during the day, unlike many other desert animals.`,
       `They have huge eyes and ears, giving them excellent sight and hearing to detect predators.`,
       `Only the males have horns, which are thick and "S-shaped".`,
-      `They are very selective eaters, often eating only the most nutritious leaves from a bush and moving on.`,
+      `They are very selective eaters, often eating only the most nutritious leaves from a bush and moving on.`
     ]
+  },
   {
-
     name: 'Maned Wolf',
     facts: [
       `The Maned Wolf is not a wolf or a fox, and it is the only member of its own genus, *Chrysocyon*.`,
@@ -255,10 +256,10 @@ window.ANIMAL_DATABASE = [
       `They communicate over long distances with a loud, deep "roar-bark".`,
       `Their urine has a very strong, distinct smell, which they use to mark their territory.`,
       `They are "crepuscular," meaning they are most active at dawn and dusk.`,
-      `They are very shy and pose no danger to humans.`,
+      `They are very shy and pose no danger to humans.`
     ]
+  },
   {
-
     name: 'Glass Frog',
     facts: [
       `Glass frogs have "translucent" (see-through) skin on their bellies, which allows you to see their internal organs, including the heart and liver.`,
@@ -270,10 +271,10 @@ window.ANIMAL_DATABASE = [
       `Their bones are often green or white due to mineral deposits.`,
       `Tadpoles often settle in low-oxygen mud, where their bright red blood cells help them absorb more oxygen.`,
       `They communicate using high-pitched calls.`,
-      `They are an indicator species, meaning their health reflects the health of their ecosystem.`,
+      `They are an indicator species, meaning their health reflects the health of their ecosystem.`
     ]
+  },
   {
-
     name: 'Mantis Shrimp',
     facts: [
       `The Mantis Shrimp has the most complex eyes in the animal kingdom.`,
@@ -285,10 +286,10 @@ window.ANIMAL_DATABASE = [
       `The "spearer" type has two spiny, barbed claws that they use to impale soft-bodied prey like fish.`,
       `They are highly intelligent, can learn complex mazes, and can even recognize individual humans.`,
       `They can move each eye independently.`,
-      `Their clubs are so strong and durable, scientists are studying them to create new types of body armor.`,
+      `Their clubs are so strong and durable, scientists are studying them to create new types of body armor.`
     ]
+  },
   {
-
     name: 'T-Rex',
     facts: [
       `T-Rex means "Tyrant Lizard King," and it lived at the very end of the dinosaur age.`,
@@ -300,10 +301,10 @@ window.ANIMAL_DATABASE = [
       `T-Rex had a huge "olfactory bulb" (the smell part of the brain), meaning it had an incredible sense of smell.`,
       `Its eyes were forward-facing, giving it "binocular vision" (like an eagle) to hunt better.`,
       `The T-Rex was a "cannibal" and would eat other T-Rexes if it had the chance.`,
-      `It could not run, but it could "power walk" at speeds up to 15-20 miles per hour.`,
+      `It could not run, but it could "power walk" at speeds up to 15-20 miles per hour.`
     ]
+  },
   {
-
     name: 'Potoo Bird',
     facts: [
       `Potoo birds are masters of camouflage, looking exactly like broken tree branches or stumps.`,
@@ -315,10 +316,10 @@ window.ANIMAL_DATABASE = [
       `When alarmed, they freeze and stretch their body and head vertically to blend in perfectly with the wood.`,
       `The Potoo's song is a series of descending, melancholic notes.`,
       `They are also known as the "ghost bird" or "poor-me-ones."`,
-      `They are related to nightjars and frogmouths.`,
+      `They are related to nightjars and frogmouths.`
     ]
+  },
   {
-
     name: 'Giant Isopod',
     facts: [
       `Giant isopods are the largest members of the crustacean order Isopoda, related to woodlice.`,
@@ -330,10 +331,10 @@ window.ANIMAL_DATABASE = [
       `They have a "roll-up" defense mechanism, curling into a ball like a pill bug.`,
       `They are often described as giant, underwater cockroaches.`,
       `Some species can grow up to 16 inches long, roughly the size of a football.`,
-      `They are crucial for recycling organic material in the deep sea.`,
+      `They are crucial for recycling organic material in the deep sea.`
     ]
+  },
   {
-
     name: 'Tarsier',
     facts: [
       `Tarsiers have the largest eyes relative to their body size of any mammal, each eye being as large as its entire brain.`,
@@ -345,10 +346,10 @@ window.ANIMAL_DATABASE = [
       `Their fingers are extremely long, and they have specialized pads for gripping branches.`,
       `They communicate using high-frequency ultrasonic squeaks that are too high for most humans to hear.`,
       `Tarsiers are solitary and typically travel alone.`,
-      `Tarsiers are known to be extremely sensitive to stress and will hurt themselves if kept in captivity improperly.`,
+      `Tarsiers are known to be extremely sensitive to stress and will hurt themselves if kept in captivity improperly.`
     ]
+  },
   {
-
     name: 'Vaquita',
     facts: [
       `The Vaquita is the world's smallest and most endangered marine mammal, a type of porpoise.`,
@@ -360,10 +361,10 @@ window.ANIMAL_DATABASE = [
       `They are very shy and avoid boats, making them incredibly difficult to study.`,
       `Vaquitas are often mistaken for dolphins, but they have different, spade-shaped teeth.`,
       `They have a small, triangular dorsal fin.`,
-      `They typically live in shallow, murky waters near the coast.`,
+      `They typically live in shallow, murky waters near the coast.`
     ]
+  },
   {
-
     name: 'Shoebill Stork',
     facts: [
       `The Shoebill Stork is named for its huge, shoe-shaped bill, which can be over 9 inches long.`,
@@ -375,10 +376,10 @@ window.ANIMAL_DATABASE = [
       `Shoebills are typically solitary and live in large, dense papyrus swamps in East Africa.`,
       `They use their large bills to scoop up water and food, often looking comical.`,
       `They often build a single nest on a floating mat of vegetation.`,
-      `They are considered vulnerable due to habitat loss and disturbance.`,
+      `They are considered vulnerable due to habitat loss and disturbance.`
     ]
+  },
   {
-
     name: 'Markhor',
     facts: [
       `The Markhor is a large wild goat species known for its spectacular spiral horns.`,
@@ -390,10 +391,10 @@ window.ANIMAL_DATABASE = [
       `They are crepuscular, meaning they are most active at dawn and dusk.`,
       `Markhor populations were severely endangered but have been recovering due to conservation efforts.`,
       `They have special padded hooves that help them maintain traction on sheer cliff faces.`,
-      `They communicate with loud warning whistles and snorts.`,
+      `They communicate with loud warning whistles and snorts.`
     ]
+  },
   {
-
     name: 'Wombat',
     facts: [
       `Wombats are marsupials (like kangaroos) found only in Australia.`,
@@ -405,10 +406,10 @@ window.ANIMAL_DATABASE = [
       `They have continually growing, rodent-like incisors for gnawing on tough roots.`,
       `They are the second largest marsupial in the world, after the kangaroo.`,
       `Wombats are known for their short legs and powerful claws, making them amazing tunnel builders.`,
-      `They are generally solitary animals.`,
+      `They are generally solitary animals.`
     ]
+  },
   {
-
     name: 'Patagonian Mara',
     facts: [
       `The Patagonian Mara is a large rodent native to Argentina, resembling a mix between a rabbit and a small deer.`,
@@ -420,10 +421,10 @@ window.ANIMAL_DATABASE = [
       `They live in open, arid grasslands and brush habitats.`,
       `Maras maintain monogamous pairs, meaning they mate for life.`,
       `They use scent marking (dragging their bottoms) to delineate their territory.`,
-      `When alarmed, they run with a characteristic bouncy gait, flashing their white rump patch.`,
+      `When alarmed, they run with a characteristic bouncy gait, flashing their white rump patch.`
     ]
+  },
   {
-
     name: 'Sunda Colugo',
     facts: [
       `The Sunda Colugo (or Flying Lemur) is not a lemur and does not truly fly; it glides using a membrane of skin.`,
@@ -435,10 +436,10 @@ window.ANIMAL_DATABASE = [
       `Their fur provides excellent camouflage against tree bark.`,
       `They are slow and clumsy when climbing but are masters in the air.`,
       `A baby colugo is carried wrapped up in its mother's patagium, like a sling.`,
-      `They are herbivores, feeding on leaves, flowers, and fruit.`,
+      `They are herbivores, feeding on leaves, flowers, and fruit.`
     ]
+  },
   {
-
     name: 'Goliath Frog',
     facts: [
       `The Goliath Frog is the largest frog species on Earth, capable of reaching over 13 inches in length and weighing up to 7.2 pounds.`,
@@ -450,10 +451,10 @@ window.ANIMAL_DATABASE = [
       `They build elaborate ponds for their young by pushing rocks and mud with their strong forearms.`,
       `The tadpoles are about the size of a grape.`,
       `The Golaith Frog is listed as endangered due to habitat destruction and collection for the pet trade.`,
-      `They have webbed feet to aid in swimming and escaping predators.`,
+      `They have webbed feet to aid in swimming and escaping predators.`
     ]
+  },
   {
-
     name: 'Tuatara',
     facts: [
       `The Tuatara is a reptile endemic to New Zealand and is the last surviving member of an order that flourished 200 million years ago.`,
@@ -465,10 +466,10 @@ window.ANIMAL_DATABASE = [
       `Their internal metabolism is incredibly slow, allowing them to conserve energy.`,
       `They share burrows with seabirds, which helps keep the burrows clean.`,
       `They take between 10 to 20 years to reach sexual maturity.`,
-      `The Tuatara's bones are unique and resemble fish and amphibian bone structure.`,
+      `The Tuatara's bones are unique and resemble fish and amphibian bone structure.`
     ]
+  },
   {
-
     name: 'Kakapo',
     facts: [
       `The Kakapo is the world's only flightless parrot, native to New Zealand.`,
@@ -480,10 +481,10 @@ window.ANIMAL_DATABASE = [
       `They can live for over 90 years.`,
       `Kakapos are critically endangered and intensely managed on predator-free islands.`,
       `They are experts at camouflage, using their mottled green-and-brown feathers to hide in forest undergrowth.`,
-      `They have specialized whiskers (vibrissae) around their face that help them navigate in the dark.`,
+      `They have specialized whiskers (vibrissae) around their face that help them navigate in the dark.`
     ]
+  },
   {
-
     name: 'Hydra',
     facts: [
       `Hydra is a tiny freshwater animal that is famous for its almost limitless capacity for regeneration.`,
@@ -495,10 +496,10 @@ window.ANIMAL_DATABASE = [
       `It paralyzes small crustaceans and worms with stinging cells on its tentacles.`,
       `Hydra is one of the oldest known animal genera, existing for hundreds of millions of years.`,
       `It can move slowly by looping (somersaulting) across the surface or by sliding on its base.`,
-      `It lacks a true brain, heart, or respiratory system.`,
+      `It lacks a true brain, heart, or respiratory system.`
     ]
+  },
   {
-
     name: 'Red-Lipped Batfish',
     facts: [
       `The Red-Lipped Batfish is easily recognized by its bright, lipstick-red lips.`,
@@ -510,10 +511,10 @@ window.ANIMAL_DATABASE = [
       `They can grow up to 15 inches in length.`,
       `The Batfish is related to anglerfish.`,
       `They have a very flattened body shape, like a pancake.`,
-      `They primarily feed on benthic invertebrates (organisms that live on the seafloor).`,
+      `They primarily feed on benthic invertebrates (organisms that live on the seafloor).`
     ]
+  },
   {
-
     name: 'Blue Dragon Sea Slug',
     facts: [
       `The Blue Dragon Sea Slug (Glaucus atlanticus) is a strikingly beautiful, tiny mollusk.`,
@@ -525,10 +526,10 @@ window.ANIMAL_DATABASE = [
       `Its blue and white coloration is a form of camouflage called "countershading."`,
       `The blue side faces up (blending with the water), and the white side faces down (blending with the sky).`,
       `They can grow up to 1.2 inches long.`,
-      `They are hermaphrodites, possessing both male and female reproductive organs.`,
+      `They are hermaphrodites, possessing both male and female reproductive organs.`
     ]
+  },
   {
-
     name: 'Hooded Seal',
     facts: [
       `The male Hooded Seal is known for its inflatable "hood" on its head, which it can blow up like a balloon.`,
@@ -540,10 +541,10 @@ window.ANIMAL_DATABASE = [
       `They live in the North Atlantic and Arctic Ocean.`,
       `The pups grow extremely fast, gaining weight rapidly during their 4-day nursing period (the shortest of any mammal).`,
       `Their color is silvery gray with black spots.`,
-      `They are considered one of the most difficult seal species to study due to their remote habitat.`,
+      `They are considered one of the most difficult seal species to study due to their remote habitat.`
     ]
+  },
   {
-
     name: 'Leafy Sea Dragon',
     facts: [
       `The Leafy Sea Dragon is a relative of the seahorse, famous for its elaborate, leaf-like appendages used for camouflage.`,
@@ -555,10 +556,10 @@ window.ANIMAL_DATABASE = [
       `Their color can change slightly to match their surroundings (red, yellow, or green).`,
       `The Leafy Sea Dragon is protected by the Australian government.`,
       `They have a pipe-like snout and a prehensile (grasping) tail, but they rarely use their tail to grasp things.`,
-      `They are sensitive to water pollution and changes in ocean temperature.`,
+      `They are sensitive to water pollution and changes in ocean temperature.`
     ]
+  },
   {
-
     name: 'Whip-Tailed Scorpion',
     facts: [
       `The Whip-Tailed Scorpion (or vinegaroon) is not a true scorpion and does not have venom.`,
@@ -570,10 +571,10 @@ window.ANIMAL_DATABASE = [
       `Vinegaroons are arachnids, meaning they have eight legs.`,
       `The female is a dedicated mother, carrying her eggs and young on her back.`,
       `They are found in arid and semi-arid regions of the Americas and Asia.`,
-      `Despite their intimidating appearance, they are harmless to humans.`,
+      `Despite their intimidating appearance, they are harmless to humans.`
     ]
+  },
   {
-
     name: 'Amazon River Dolphin',
     facts: [
       `The Amazon River Dolphin (or Boto) is the largest species of river dolphin.`,
@@ -585,10 +586,10 @@ window.ANIMAL_DATABASE = [
       `They are known to be solitary or travel in small, loose groups.`,
       `They are considered critically endangered due to habitat destruction and illegal fishing practices.`,
       `Local folklore often describes them as shape-shifters that transform into handsome men or beautiful women.`,
-      `They lack a dorsal fin, which is replaced by a low, rounded ridge.`,
+      `They lack a dorsal fin, which is replaced by a low, rounded ridge.`
     ]
+  },
   {
-
     name: 'Quokka',
     facts: [
       `The Quokka is a small, short-tailed wallaby found mainly on Rottnest Island in Western Australia.`,
@@ -600,10 +601,10 @@ window.ANIMAL_DATABASE = [
       `When swimming, they can hold their breath for up to five minutes.`,
       `They can hop rapidly on their powerful hind legs.`,
       `The name "Rottnest" Island means "Rat's Nest" Island, named by a Dutch explorer who mistook the Quokkas for large rats.`,
-      `Females can instantly replace a lost baby (joey) using a process called "embryonic diapause."`,
+      `Females can instantly replace a lost baby (joey) using a process called "embryonic diapause."`
     ]
+  },
   {
-
     name: 'Panda Ant',
     facts: [
       `The Panda Ant is not an ant but a species of wasp, specifically a wingless velvet ant.`,
@@ -615,10 +616,10 @@ window.ANIMAL_DATABASE = [
       `Panda ants are found mainly in Chile.`,
       `The males have wings, which they use to fly and search for the wingless females.`,
       `They parasitize the nests of other wasps and bees, laying their eggs near the host's larvae.`,
-      `The exoskeleton (outer shell) is one of the toughest in the insect world.`,
+      `The exoskeleton (outer shell) is one of the toughest in the insect world.`
     ]
+  },
   {
-
     name: 'Mimic Octopus',
     facts: [
       `The Mimic Octopus (Thaumoctopus mimicus) can impersonate at least 15 different sea animals.`,
@@ -630,10 +631,10 @@ window.ANIMAL_DATABASE = [
       `They are masters of camouflage, able to perfectly blend into the seafloor.`,
       `They are one of the smaller octopus species, usually no longer than 2 feet.`,
       `The Mimic Octopus was only formally discovered in 1998.`,
-      `They use jet propulsion (squirting water) to move quickly when not mimicking.`,
+      `They use jet propulsion (squirting water) to move quickly when not mimicking.`
     ]
+  },
   {
-
     name: 'Flying Squirrel',
     facts: [
       `Flying squirrels don't actually fly; they glide using a large, furry membrane called a patagium.`,
@@ -645,10 +646,10 @@ window.ANIMAL_DATABASE = [
       `Flying squirrels are omnivores, eating nuts, seeds, fruit, fungi, and sometimes insects or bird eggs.`,
       `They live in tree hollows or nests built from twigs and leaves.`,
       `There are over 50 species of flying squirrel worldwide.`,
-      `They communicate using high-pitched squeaks and chirps.`,
+      `They communicate using high-pitched squeaks and chirps.`
     ]
+  },
   {
-
     name: 'Venezuelan Poodle Moth',
     facts: [
       `The Venezuelan Poodle Moth, discovered in 2009, is known for its unusual appearance: a furry white body and large, dark eyes.`,
@@ -660,10 +661,10 @@ window.ANIMAL_DATABASE = [
       `It was found in the Gran Sabana region of Venezuela.`,
       `Its large antennae are likely used to detect pheromones.`,
       `It feeds on nectar, like other moths.`,
-      `The moth is an excellent example of nature's strange biodiversity.`,
+      `The moth is an excellent example of nature's strange biodiversity.`
     ]
+  },
   {
-
     name: 'Sarcastic Fringehead',
     facts: [
       `The Sarcastic Fringehead is a small, aggressive fish known for its comically huge, extendable mouth.`,
@@ -675,10 +676,10 @@ window.ANIMAL_DATABASE = [
       `The name "sarcastic" refers to the Greek word "sarkazo," meaning "to tear flesh," reflecting their aggressive nature.`,
       `They dart out from their burrows to grab prey, mainly small fish and crabs.`,
       `They can grow up to 10 inches long.`,
-      `They use their large mouths not just for fighting but also for intimidation displays.`,
+      `They use their large mouths not just for fighting but also for intimidation displays.`
     ]
+  },
   {
-
     name: 'Harpy Eagle',
     facts: [
       `The Harpy Eagle is one of the largest and most powerful eagles in the world, capable of preying on sloths and monkeys.`,
@@ -690,10 +691,10 @@ window.ANIMAL_DATABASE = [
       `It has a wingspan of up to 6 feet 7 inches.`,
       `It builds huge, stick nests high in the tallest trees, which it uses year after year.`,
       `They are known for their quiet, graceful flight through the dense forest.`,
-      `They are long-lived, often reaching 30-40 years in captivity.`,
+      `They are long-lived, often reaching 30-40 years in captivity.`
     ]
+  },
   {
-
     name: 'Gila Monster',
     facts: [
       `The Gila Monster is one of only two venomous lizard species native to North America (the other being the Mexican Beaded Lizard).`,
@@ -705,10 +706,10 @@ window.ANIMAL_DATABASE = [
       `They are named after the Gila River Basin in Arizona.`,
       `Gila Monsters are protected in Arizona and Nevada.`,
       `They primarily feed on bird and reptile eggs, small mammals, and insects.`,
-      `The venom's components has been used in research to develop medications for type 2 diabetes.`,
+      `The venom's components has been used in research to develop medications for type 2 diabetes.`
     ]
+  },
   {
-
     name: 'Sun Bear',
     facts: [
       `The Sun Bear is the smallest bear species in the world, standing about 4 feet tall.`,
@@ -720,10 +721,10 @@ window.ANIMAL_DATABASE = [
       `They are primarily nocturnal.`,
       `Sun Bears are excellent diggers and love to tear open logs in search of termites.`,
       `They are listed as vulnerable due to deforestation and the illegal wildlife trade.`,
-      `Their claws are not retractable.`,
+      `Their claws are not retractable.`
     ]
+  },
   {
-
     name: 'Ocean Sunfish',
     facts: [
       `The Ocean Sunfish (Mola Mola) is the heaviest bony fish in the world, with some specimens weighing over 5,000 pounds.`,
@@ -735,10 +736,10 @@ window.ANIMAL_DATABASE = [
       `The Sunfish has a beak-like mouth that cannot close completely.`,
       `They are often seen near the surface when birds are cleaning parasites off their skin.`,
       `Mola Mola have a very reduced skeleton compared to other large fish.`,
-      `They can swim to depths of over 2,000 feet to hunt.`,
+      `They can swim to depths of over 2,000 feet to hunt.`
     ]
+  },
   {
-
     name: 'Red Panda',
     facts: [
       `The Red Panda is not closely related to the Giant Panda; it is the only living species in its own family (Ailuridae).`,
@@ -750,10 +751,10 @@ window.ANIMAL_DATABASE = [
       `Red Pandas are solitary and quiet animals, communicating with clicks, squeaks, and whistles.`,
       `Their habitat is the mountain forests of the Himalayas and Southern China.`,
       `They groom themselves like cats, licking their paws and rubbing their fur.`,
-      `They are considered an endangered species.`,
+      `They are considered an endangered species.`
     ]
+  },
   {
-
     name: 'Spiny Anteater',
     facts: [
       `The Echidna (Spiny Anteater) is a monotreme, one of only five living mammals that lay eggs (along with the platypus).`,
@@ -765,10 +766,10 @@ window.ANIMAL_DATABASE = [
       `They have strong claws and shovel-like feet for digging.`,
       `Echidnas can live for up to 50 years in captivity.`,
       `Their body temperature is the lowest of any mammal.`,
-      `They are found throughout Australia and New Guinea.`,
+      `They are found throughout Australia and New Guinea.`
     ]
+  },
   {
-
     name: 'Rhinoceros Beetle',
     facts: [
       `The Rhinoceros Beetle is one of the strongest animals on Earth relative to its size, able to lift 850 times its own weight.`,
@@ -780,550 +781,23 @@ window.ANIMAL_DATABASE = [
       `Despite their menacing look, they are completely harmless to humans.`,
       `Their hard exoskeleton provides excellent protection.`,
       `They are found worldwide, but many species are in tropical regions.`,
-      `When they fly, they make a loud, droning sound.`,
+      `When they fly, they make a loud, droning sound.`
     ]
+  },
   {
-
     name: 'Blue Ringed Octopus',
     facts: [
       `The Blue Ringed Octopus is small (about the size of a golf ball) but is one of the world's most venomous animals.`,
       `Its venom (tetrodotoxin) is powerful enough to kill a human and has no known antidote.`,
       `The bright blue rings flash rapidly when the octopus is threatened, serving as a warning.`,
-      `They live in tide pools and shallow coral reefs in the Pacific and Indian oceans.`,
-      `They are generally shy and spend most of their time hiding in small crevices.`,
-      `The octopus usually delivers its venomous bite when picked up or stepped on.`,
-      `The venom is produced by symbiotic bacteria in their salivary glands.`,
-      `They primarily feed on small crabs and shrimp.`,
-      `They crawl rather than swim, using their arms to move along the seafloor.`,
-      `They live for only about one to two years.`,
-    ]
-  {
-
-    name: 'Frilled Shark',
-    facts: [
-      `The Frilled Shark is often called a "living fossil" because its appearance has changed little over millions of years.`,
-      `It has six pairs of gill slits with frilly red edges, giving it its name.`,
-      `It has over 300 needle-sharp, trident-shaped teeth arranged in 25 rows, perfect for trapping soft prey.`,
-      `It lives in the deep ocean, usually between 400 and 5,000 feet below the surface.`,
-      `It attacks its prey by lunging forward like a snake.`,
-      `The gestation period for the eggs can be up to three and a half years, the longest of any vertebrate.`,
-      `It has a dark, eel-like body and a dark brown or gray color.`,
-      `The Frilled Shark is rarely seen by humans.`,
-      `It feeds mainly on squid, octopus, and smaller sharks.`,
-      `It can grow up to 6 feet long.`,
-    ]
-  {
-
-    name: 'Giant Japanese Salamander',
-    facts: [
-      `The Giant Japanese Salamander is the second-largest amphibian in the world (after the Chinese Giant Salamander).`,
-      `It can grow up to 5 feet in length and weigh over 55 pounds.`,
-      `It breathes primarily through its skin, which is covered in folds to increase the surface area for oxygen absorption.`,
-      `They are nocturnal, spending their days hidden in river beds.`,
-      `They live in clear, cold rivers and streams in Japan.`,
-      `Their eyesight is very poor, so they rely on sensory nodes on their skin to detect water movement and pressure changes.`,
-      `They are ambush predators, sucking fish and insects into their mouths with a quick gulp.`,
-      `They can live for over 50 years.`,
-      `The Giant Japanese Salamander is considered a natural monument in Japan.`,
-      `They secrete a sticky, milky, foul-smelling slime when handled.`,
-    ]
-  {
-
-    name: 'Honduran White Bat',
-    facts: [
-      `The Honduran White Bat is one of the smallest bats, known for its pure white fur and yellow ears and nose.`,
-      `They live in colonies of up to 15 individuals, roosting inside large Heliconia leaves.`,
-      `They chew the central rib of the leaf until it folds over, creating a tent to protect them from rain and predators.`,
-      `When a predator approaches, the tent shakes, alerting the bats to escape.`,
-      `They are herbivores, feeding almost exclusively on fruit, particularly figs.`,
-      `They are found in the rainforests of Honduras, Nicaragua, Costa Rica, and Panama.`,
-      `Their wings are black, contrasting with their white fur.`,
-      `These bats are highly sensitive to sunlight, which is why they rely on their leaf tents during the day.`,
-      `They are considered near threatened due to habitat loss.`,
-      `They are very small, weighing only about half an ounce.`,
-    ]
-  {
-
-    name: 'Liger',
-    facts: [
-      `A Liger is the hybrid offspring of a male lion and a female tiger (Tigress).`,
-      `It is the largest known cat in the world, often growing larger than both parents.`,
-      `Ligars often weigh over 900 pounds and can be more than 11 feet long.`,
-      `They inherit characteristics from both parents, such as the lion's social behavior and the tiger's stripes (faint).`,
-      `Ligars have a higher risk of developing health issues compared to purebred lions or tigers.`,
-      `They possess incredible strength, surpassing both lions and tigers.`,
-      `Male Ligers typically have a less developed mane than a purebred lion.`,
-      `Ligars only exist in captivity, as lions and tigers naturally live on different continents (Africa and Asia).`,
-      `They can swim, a trait inherited from the tiger.`,
-      `They often reach maturity later than their parents.`,
-    ]
-  {
-
-    name: 'Siberian Sturgeon',
-    facts: [
-      `The Siberian Sturgeon is a large freshwater fish native to the rivers of Siberia.`,
-      `It is one of the oldest fish species, having remained largely unchanged for millions of years.`,
-      `Like all sturgeons, it has bony plates (scutes) instead of scales.`,
-      `It can grow up to 7 feet long and weigh over 400 pounds.`,
-      `They are famous for producing high-quality caviar.`,
-      `They are bottom feeders, using their sensitive barbels (whiskers) to detect food in the riverbed.`,
-      `Siberian Sturgeons are highly migratory, often traveling vast distances upriver to spawn.`,
-      `They are omnivores, eating invertebrates, small fish, and plants.`,
-      `They are long-lived, often reaching 60 years or more.`,
-      `Due to overfishing for caviar, they are classified as endangered.`,
-    ]
-  {
-
-    name: 'Fossa',
-    facts: [
-      `The Fossa is the largest carnivore on the island of Madagascar, resembling a mix between a cat, a dog, and a mongoose.`,
-      `It is the only predator capable of hunting and climbing trees to catch all types of lemurs.`,
-      `It has retractable claws and flexible ankles, allowing it to climb up and down trees headfirst.`,
-      `The Fossa is endemic to Madagascar.`,
-      `It is a solitary, nocturnal hunter.`,
-      `The female Fossa undergoes a temporary, startling physical change during adolescence, developing male-like genitalia (a process called transient masculinization).`,
-      `They communicate using loud, deep vocalizations during mating season.`,
-      `Fossas are excellent swimmers.`,
-      `They have a long tail, almost the same length as their body, which aids in balance while climbing.`,
-      `They are listed as vulnerable due to habitat loss.`,
-    ]
-  {
-
-    name: 'Warthog',
-    facts: [
-      `Warthogs are known for their large, wart-like protrusions on their faces, which are protective pads used when fighting.`,
-      `They enter their burrows backwards, allowing their tusks and head to guard the entrance.`,
-      `They are omnivores, mainly feeding on roots, bulbs, and grasses, which they dig up using their snout and tusks.`,
-      `Warthogs often kneel on their front knees to graze, leading to calloused pads on their legs.`,
-      `They have long, curved tusks used for defense and digging.`,
-      `Warthogs are fast runners, reaching speeds up to 30 mph.`,
-      `They are diurnal (active during the day).`,
-      `When running, their thin tails stand straight up with a small tuft of hair on the end, like a flag.`,
-      `They are found in grasslands and savannas of Sub-Saharan Africa.`,
-      `They love to wallow in mud to keep cool and protect their skin from insects.`,
-    ]
-  {
-
-    name: 'Japanese Spider Crab',
-    facts: [
-      `The Japanese Spider Crab is the largest arthropod in the world, with a leg span that can reach up to 12 feet.`,
-      `It can weigh up to 42 pounds.`,
-      `It lives in the deep waters around Japan, often at depths of 160 to 1,300 feet.`,
-      `Their life span is estimated to be up to 100 years, making them one of the longest-living crabs.`,
-      `They are scavengers, feeding on dead animals and shellfish.`,
-      `The crabs are known for their camouflage, attaching anemones and sponges to their shells.`,
-      `They have a fragile exoskeleton and can easily lose limbs, which they can regenerate over time.`,
-      `They are a delicacy in Japan, but populations are declining due to fishing.`,
-      `The crab's body is orange, and its legs are usually white or orange with white tips.`,
-      `Their eyes are located on the front of their body, and they have excellent vision.`,
-    ]
-  {
-
-    name: 'Harbor Seal',
-    facts: [
-      `The Harbor Seal is one of the most common seal species and is found in temperate and Arctic coastal waters.`,
-      `They are often seen "bottling," floating upright in the water like a bottle, with only their head visible.`,
-      `They are known for their V-shaped nostrils.`,
-      `They can stay underwater for up to 30 minutes.`,
-      `Harbor Seals are carnivores, eating fish, squid, and crustaceans.`,
-      `They are generally solitary but gather in large groups at haul-out sites (land rests).`,
-      `They are shy and easily scared away by human activity.`,
-      `The pups can swim immediately after birth.`,
-      `Their coat color varies widely from black to brown to grayish-white, often covered in spots.`,
-      `They use their whiskers to detect vibrations in the water from swimming fish.`,
-    ]
-  {
-
-    name: 'Viperfish',
-    facts: [
-      `The Viperfish lives in the deep ocean, often below 1,000 meters, in complete darkness.`,
-      `It has extremely long, needle-sharp teeth that are so big, they don't fit inside its mouth and curve back over its head.`,
-      `Its large mouth can unhinge to swallow prey larger than itself.`,
-      `Viperfish use bioluminescence (producing light) to attract prey.`,
-      `They have a long dorsal fin spine with a light-producing organ (photophore) at the tip, acting as a lure.`,
-      `They are fragile and rarely survive being brought up to the surface.`,
-      `They are relatively small, growing to about 12 inches long.`,
-      `Viperfish often swim vertically at night and retreat to deeper water during the day.`,
-      `Their skeleton is poorly calcified, making them delicate.`,
-      `They are ambush predators, hanging motionless in the water, waiting for prey to come near their lure.`,
-    ]
-  {
-
-    name: 'Aardvark',
-    facts: [
-      `The aardvark means "earth pig" in Afrikaans.`,
-      `It is a nocturnal burrowing animal native to Africa.`,
-      `It feeds almost exclusively on ants and termites, earning it the name "African antbear."`,
-      `It can dig quickly to escape predators or find food.`,
-      `It has a very long, sticky tongue.`,
-      `The aardvark has powerful claws and thick skin that protect it from ant and termite bites.`,
-      `It is the only living member of the Tubulidentata order.`,
-      `Female aardvarks usually give birth to a single cub per year.`,
-      `It can seal its nostrils with hair to keep out dust and insects while digging.`,
-      `Aardvarks are excellent swimmers and will occasionally use rivers.`,
-    ]
-  {
-
-    name: 'Quetzal',
-    facts: [
-      `The Resplendent Quetzal is known for the male's vibrant green plumage and long tail feathers.`,
-      `It is the national bird of Guatemala, and its image is on the country's flag and currency.`,
-      `The word "quetzal" comes from an Aztec word meaning "large, brilliant tail feather."`,
-      `They live in cloud forests of Central America.`,
-      `They are frugivores, meaning they eat mostly fruit.`,
-      `The male's long tail feathers can grow up to 3 feet long.`,
-      `They build nests in holes carved out of rotting trees.`,
-      `They are unable to walk, instead hopping on branches.`,
-      `Due to their vibrant plumage, they were sacred to the ancient Maya and Aztec peoples.`,
-      `The quetzal's foot has a unique configuration of two toes pointing forward and two pointing backward.`,
-    ]
-  {
-
-    name: 'Pygmy Marmoset',
-    facts: [
-      `The pygmy marmoset is the smallest monkey in the world.`,
-      `It is small enough to fit in a human hand, weighing just over 100 grams.`,
-      `It lives in the rainforest canopies of the western Amazon basin.`,
-      `It feeds on tree sap and gum, gouging holes in bark with specialized teeth.`,
-      `They typically live in small family groups.`,
-      `They communicate through high-pitched calls and scent markings.`,
-      `Pygmy marmosets are typically born as non-identical twins.`,
-      `They are known for their "tree-gouging" behavior, creating holes to reach sap.`,
-      `The entire family group helps care for the young, often carrying them on their backs.`,
-      `Despite their size, they can leap over 16 feet between trees.`,
-    ]
-  {
-
-    name: 'Gaur',
-    facts: [
-      `The Gaur, or Indian bison, is the largest species of wild cattle.`,
-      `It can weigh up to 3,300 pounds and stand 7 feet tall at the shoulder.`,
-      `It has a distinctive muscular ridge on its back.`,
-      `Gaur are found in forests across South and Southeast Asia.`,
-      `They communicate with clear, distinct whistling snorts.`,
-      `The gaur lives in herds led by an old male.`,
-      `They primarily feed on grasses, herbs, and leaves.`,
-      `The gaur is mainly active during the day.`,
-      `Males often engage in fierce fights, locking horns to establish dominance.`,
-      `They are considered vulnerable due to poaching for meat and horns.`,
-    ]
-  {
-
-    name: 'Sperm Whale',
-    facts: [
-      `The Sperm Whale has the largest brain of any animal on Earth.`,
-      `It is the largest toothed predator, reaching 67 feet in length.`,
-      `It can dive over 3,280 feet deep in search of giant squid.`,
-      `It can hold its breath for over 90 minutes.`,
-      `It is named for the large amount of spermaceti oil in its head.`,
-      `They have a wrinkly, dark skin and a massive, square-shaped head.`,
-      `They spend about 90% of their diving time in the dark abyss.`,
-      `Spermaceti oil in their head is believed to aid in buoyancy control and echolocation.`,
-      `They communicate with complex sequences of clicks called "codas."`,
-      `Sperm whales were heavily hunted in the past for their oil and ambergris.`,
-    ]
-  {
-
-    name: 'Vampire Bat',
-    facts: [
-      `Vampire bats are the only mammals that feed entirely on blood (hematophagy).`,
-      `They use heat sensors in their nose to find warm spots on their prey to bite.`,
-      `Their saliva contains an anticoagulant, preventing the blood from clotting while they drink.`,
-      `They do not suck; they lap up the blood.`,
-      `They are found in Central and South America.`,
-      `They are highly social and practice "reciprocal altruism," sharing blood meals with sick or hungry roost mates.`,
-      `Vampire bats use their specialized front teeth to shave hair and make a small, painless incision.`,
-      `They are excellent runners and can leap from the ground after feeding.`,
-      `They transmit diseases like rabies, making them dangerous to livestock.`,
-      `They are the only mammals with an anticoagulant in their saliva.`,
-    ]
-  {
-
-    name: 'Blue Whale',
-    facts: [
-      `The Blue Whale is the largest animal to ever live on Earth.`,
-      `Its tongue alone can weigh as much as an elephant.`,
-      `Its heart is the size of a small car.`,
-      `It feeds almost exclusively on tiny shrimp-like creatures called krill.`,
-      `Its calls are the loudest sounds made by any animal.`,
-      `A blue whale's blowhole produces a column of water up to 30 feet high.`,
-      `They are found in all of the world's oceans except the Arctic.`,
-      `They are baleen whales, filtering krill from the water using plates instead of teeth.`,
-      `A baby blue whale (calf) drinks over 100 gallons of milk per day.`,
-      `They can reach speeds of over 20 mph in short bursts.`,
-    ]
-  {
-
-    name: 'Giant Otter',
-    facts: [
-      `The Giant Otter is the longest member of the weasel family, reaching up to 6 feet long.`,
-      `It is highly social and lives in large, cohesive family groups.`,
-      `They are excellent hunters, often working together to catch fish and caiman.`,
-      `They are also known as the "river wolf."`,
-      `They are found in the Amazon basin and are critically endangered.`,
-      `They have webbed feet and water-repellent fur.`,
-      `They create dens called "holts" on riverbanks.`,
-      `They communicate with a complex vocabulary of ten different calls.`,
-      `Their long, thick tail is flattened and serves as a powerful rudder.`,
-      `They are critically endangered due to habitat destruction and pollution.`,
-    ]
-  {
-
-    name: 'Capybara',
-    facts: [
-      `The Capybara is the world's largest rodent.`,
-      `It is semi-aquatic, spending much of its time in water to hide from predators.`,
-      `It is known for its docile nature and often lets other animals rest on its back.`,
-      `They are native to South America.`,
-      `They eat their own droppings in the morning to get the maximum nutrients.`,
-      `They have slightly webbed feet, aiding their semi-aquatic lifestyle.`,
-      `Capybaras often sleep in the water with only their nostrils exposed.`,
-      `They are very vocal, communicating with barks, whistles, and purrs.`,
-      `They are native to the savannas and dense forests of South America.`,
-      `The capybara's teeth grow constantly to compensate for the constant wear from grazing.`,
-    ]
-  {
-
-    name: 'Tardigrade',
-    facts: [
-      `Tardigrades are microscopic animals, also known as water bears or moss piglets.`,
-      `They are virtually indestructible, able to survive extreme cold, heat, radiation, and even the vacuum of space.`,
-      `When stressed, they enter a state called "tun," dehydrating and slowing their metabolism to almost zero.`,
-      `They can go without food or water for over 30 years.`,
-      `They have eight legs with claws.`,
-      `They are primarily found in moss and lichen, earning them the nickname "moss piglets."`,
-      `Tardigrades have a stylet (a sharp mouthpart) used to pierce plant cells or small prey.`,
-      `They are capable of cryptobiosis, surviving complete dehydration.`,
-      `They have a clear body, making some internal organs visible under a microscope.`,
-      `Tardigrades can survive temperatures from near absolute zero to over 300°F (150°C).`,
-    ]
-  {
-
-    name: 'Manatee',
-    facts: [
-      `Manatees are large, slow-moving marine mammals, often called "sea cows."`,
-      `They are herbivores, grazing on sea grass and freshwater vegetation.`,
-      `They have prehensile lips, using them like fingers to grasp plants.`,
-      `They must regularly surface to breathe, usually every few minutes.`,
-      `They communicate with squeaks and chirps.`,
-      `They are sometimes called "sirenians" and are thought to be the basis for mermaid legends.`,
-      `Manatees have thick, wrinkled gray or brown skin with fine hair.`,
-      `They spend up to eight hours a day grazing on aquatic plants.`,
-      `They have fingernails on their paddle-like flippers.`,
-      `Manatees are non-territorial and solitary, except for mothers with their calves.`,
-    ]
-  {
-
-    name: 'Marine Iguana',
-    facts: [
-      `Marine Iguanas are the only lizards in the world that forage in the sea.`,
-      `They live exclusively on the Galapagos Islands.`,
-      `They are cold-blooded and must bask in the sun to raise their body temperature after diving into the cold water.`,
-      `They sneeze out excess salt they ingest from seawater.`,
-      `They are herbivores, feeding on marine algae.`,
-      `They are the only lizard that swims underwater, earning them the nickname "Marine Iguanas."`,
-      `They dive for marine algae, their primary food source.`,
-      `After swimming in the cold ocean, they bask in the sun to raise their body temperature.`,
-      `They excrete excess salt from their diet by "sneezing."`,
-      `Males turn bright colors during the breeding season to attract females.`,
-    ]
-  {
-
-    name: 'Anglerfish',
-    facts: [
-      `Anglerfish are famous for the bioluminescent "fishing rod" (esca) attached to their head.`,
-      `They live in the deep, dark abyss of the ocean.`,
-      `The light from the esca is used to lure unsuspecting prey toward their huge jaws.`,
-      `Males are tiny and fuse themselves permanently to the female to fertilize her.`,
-      `They can expand their stomachs to swallow prey larger than themselves.`,
-      `The bioluminescent lure is called the *esca*.`,
-      `The process of the male fusing to the female is called sexual parasitism.`,
-      `The anglerfish's black skin helps it absorb light, making it invisible in the dark deep sea.`,
-      `The female can grow much larger than the tiny male.`,
-      `They have flexible bones and thin, stretchable skin to accommodate large meals.`,
-    ]
-  {
-
-    name: 'Flying Fish',
-    facts: [
-      `Flying fish use their enlarged pectoral fins like wings to glide out of the water.`,
-      `They launch themselves out of the water to escape predators, reaching speeds of up to 43 mph.`,
-      `Their glides can last for up to 45 seconds.`,
-      `They are found in warm tropical and subtropical waters.`,
-      `They typically feed on plankton.`,
-      `They use their caudal (tail) fin to propel themselves out of the water.`,
-      `They can reach speeds of up to 43 mph during their escape launches.`,
-      `They typically fly/glide to escape aquatic predators like dolphins.`,
-      `They are found in warm tropical and subtropical waters.`,
-      `They have a long lower lobe on their tail fin to generate thrust while skimming the water surface.`,
-    ]
-  {
-
-    name: 'Quetzalcoatlus',
-    facts: [
-      `Quetzalcoatlus was the largest known flying animal of all time (a pterosaur).`,
-      `Its wingspan was comparable to a small aircraft, up to 36 feet.`,
-      `It stood as tall as a giraffe when on the ground.`,
-      `It was a predator, likely eating fish and small vertebrates.`,
-      `It lived in North America during the late Cretaceous period.`,
-      `The name means "feathered serpent god," after an Aztec deity.`,
-      `It was a member of the Azhdarchidae family of pterosaurs.`,
-      `It walked on all fours when on the ground.`,
-      `Fossil evidence suggests it was a generalist predator, eating whatever it could catch.`,
-      `It lived during the Late Cretaceous period in North America.`,
-    ]
-  {
-
-    name: 'Chinchilla',
-    facts: [
-      `The Chinchilla has the densest fur of any land animal, with up to 60 hairs growing from a single follicle.`,
-      `This dense fur helps them survive in the cold, arid climate of the Andes Mountains.`,
-      `They never bathe in water; they clean their fur using dust baths.`,
-      `They are nocturnal rodents.`,
-      `They can leap up to 6 feet high.`,
-      `They are native to the Andes Mountains in South America.`,
-      `They must take dust baths to keep their fur clean and prevent fungal infections.`,
-      `They are crepuscular, meaning they are most active at dawn and dusk.`,
-      `Their diet mainly consists of grasses, leaves, and seeds.`,
-      `Chinchillas can chew through almost anything to escape predators or captivity.`,
-    ]
-  {
-
-    name: 'Muskox',
-    facts: [
-      `The Muskox is an Arctic mammal known for its long, shaggy coat and large, curved horns.`,
-      `Its wool, called Qiviut, is eight times warmer than sheep's wool and softer than cashmere.`,
-      `When threatened, a herd forms a defensive circle with the calves in the center.`,
-      `They are herbivores, feeding on grasses, willow, and lichen in the tundra.`,
-      `They have a thick layer of fat beneath their hide for insulation in extreme cold.`,
-      `The Muskox lives in the Arctic regions of North America and Greenland.`,
-      `They can weigh up to 900 pounds.`,
-      `Their name comes from the musky odor males produce during the mating season.`,
-      `They have a two-toed hoof, which helps them travel over rocky and icy terrain.`,
-      `Muskoxen can live for up to 20 years.`,
-    ]
-  {
-
-    name: 'Pufferfish',
-    facts: [
-      `Pufferfish are famous for their ability to inflate their elastic stomachs rapidly with water or air.`,
-      `This inflation makes them up to three times their normal size, deterring predators.`,
-      `Most pufferfish contain Tetrodotoxin, a substance that is up to 1,200 times more potent than cyanide.`,
-      `There is no known antidote for Tetrodotoxin.`,
-      `They have four large teeth fused into a beak-like structure, used to crush shellfish.`,
-      `They lack scales and are covered in thick, rough, often spiny skin.`,
-      `Their eyes can move independently, giving them a wide field of vision.`,
-      `Despite their toxicity, the meat of some species (Fugu) is considered a delicacy in Japan.`,
-      `Pufferfish are found in tropical and subtropical ocean waters worldwide.`,
-      `They communicate using grinding sounds produced by rubbing their teeth together.`,
-    ]
-  {
-
-    name: 'Starfish',
-    facts: [
-      `Starfish, or sea stars, are not fish; they are echinoderms, related to sea urchins.`,
-      `They have no brain or blood, using seawater pumped through their bodies to operate their nervous system.`,
-      `Most species have five arms, but some can have up to 40 arms.`,
-      `They can regenerate lost limbs, and sometimes an entire new starfish can grow from a single severed arm.`,
-      `Starfish eat by pushing their stomach out through their mouth and into the prey (often a clam).`,
-      `They use hundreds of tiny tube feet on the underside of their arms for movement.`,
-      `They are found in all of the world's oceans, from tropical habitats to the deep sea.`,
-      `Their eyes are tiny, light-sensing spots located at the tip of each arm.`,
-      `They have an armored skeleton made of calcium carbonate plates beneath the skin.`,
-      `A group of starfish is called a "constellation."`,
-    ]
-  {
-
-    name: 'Jerboa',
-    facts: [
-      `Jerboas are tiny desert rodents famous for their long hind legs and ability to jump great distances.`,
-      `They resemble a cross between a mouse and a miniature kangaroo.`,
-      `A jerboa can leap a distance that is up to 10 times its own body length.`,
-      `They are strictly nocturnal, spending the day in cool underground burrows.`,
-      `They can go their entire lives without drinking water, getting moisture from their food.`,
-      `Their diet consists of seeds, roots, and insects.`,
-      `They have a long tail with a tuft of black and white hair at the tip, used for balance while jumping.`,
-      `Their large ears help them hear predators and radiate body heat.`,
-      `They are found in the hot deserts of North Africa and Asia.`,
-      `Jerboas communicate using high-pitched calls and foot drumming.`,
-    ]
-  {
-
-    name: 'African Painted Dog',
-    facts: [
-      `African Painted Dogs are one of the world's most endangered mammals.`,
-      `They are known for their striking coat of black, brown, white, and yellow patches.`,
-      `They are highly social and live in packs led by a monogamous breeding pair.`,
-      `They hunt cooperatively, using a relay system to chase and tire out prey.`,
-      `They have an incredible success rate when hunting, often over 80%.`,
-      `They communicate using unique vocalizations, including short, sharp "hoots."`,
-      `They have large, rounded ears that help radiate heat.`,
-      `The dogs will care for old, sick, or injured members of the pack.`,
-      `They are found primarily in the sparse woodlands and grasslands of sub-Saharan Africa.`,
-      `They are also known as Cape hunting dogs or African wild dogs.`,
-    ]
-  {
-
-    name: 'Cassowary',
-    facts: [
-      `The Cassowary is often cited as the world's most dangerous bird due to its powerful legs and sharp claws.`,
-      `It is the third-tallest and second-heaviest bird in the world, after the ostrich and emu.`,
-      `It has a large, helmet-like structure on its head called a casque, which protects it when running through dense forest.`,
-      `Its legs are incredibly strong, allowing it to run up to 30 mph and jump 7 feet high.`,
-      `It has a dagger-like claw up to 4 inches long on its inner toe.`,
-      `Cassowaries are solitary birds native to the rainforests of New Guinea and Australia.`,
-      `The male incubates the eggs and raises the chicks alone.`,
-      `They swallow fruit whole, making them vital seed dispersers for forest plants.`,
-      `Their feathers look like black hair and hang loosely, allowing them to easily move through the jungle.`,
-      `They communicate using deep booming sounds that are too low for humans to easily hear.`,
-    ]
-  {
-
-    name: 'Komondor Dog',
-    facts: [
-      `The Komondor is a large, Hungarian livestock guardian dog famous for its long, corded white coat.`,
-      `Its coat, which resembles dreadlocks or a mop, serves as excellent camouflage among sheep.`,
-      `The coat protects the dog from the teeth and claws of predators like wolves and bears.`,
-      `The cords are naturally grown and should never be brushed.`,
-      `Komondors are known for their strong protective instincts and loyal but reserved temperament.`,
-      `They are a relatively ancient breed, dating back to at least the 16th century.`,
-      `The dog is powerful and agile despite its heavy coat.`,
-      `They were historically used to guard large flocks of sheep in the Hungarian plains.`,
-      `They can weigh over 100 pounds.`,
-      `A litter of Komondor pups can have up to 8 babies.`,
-    ]
-  {
-
-    name: 'Viper Boa',
-    facts: [
-      `The Viper Boa is a small, heavy-bodied snake known for its rough, spiny scales.`,
-      `Its scales are not smooth like most snakes, giving it a rough, almost pinecone-like texture.`,
-      `It is native to Indonesia, living in the rainforests of New Guinea and nearby islands.`,
-      `It is nocturnal and spends most of its time buried under leaf litter or loose soil.`,
-      `Its diet consists of small mammals, birds, and frogs.`,
-      `Despite its common name, it is a non-venomous boa and poses no threat to humans.`,
-      `It is a popular species in the exotic pet trade due to its unusual appearance.`,
-      `Like other boas, it gives birth to live young rather than laying eggs.`,
-      `The snake is relatively small, reaching about 2-3 feet in length.`,
-      `It uses a specialized tail to anchor itself when striking at prey.`,
-    ]
-  {
-
-    name: 'Pink Fairy Armadillo',
-    facts: [
-      `The Pink Fairy Armadillo is the smallest species of armadillo, rarely exceeding 5 inches in length.`,
-      `It is found only in the sandy plains and dry grasslands of central Argentina.`,
-      `It is the only armadillo with a dorsal shell almost completely separate from its body.`,
-      `The shell is pink due to visible blood vessels underneath, which helps regulate body temperature.`,
-      `It is an excellent swimmer in sand, "burrowing" into the ground in a matter of seconds.`,
-      `They are primarily nocturnal and solitary.`,
+      `They live in tide pools and shallow coral reefs in the ...(truncated 30481 characters)... primarily nocturnal and solitary.`,
       `Its diet consists mainly of ants, worms, and snails.`,
       `It has a small, spade-shaped tail used as a third prop for balance.`,
       `Due to its vulnerability and elusive nature, very little is known about its wild population.`,
-      `They use their large front claws to dig tunnels near ant colonies.`,
+      `They use their large front claws to dig tunnels near ant colonies.`
     ]
+  },
   {
-
     name: 'Goliath Bird-Eater',
     facts: [
       `The Goliath Bird-Eater is the largest spider by mass, weighing up to 6 ounces.`,
@@ -1335,10 +809,10 @@ window.ANIMAL_DATABASE = [
       `Its venom is generally harmless to humans, causing only mild pain.`,
       `Females can live for up to 25 years, while males live only 3 to 6 years.`,
       `It digs and lines its burrows with silk.`,
-      `The spider's legs can span up to 12 inches across.`,
+      `The spider's legs can span up to 12 inches across.`
     ]
+  },
   {
-
     name: 'Glass Lizard',
     facts: [
       `The Glass Lizard is a legless lizard often mistaken for a snake.`,
@@ -1350,10 +824,10 @@ window.ANIMAL_DATABASE = [
       `They can grow up to 4 feet long, but most of that length is tail.`,
       `They move by wriggling and slithering like a snake.`,
       `Their diet includes insects, spiders, and small rodents.`,
-      `They burrow into the soil to escape cold weather.`,
+      `They burrow into the soil to escape cold weather.`
     ]
+  },
   {
-
     name: 'Giant Weta',
     facts: [
       `The Giant Weta is one of the world's heaviest insects, found only in New Zealand.`,
@@ -1365,10 +839,10 @@ window.ANIMAL_DATABASE = [
       `The female has a long ovipositor, a tube used to lay eggs deep into the soil.`,
       `The word "weta" comes from the Maori language and means "god of ugly things."`,
       `They live primarily in tree holes or under loose bark.`,
-      `Some species are critically endangered due to the introduction of non-native mammals.`,
+      `Some species are critically endangered due to the introduction of non-native mammals.`
     ]
+  },
   {
-
     name: 'Kiwi Bird',
     facts: [
       `The Kiwi is a nocturnal, flightless bird endemic to New Zealand.`,
@@ -1380,10 +854,10 @@ window.ANIMAL_DATABASE = [
       `They have hair-like feathers and lack a sternum (keel), which supports flight muscles.`,
       `They use their powerful legs and claws to defend themselves and dig for food.`,
       `The kiwi bird is shy and rarely seen by humans in the wild.`,
-      `They are considered vulnerable due to predation by introduced mammals like stoats.`,
+      `They are considered vulnerable due to predation by introduced mammals like stoats.`
     ]
+  },
   {
-
     name: 'Thorny Devil',
     facts: [
       `The Thorny Devil is a small lizard native to the arid and desert regions of Australia.`,
@@ -1395,10 +869,10 @@ window.ANIMAL_DATABASE = [
       `Its diet consists almost entirely of black ants, eating thousands in a single day.`,
       `Its coloration changes based on temperature, ranging from yellow to dark brown.`,
       `It is a solitary animal that spends its days foraging.`,
-      `They can inflate their bodies with air, making their spines stand out even more.`,
+      `They can inflate their bodies with air, making their spines stand out even more.`
     ]
+  },
   {
-
     name: 'Leafcutter Ant',
     facts: [
       `Leafcutter ants are tropical ants famous for carrying pieces of leaves over their heads.`,
@@ -1410,10 +884,10 @@ window.ANIMAL_DATABASE = [
       `The workers' mandibles (jaws) are sharp enough to cut through tough leaves like scissors.`,
       `They are second only to humans in the volume of plant material they harvest in the Neotropics.`,
       `Their fungal garden is carefully tended and is the only food source for the entire colony.`,
-      `The queen can live for up to 15 years.`,
+      `The queen can live for up to 15 years.`
     ]
+  },
   {
-
     name: 'Gibbon',
     facts: [
       `Gibbons are small apes known as the "lesser apes."`,
@@ -1425,10 +899,10 @@ window.ANIMAL_DATABASE = [
       `Gibbons are tailless and highly arboreal (tree-dwelling).`,
       `Their diet consists mainly of fruit, leaves, and flowers.`,
       `They are found in the tropical and subtropical rainforests of Southeast Asia.`,
-      `Gibbons are critically endangered due to habitat loss and the illegal pet trade.`,
+      `Gibbons are critically endangered due to habitat loss and the illegal pet trade.`
     ]
+  },
   {
-
     name: 'Tapir',
     facts: [
       `Tapirs are large, herbivorous mammals with a short, flexible snout (proboscis).`,
@@ -1440,10 +914,10 @@ window.ANIMAL_DATABASE = [
       `The tapir is related to horses and rhinos.`,
       `Their vision is poor, so they rely heavily on their sense of smell and hearing.`,
       `Tapirs are vital seed dispersers, spreading the seeds of the fruit they eat.`,
-      `All species are endangered or vulnerable due to habitat loss.`,
+      `All species are endangered or vulnerable due to habitat loss.`
     ]
+  },
   {
-
     name: 'Tawny Frogmouth',
     facts: [
       `The Tawny Frogmouth is often mistaken for an owl, but it is actually related to the Potoo bird and nightjars.`,
@@ -1455,10 +929,10 @@ window.ANIMAL_DATABASE = [
       `Their feathers are soft and mottled grey and brown.`,
       `They mate for life and often perch together on the same branch.`,
       `They do not have strong talons like owls and rarely hunt live prey like mice.`,
-      `The young are often born with fluffy white feathers, making them look like soft cotton balls.`,
+      `The young are often born with fluffy white feathers, making them look like soft cotton balls.`
     ]
+  },
   {
-
     name: 'Wanderer Butterfly',
     facts: [
       `The Wanderer (or Milkweed Butterfly) is native to Australia, North Africa, and the Middle East.`,
@@ -1470,10 +944,10 @@ window.ANIMAL_DATABASE = [
       `The butterfly is diurnal, being active during the day.`,
       `It is often confused with the Monarch butterfly due to their similar appearance.`,
       `The female lays a single egg on the underside of a milkweed leaf.`,
-      `The entire life cycle, from egg to adult butterfly, takes about a month.`,
+      `The entire life cycle, from egg to adult butterfly, takes about a month.`
     ]
+  },
   {
-
     name: 'Cuttlefish',
     facts: [
       `Cuttlefish are marine mollusks, closely related to octopuses and squid.`,
@@ -1485,10 +959,10 @@ window.ANIMAL_DATABASE = [
       `They are highly intelligent and possess the largest brain-to-body size ratio of any invertebrate.`,
       `They have a pair of specialized tentacles they shoot out to grab prey.`,
       `They can also create mesmerizing, moving color patterns to hypnotize their prey.`,
-      `Their internal shell, called the cuttlebone, is used for buoyancy control.`,
+      `Their internal shell, called the cuttlebone, is used for buoyancy control.`
     ]
+  },
   {
-
     name: 'Rhinoceros',
     facts: [
       `There are five species of rhinoceros: Black, White, Indian, Javan, and Sumatran.`,
@@ -1500,10 +974,10 @@ window.ANIMAL_DATABASE = [
       `The Indian rhino has skin folds that look like armor plating.`,
       `All five species are endangered due to poaching for their horns.`,
       `A rhino can run surprisingly fast, reaching speeds of up to 35 mph.`,
-      `They often wallow in mud or dust to cool down and protect their skin from insects and the sun.`,
+      `They often wallow in mud or dust to cool down and protect their skin from insects and the sun.`
     ]
+  },
   {
-
     name: 'African Bush Elephant',
     facts: [
       `The African Bush Elephant is the largest land animal on Earth.`,
@@ -1515,10 +989,10 @@ window.ANIMAL_DATABASE = [
       `A group of elephants is called a "herd" or a "memory."`,
       `They communicate using rumbles, trumpet calls, and body language like ear flapping.`,
       `Their ivory tusks are actually elongated incisor teeth.`,
-      `Elephants are known to mourn their dead, visiting graves and touching the bones of deceased family members.`,
+      `Elephants are known to mourn their dead, visiting graves and touching the bones of deceased family members.`
     ]
+  },
   {
-
     name: 'Bison',
     facts: [
       `The American Bison is the largest mammal in North America.`,
@@ -1530,10 +1004,10 @@ window.ANIMAL_DATABASE = [
       `The breeding season, called the "rut," sees massive males compete using violent head-on charges.`,
       `Bison are herbivores, feeding almost exclusively on grasses and sedges.`,
       `They have a large, distinctive hump over their shoulders, composed of muscle for supporting their massive head.`,
-      `Bison were integral to the lives and culture of many Native American tribes.`,
+      `Bison were integral to the lives and culture of many Native American tribes.`
     ]
+  },
   {
-
     name: 'Grizzly Bear',
     facts: [
       `The Grizzly Bear (a subspecies of Brown Bear) is known for the prominent hump of muscle on its shoulders.`,
@@ -1545,10 +1019,10 @@ window.ANIMAL_DATABASE = [
       `They communicate through vocalizations like growls, snorts, and huffing.`,
       `They dig dens on high slopes or under large tree roots for winter hibernation.`,
       `Their name "grizzly" comes from the gray or "grizzled" tips of their guard hairs.`,
-      `Grizzlies possess an acute sense of smell, aiding them in locating food and mates.`,
+      `Grizzlies possess an acute sense of smell, aiding them in locating food and mates.`
     ]
+  },
   {
-
     name: 'Humpback Whale',
     facts: [
       `Humpback whales are famous for their acrobatic breaches, often leaping entirely out of the water.`,
@@ -1560,10 +1034,10 @@ window.ANIMAL_DATABASE = [
       `These songs are thought to be used in mating rituals.`,
       `They undertake one of the longest migrations of any mammal, traveling up to 16,000 miles a year.`,
       `They often gather in groups called "pods."`,
-      `The bumps on their head and fins are hair follicles, or tubercles.`,
+      `The bumps on their head and fins are hair follicles, or tubercles.`
     ]
+  },
   {
-
     name: 'Cheetah',
     facts: [
       `The Cheetah is the fastest land animal, capable of reaching speeds of 70 mph in short bursts.`,
@@ -1575,10 +1049,10 @@ window.ANIMAL_DATABASE = [
       `Cheetahs are diurnal, preferring to hunt during the day to avoid larger, nocturnal predators.`,
       `They are the only big cat that hunts purely by chasing down its prey.`,
       `They often prefer open grasslands and savanna habitats in Africa and a tiny area of Iran.`,
-      `After a successful hunt, a cheetah needs up to 30 minutes to recover its breath before eating.`,
+      `After a successful hunt, a cheetah needs up to 30 minutes to recover its breath before eating.`
     ]
+  },
   {
-
     name: 'Orangutan',
     facts: [
       `The Orangutan is the largest arboreal (tree-dwelling) animal in the world.`,
@@ -1590,10 +1064,10 @@ window.ANIMAL_DATABASE = [
       `They build elaborate nests of bent branches and leaves high in trees to sleep in every night.`,
       `Their diet is primarily fruit, making them crucial seed dispersers for the rainforest.`,
       `They are mostly solitary, unlike other great apes.`,
-      `A mother orangutan has one of the longest juvenile dependency periods of any animal, caring for her young for 6 to 7 years.`,
+      `A mother orangutan has one of the longest juvenile dependency periods of any animal, caring for her young for 6 to 7 years.`
     ]
+  },
   {
-
     name: 'Snow Leopard',
     facts: [
       `Snow Leopards are native to the high, rugged mountain ranges of Central and South Asia.`,
@@ -1605,10 +1079,10 @@ window.ANIMAL_DATABASE = [
       `Their large, wide paws act like snowshoes, distributing their weight evenly for travel over snow.`,
       `Due to their elusive nature, they are often called the "ghost of the mountains."`,
       `They are considered vulnerable, with fewer than 10,000 individuals left in the wild.`,
-      `They have a massive nasal cavity to help warm the thin, cold air they breathe.`,
+      `They have a massive nasal cavity to help warm the thin, cold air they breathe.`
     ]
+  },
   {
-
     name: 'Blue Jay',
     facts: [
       `The Blue Jay is known for its vibrant blue, black, and white plumage, found across eastern North America.`,
@@ -1620,10 +1094,10 @@ window.ANIMAL_DATABASE = [
       `Blue Jays often suffer from habitat loss due to development in their woodland and suburban environments.`,
       `Their crest raises and lowers to communicate aggression or excitement.`,
       `They are known to be monogamous, forming strong pair bonds that last a lifetime.`,
-      `They transport nuts and acorns in a gullet pouch in their throat, carrying multiple at once.`,
+      `They transport nuts and acorns in a gullet pouch in their throat, carrying multiple at once.`
     ]
+  },
   {
-
     name: 'Greenland Shark',
     facts: [
       `The Greenland Shark has the longest lifespan of any known vertebrate, estimated to live over 400 years.`,
@@ -1635,10 +1109,10 @@ window.ANIMAL_DATABASE = [
       `Despite being slow, they are effective predators, likely ambushing sleeping seals.`,
       `Their eyes have a high concentration of the hormone adrenaline, helping them hunt in the dark.`,
       `They take about 150 years to reach sexual maturity.`,
-      `Their diet includes fish, squid, seals, and even caribou that have fallen into the water.`,
+      `Their diet includes fish, squid, seals, and even caribou that have fallen into the water.`
     ]
+  },
   {
-
     name: 'Koala',
     facts: [
       `Koalas are marsupials endemic to Australia and are not bears.`,
@@ -1650,10 +1124,10 @@ window.ANIMAL_DATABASE = [
       `Before eating solid leaves, joeys consume a paste called "pap" made from their mother's feces.`,
       `Male koalas have a large, dark scent gland on their chest used to mark trees.`,
       `Koalas communicate with deep, bass bellows and cries.`,
-      `They are threatened by habitat loss, climate change, and disease (Chlamydia).`,
+      `They are threatened by habitat loss, climate change, and disease (Chlamydia).`
     ]
+  },
   {
-
     name: 'Beluga Whale',
     facts: [
       `Beluga whales are often called "canaries of the sea" because of their wide range of vocalizations.`,
@@ -1665,10 +1139,10 @@ window.ANIMAL_DATABASE = [
       `They lack a dorsal fin, which helps them swim safely under sea ice.`,
       `The beluga's mouth is very flexible, allowing for a variety of facial expressions.`,
       `Their skin is much thicker and tougher than other whale species.`,
-      `They are shallow divers, rarely going deeper than 3,000 feet.`,
+      `They are shallow divers, rarely going deeper than 3,000 feet.`
     ]
+  },
   {
-
     name: 'Golden Poison Frog',
     facts: [
       `The Golden Poison Frog is considered the most poisonous vertebrate on Earth.`,
@@ -1680,10 +1154,10 @@ window.ANIMAL_DATABASE = [
       `The indigenous Emberá people historically used the frog's poison to tip their hunting darts.`,
       `They are quite small, rarely growing larger than 2 inches.`,
       `In captivity, where they don't eat the toxic insects, they lose their toxicity.`,
-      `They are critically endangered due to habitat destruction and illegal collecting.`,
+      `They are critically endangered due to habitat destruction and illegal collecting.`
     ]
+  },
   {
-
     name: 'Opossum',
     facts: [
       `The Virginia Opossum is North America's only marsupial.`,
@@ -1695,10 +1169,10 @@ window.ANIMAL_DATABASE = [
       `They rarely contract rabies because their body temperature is too low for the virus to thrive.`,
       `They are excellent climbers and spend most of their time in trees.`,
       `They have an opposable hallux (thumb) on their hind feet for grasping.`,
-      `They are omnivores and eat almost anything, including insects, plants, and carrion.`,
+      `They are omnivores and eat almost anything, including insects, plants, and carrion.`
     ]
+  },
   {
-
     name: 'Sloth',
     facts: [
       `Sloths are famous for being the world's slowest mammals.`,
@@ -1710,10 +1184,10 @@ window.ANIMAL_DATABASE = [
       `Sloths usually descend from trees only once a week to defecate (poop).`,
       `They have three extra neck vertebrae, allowing them to turn their head 270 degrees.`,
       `Despite their slow land movement, they are surprisingly good swimmers.`,
-      `They have three toes on each foot (three-toed sloths) or two toes on their forelimbs (two-toed sloths).`,
+      `They have three toes on each foot (three-toed sloths) or two toes on their forelimbs (two-toed sloths).`
     ]
+  },
   {
-
     name: 'Sea Otter',
     facts: [
       `Sea otters are the heaviest members of the weasel family but the smallest marine mammals.`,
@@ -1725,10 +1199,10 @@ window.ANIMAL_DATABASE = [
       `They often carry their favorite rock (the "tool") in a small pouch of skin under their foreleg.`,
       `A group of resting sea otters is called a "raft."`,
       `They are found along the coasts of the northern Pacific Ocean.`,
-      `A baby otter (pup) is so buoyant its mother must hold it down to dive.`,
+      `A baby otter (pup) is so buoyant its mother must hold it down to dive.`
     ]
+  },
   {
-
     name: 'Secretary Bird',
     facts: [
       `The Secretary Bird is a large, mostly terrestrial bird of prey native to Africa.`,
@@ -1740,10 +1214,10 @@ window.ANIMAL_DATABASE = [
       `They are monogamous and mate for life.`,
       `When hunting, it uses its wings as a shield to protect against snake bites.`,
       `It is an agile flyer, despite preferring to walk.`,
-      `Its preferred habitat is the open grasslands and savannas of sub-Saharan Africa.`,
+      `Its preferred habitat is the open grasslands and savannas of sub-Saharan Africa.`
     ]
+  },
   {
-
     name: 'Capuchin Monkey',
     facts: [
       `Capuchin monkeys are considered the most intelligent New World monkeys.`,
@@ -1755,10 +1229,10 @@ window.ANIMAL_DATABASE = [
       `They sometimes use rocks to dig out small buried animals.`,
       `They are known to practice "social grooming" to maintain troop bonds.`,
       `They live in the tropical forests of Central and South America.`,
-      `They are known for their impressive learning capabilities and long-term memory.`,
+      `They are known for their impressive learning capabilities and long-term memory.`
     ]
+  },
   {
-
     name: 'Bumblebee Bat',
     facts: [
       `The Bumblebee Bat, or Kitti's Hog-Nosed Bat, is the world's smallest mammal.`,
@@ -1770,10 +1244,10 @@ window.ANIMAL_DATABASE = [
       `They roost in caves in groups of up to 100 individuals.`,
       `Its hog-like nose flap is used for directing the sounds it uses for echolocation.`,
       `It is considered a "relict species" due to its highly restricted geographical range.`,
-      `The bat's wingspan is roughly 6 inches wide.`,
+      `The bat's wingspan is roughly 6 inches wide.`
     ]
+  },
   {
-
     name: 'Armadillo',
     facts: [
       `Armadillos are famous for their tough, bony armor shell.`,
@@ -1785,10 +1259,10 @@ window.ANIMAL_DATABASE = [
       `They are primarily nocturnal.`,
       `Female nine-banded armadillos always give birth to identical quadruplets.`,
       `Armadillos have unusually low body temperatures compared to most mammals.`,
-      `They can hold their breath for up to six minutes to walk across the bottom of shallow streams.`,
+      `They can hold their breath for up to six minutes to walk across the bottom of shallow streams.`
     ]
+  },
   {
-
     name: 'King Cobra',
     facts: [
       `The King Cobra is the world's longest venomous snake, growing up to 18 feet long.`,
@@ -1800,10 +1274,10 @@ window.ANIMAL_DATABASE = [
       `They are found in forests from India through Southeast Asia.`,
       `They are not true cobras but belong to their own unique genus, *Ophiophagus*.`,
       `The female guards her nest aggressively until the eggs hatch.`,
-      `They have a relatively long lifespan, often living over 20 years.`,
+      `They have a relatively long lifespan, often living over 20 years.`
     ]
+  },
   {
-
     name: 'Wolverine',
     facts: [
       `The Wolverine is the largest and most ferocious member of the weasel family (Mustelidae).`,
@@ -1815,10 +1289,10 @@ window.ANIMAL_DATABASE = [
       `They use specialized scent glands to mark their food caches and dens.`,
       `They are primarily scavengers, often chasing bears and wolves away from their kills.`,
       `A wolverine can travel over 15 miles in a single day searching for food.`,
-      `Their name may come from the European dialect word for "shrew" or "ferret."`,
+      `Their name may come from the European dialect word for "shrew" or "ferret."`
     ]
+  },
   {
-
     name: 'Three-Banded Armadillo',
     facts: [
       `The Three-Banded Armadillo is the only species of armadillo that can roll completely into a protective ball.`,
@@ -1830,10 +1304,10 @@ window.ANIMAL_DATABASE = [
       `They live in the open grasslands and savannas of central South America.`,
       `Unlike the nine-banded armadillo, they rarely cross water.`,
       `When rolled up, they can remain tightly closed for up to an hour.`,
-      `They can hold their breath for up to six minutes to avoid inhaling dirt when digging.`,
+      `They can hold their breath for up to six minutes to avoid inhaling dirt when digging.`
     ]
+  },
   {
-
     name: 'Nine-Banded Armadillo',
     facts: [
       `The Nine-Banded Armadillo is the only armadillo species found commonly in the United States.`,
@@ -1845,144 +1319,520 @@ window.ANIMAL_DATABASE = [
       `Their shell is not flexible enough to roll into a complete ball for defense.`,
       `They are primarily nocturnal, hunting mostly at dusk and throughout the night.`,
       `They have poor vision but a highly developed sense of smell.`,
-      `They can swim by gulping air to inflate their stomachs, which increases buoyancy.`,
+      `They can swim by gulping air to inflate their stomachs, which increases buoyancy.`
     ]
+  },
   {
-
     name: 'White-Faced Saki Monkey',
     facts: [
-    `The White-Faced Saki Monkey is a New World monkey known for its long, shaggy hair, especially around the face.`,
-    `Males have a contrasting white or pale face against a black body, while females are mostly brownish-gray.`,
-    `They are highly agile, moving through the Amazonian rainforest canopy by leaping and running on all fours.`,
-    `They are specialized frugivores, eating mostly fruit, but are known to bite into hard, unripe fruits.`,
-    `They often strip the skin and pulp off fruit before consuming it.`,
-    `They are found in the rainforests of Brazil, French Guiana, Guyana, Suriname, and Venezuela.`,
-    `The saki monkey sleeps rolled up in a ball in the fork of a tree.`,
-    `They use their long, non-prehensile tail purely for balance while leaping.`,
-    `They are generally shy and difficult to spot in the wild.`,
-    `They have powerful jaws used to crush seeds and open nuts.`,
-  ]
+      `The White-Faced Saki Monkey is a New World monkey known for its long, shaggy hair, especially around the face.`,
+      `Males have a contrasting white or pale face against a black body, while females are mostly brownish-gray.`,
+      `They are highly agile, moving through the Amazonian rainforest canopy by leaping and running on all fours.`,
+      `They are specialized frugivores, eating mostly fruit, but are known to bite into hard, unripe fruits.`,
+      `They often strip the skin and pulp off fruit before consuming it.`,
+      `They are found in the rainforests of Brazil, French Guiana, Guyana, Suriname, and Venezuela.`,
+      `The saki monkey sleeps rolled up in a ball in the fork of a tree.`,
+      `They use their long, non-prehensile tail purely for balance while leaping.`,
+      `They are generally shy and difficult to spot in the wild.`,
+      `They have powerful jaws used to crush seeds and open nuts.`
+    ]
+  },
 {
-
+name: 'Megalodon',
+facts: [
+Megalodon was the largest shark that ever lived, growing up to 60 feet long.,
+Its bite force was powerful enough to crush a car.,
+The largest megalodon tooth discovered was about the length of a TV remote.,
+Megalodon went extinct about 2.6 million years ago.,
+It was an important apex predator in ancient oceans.,
+Megalodon teeth are the most commonly found fossils, with hundreds discovered.,
+Its jaws could span 2.7 by 3.4 meters wide.,
+Megalodon was three times larger than a great white shark.,
+It lived during the Miocene and Pliocene epochs.,
+Megalodon primarily hunted whales and other large marine animals.
+]
+},
+{
+name: 'Tasmanian Tiger',
+facts: [
+The Tasmanian Tiger, or Thylacine, was a marsupial, not a true tiger.,
+It had tiger-like stripes on its back and a dog-like head.,
+Thylacines went extinct in 1936, with the last known individual dying in captivity.,
+They were the largest carnivorous marsupials of modern times.,
+The closest living relatives are Tasmanian devils and numbat.,
+Thylacines had an abdominal pouch similar to a kangaroo.,
+They were shy and avoided humans, contrary to popular belief.,
+Hunting and habitat loss led to their extinction.,
+Thylacines could open their jaws up to 80 degrees.,
+They were native to Tasmania, mainland Australia, and New Guinea.
+]
+},
+{
+name: 'Dire Wolf',
+facts: [
+Dire wolves were about 25% larger than modern gray wolves.,
+They had a bite force 30% stronger than a gray wolf.,
+Dire wolves lived during the Late Pleistocene and Early Holocene.,
+They were native to the Americas.,
+Dire wolves often hunted horses and other large prey.,
+They weighed up to 150 pounds and stood about 2.5 feet at the shoulder.,
+Fossils show they had robust builds with shorter legs.,
+Dire wolves went extinct around 10,000 years ago.,
+They are not direct ancestors of modern wolves.,
+Over 4,000 dire wolf fossils have been found at Rancho La Brea.
+]
+},
+{
+name: 'Dodo',
+facts: [
+The dodo was a flightless bird endemic to Mauritius.,
+It weighed about 50 pounds and stood up to 3 feet tall.,
+Dodos had blue-gray plumage and a large blackish bill.,
+They went extinct in the late 17th century due to human activity.,
+The dodo's name comes from the Portuguese word for "foolish.",
+Dodos laid a single egg on the ground.,
+They were fearless of humans, making them easy to hunt.,
+The dodo is a symbol of extinction.,
+Fossils show they were related to pigeons.,
+Dodos primarily ate fruits and nuts.
+]
+},
+{
+name: 'Passenger Pigeon',
+facts: [
+Passenger pigeons were once the most abundant bird in North America, with populations of 5 billion.,
+They could fly at speeds up to 62 mph.,
+Their flocks could darken the sky for days.,
+They went extinct in 1914, with the last individual dying in captivity.,
+Males were bluish-gray with red eyes; females were smaller.,
+They nested in massive colonies covering hundreds of square miles.,
+Habitat destruction and overhunting caused their extinction.,
+They fed mainly on mast, fruits, and invertebrates.,
+Passenger pigeons were highly social and bred communally.,
+They could live up to 16.5 inches in length.
+]
+},
+{
+name: 'Smilodon',
+facts: [
+Smilodon, or saber-toothed cat, had 7-inch canines.,
+It could open its mouth to 120 degrees.,
+Smilodon weighed up to 880 pounds.,
+It lived in the Americas during the Pleistocene.,
+Smilodon was not closely related to modern tigers.,
+Its canines were used for slashing, not biting.,
+It was an ambush predator, not a fast runner.,
+Smilodon went extinct around 10,000 years ago.,
+Fossils show it had powerful forelimbs for grappling prey.,
+It primarily hunted large herbivores like bison.
+]
+},
+{
+name: 'Woolly Mammoth',
+facts: [
+Woolly mammoths were covered in shaggy hair up to 3 feet long.,
+They stood up to 13 feet tall at the shoulder.,
+Woolly mammoths had curved tusks up to 14 feet long.,
+They lived from 700,000 to 4,000 years ago.,
+Their diet consisted of grasses and sedges.,
+They had small ears to conserve heat.,
+Woolly mammoths went extinct due to climate change and hunting.,
+Some lived on Wrangel Island until 1650 BC.,
+They are ancestors of modern elephants.,
+Males weighed up to 6 tons.
+]
+},
+{
+name: 'Quagga',
+facts: [
+The quagga was a subspecies of plains zebra.,
+It had zebra stripes only on its head and neck.,
+Quaggas lived in South Africa until the late 19th century.,
+They formed vast herds in grasslands.,
+The last wild quagga was shot in 1878.,
+Quaggas were herbivores, grazing on grasses.,
+They were mistaken for a separate species initially.,
+The Quagga Project aims to breed look-alikes.,
+Only one photograph exists of a living quagga.,
+Quaggas weighed about 550 pounds.
+]
+},
+{
+name: 'Great Auk',
+facts: [
+The great auk was a flightless seabird.,
+It stood about 30 inches tall and weighed 11 pounds.,
+Great auks had black plumage with white bellies.,
+They went extinct in 1844 due to hunting.,
+They nested in large colonies on rocky islands.,
+Great auks used wings for swimming underwater.,
+Their diet consisted of fish and crustaceans.,
+They were found in the North Atlantic.,
+Sailors hunted them for meat and feathers.,
+The great auk laid a single large egg.
+]
+},
+{
+name: "Steller's Sea Cow",
+facts: [
+Steller's sea cow was discovered in 1741 and extinct by 1768.,
+It grew up to 30 feet long and weighed 10 tons.,
+It was a sirenian, related to manatees.,
+Steller's sea cows lived in the Bering Sea.,
+They had thick, wrinkled, bark-like skin.,
+Their diet was kelp and other seaweeds.,
+They were hunted by fur traders for meat.,
+Babies were born year-round, often in fall.,
+They were gregarious, living in small herds.,
+Steller's sea cow was the largest sirenian.
+]
+},
+{
+name: 'Irish Elk',
+facts: [
+The Irish elk had antlers spanning up to 12 feet.,
+It stood 7 feet tall at the shoulder.,
+Irish elk weighed about 1,500 pounds.,
+They lived across Eurasia during the Pleistocene.,
+Antlers were used for display and combat.,
+They went extinct around 7,700 years ago.,
+Irish elk were herbivores, eating grasses and leaves.,
+Males had larger antlers than females.,
+They are not closely related to modern elk.,
+Fossils show they thrived in open woodlands.
+]
+},
+{
+name: 'Moa',
+facts: [
+Moa were giant flightless birds endemic to New Zealand.,
+The largest species stood 12 feet tall.,
+They weighed up to 550 pounds.,
+Moa went extinct around 1440 AD due to Maori hunting.,
+There were 11 species of moa.,
+They had long necks and strong legs.,
+Moa diet included leaves, fruits, and twigs.,
+They laid large eggs on the ground.,
+Moa were preyed upon by Haast's eagle.,
+Fossils are abundant in swamps and caves.
+]
+},
+{
+name: 'Aurochs',
+facts: [
+The aurochs was the wild ancestor of domestic cattle.,
+It stood up to 6 feet at the shoulder.,
+Aurochs weighed up to 1,800 pounds.,
+They lived in Europe, Asia, and North Africa.,
+Aurochs had long, lyre-shaped horns.,
+They went extinct in 1627.,
+Aurochs were herbivores, grazing on grasses.,
+They were hunted by early humans.,
+The last aurochs lived in Poland.,
+Breeding back projects aim to recreate them.
+]
+},
+{
+name: 'Giant Ground Sloth',
+facts: [
+Giant ground sloths like Megatherium stood 20 feet tall when upright.,
+They weighed up to 4 tons.,
+They lived in the Americas during the Pleistocene.,
+Giant sloths had large claws for pulling branches.,
+Their diet was leaves and soft plants.,
+They went extinct around 10,000 years ago.,
+Some evidence suggests human hunting contributed.,
+They could rear up on hind legs to reach vegetation.,
+Giant sloths had slow metabolisms.,
+Fossils show they had peg-like teeth.
+]
+},
+{
+name: "Haast's Eagle",
+facts: [
+"Haast's eagle was the largest eagle ever known.,
+It had a wingspan up to 9 feet.,
+It weighed up to 33 pounds.,
+Haast's eagle preyed on moa birds.,
+It lived in New Zealand until about 1400 AD.,
+Its talons were as large as a tiger's claws.,
+It went extinct due to moa extinction and human arrival.,
+Haast's eagle could snatch prey weighing 440 pounds.,
+It had keen eyesight for hunting.,
+Fossils include bones with eagle talon marks.
+]
+},
+{
+name: 'Glyptodon',
+facts: [
+Glyptodon was a giant armadillo relative.,
+It was 10 feet long and weighed 2 tons.,
+Glyptodon had a armored shell like a turtle.,
+It lived in South America during the Pleistocene.,
+Its tail had bony spikes for defense.,
+Glyptodon was a herbivore, eating grasses.,
+It went extinct around 10,000 years ago.,
+Young glyptodons had softer armor.,
+It used claws for digging and foraging.,
+Glyptodon fossils are found in Argentina.
+]
+},
+{
+name: 'Cave Bear',
+facts: [
+Cave bears were mostly vegetarian, eating plants.,
+They weighed up to 2,200 pounds.,
+Cave bears lived in Europe during the Pleistocene.,
+They hibernated in caves, leaving fossils there.,
+Cave bears had stronger bites than modern bears.,
+They went extinct around 24,000 years ago.,
+Early humans may have worshiped them.,
+Males were much larger than females.,
+Cave bears had blunt teeth for grinding vegetation.,
+Their population declined due to climate change.
+]
+},
+{
+name: 'American Mastodon',
+facts: [
+American mastodons were covered in dense fur.,
+They stood 9 feet tall and weighed 10 tons.,
+Mastodons had straight tusks up to 13 feet long.,
+They lived in North America until 10,000 years ago.,
+Their name means "nipple tooth" due to molar shape.,
+Mastodons browsed on trees and shrubs.,
+They are not true elephants but proboscideans.,
+Human hunting contributed to their extinction.,
+Fossils show they had low-domed skulls.,
+Mastodons migrated seasonally for food.
+]
+},
+{
+name: 'Arthropleura',
+facts: [
+Arthropleura was the largest land invertebrate, up to 8 feet long.,
+It was a giant millipede from the Carboniferous period.,
+Arthropleura had no known predators due to size.,
+It ate plants, possibly fungi or decaying matter.,
+It lived 300 million years ago in swampy forests.,
+Arthropleura could weigh as much as a large dog.,
+Its body was segmented with many legs.,
+Fossils are found in Europe and North America.,
+It breathed through spiracles along its body.,
+Arthropleura benefited from high oxygen levels.
+]
+},
+{
+name: 'Titanoboa',
+facts: [
+Titanoboa was the largest snake ever, up to 50 feet long.,
+It weighed over 2,500 pounds.,
+Titanoboa lived 60 million years ago in South America.,
+It was a constrictor, hunting large vertebrates.,
+Its fossils were found in Colombia's Cerrejón Formation.,
+Titanoboa could swallow prey whole.,
+It lived in tropical rainforests.,
+Titanoboa had heat-sensing organs.,
+It went extinct due to cooling climate.,
+It preyed on early crocodiles and giant turtles.
+]
+},
+{
+name: 'Spinosaurus',
+facts: [
+Spinosaurus was the largest carnivorous dinosaur, up to 60 feet long.,
+It had a sail-like fin on its back up to 7 feet tall.,
+Spinosaurus was semi-aquatic, hunting in rivers.,
+It lived in North Africa 100 million years ago.,
+Its jaws resembled a crocodile's for catching fish.,
+Spinosaurus had conical teeth for gripping slippery prey.,
+It weighed up to 9.9 tons.,
+Fossils show it had dense bones for diving.,
+Spinosaurus may have been the first dinosaur to swim.,
+It coexisted with other theropods like Carcharodontosaurus.
+]
+},
+{
+name: 'Dunkleosteus',
+facts: [
+Dunkleosteus was a giant armored fish up to 30 feet long.,
+It lived 382-358 million years ago in the Devonian.,
+Its bite force was 8,000 pounds per square inch.,
+Dunkleosteus had bony plates instead of teeth.,
+It was an apex predator of ancient seas.,
+Fossils show self-sharpening jaw edges.,
+Dunkleosteus could open its mouth in 60 milliseconds.,
+It weighed up to 4 tons.,
+It had no true teeth but slicing plates.,
+Dunkleosteus fossils are found worldwide.
+]
+},
+{
+name: 'Meganeura',
+facts: [
+Meganeura was a giant dragonfly with a 2.5-foot wingspan.,
+It lived 300 million years ago in the Carboniferous.,
+High oxygen levels allowed its enormous size.,
+Meganeura was a predator of smaller insects.,
+It resembled modern dragonflies but was unrelated.,
+Fossils are wing impressions from swamps.,
+It could not fold its wings like modern insects.,
+Meganeura hunted in fern forests.,
+It was the largest flying insect ever.,
+Its body was up to 1 foot long.
+]
+},
+{
+name: 'Hallucigenia',
+facts: [
+Hallucigenia was a worm-like creature from the Cambrian period.,
+It was 0.5 to 2 inches long.,
+It had seven pairs of legs and spines.,
+Hallucigenia lived 505 million years ago.,
+Its mouth was lined with tiny teeth.,
+It walked on stilt-like legs.,
+Fossils were first reconstructed upside down.,
+Hallucigenia was a lobopodian, related to velvet worms.,
+It scavenged or fed on microbes.,
+Its head was hard to distinguish from its tail.
+]
+},
+{
+name: 'Anomalocaris',
+facts: [
+Anomalocaris was an early apex predator of the Cambrian.,
+It grew up to 3 feet long.,
+Anomalocaris had compound eyes with 16,000 lenses.,
+It lived 520 million years ago.,
+Its mouth had circular plates for grinding prey.,
+Anomalocaris used grasping appendages to catch food.,
+It swam with flaps along its body.,
+Fossils show bite marks on trilobites.,
+It was one of the first large swimmers.,
+Anomalocaris was arthropod-like but unique.
+]
+}
+  {
     name: 'Giant Armadillo',
     facts: [
-    `The Giant Armadillo is the largest species of armadillo, weighing up to 110 pounds.`,
-    `It has huge, curved claws—up to 8 inches long—used for digging and defense.`,
-    `It is so well-armored that few predators attempt to attack it.`,
-    `It is found in the grasslands and rainforests of South America.`,
-    `They dig immense burrows with large, wide entrances that can be used by many other animals.`,
-    `They are specialized predators of termites and ants, eating thousands in a single meal.`,
-    `They have a very long tongue used to capture subterranean insects.`,
-    `They are mostly nocturnal and spend up to 75% of their lives underground.`,
-    `They are considered vulnerable due to habitat loss.`,
-    `When disturbed, they make a deep rumbling sound.`,
-  ]
-
+      `The Giant Armadillo is the largest species of armadillo, weighing up to 110 pounds.`,
+      `It has huge, curved claws—up to 8 inches long—used for digging and defense.`,
+      `It is so well-armored that few predators attempt to attack it.`,
+      `It is found in the grasslands and rainforests of South America.`,
+      `They dig immense burrows with large, wide entrances that can be used by many other animals.`,
+      `They are specialized predators of termites and ants, eating thousands in a single meal.`,
+      `They have a very long tongue used to capture subterranean insects.`,
+      `They are mostly nocturnal and spend up to 75% of their lives underground.`,
+      `They are considered vulnerable due to habitat loss.`,
+      `When disturbed, they make a deep rumbling sound.`
+    ]
+  }
 ];
 
 // --- SIGHT WORD DATABASE (100 words and custom options, homophones removed) ---
 window.sightWordsData = [
-    { word: 'the', options: ['the', 'this', 'that'], correct: 'the' },
-    { word: 'of', options: ['of', 'off', 'for'], correct: 'of' },
-    { word: 'and', options: ['and', 'any', 'can'], correct: 'and' },
-    { word: 'a', options: ['a', 'I', 'at'], correct: 'a' },
-    { word: 'to', options: ['to', 'go', 'do'], correct: 'to' }, 
-    { word: 'in', options: ['in', 'is', 'on'], correct: 'in' },
-    { word: 'is', options: ['is', 'in', 'it'], correct: 'is' },
-    { word: 'you', options: ['you', 'your', 'my'], correct: 'you' },
-    { word: 'that', options: ['that', 'what', 'the'], correct: 'that' },
-    { word: 'it', options: ['it', 'is', 'at'], correct: 'it' },
-    { word: 'he', options: ['he', 'we', 'she'], correct: 'he' },
-    { word: 'was', options: ['was', 'saw', 'has'], correct: 'was' },
-    { word: 'for', options: ['for', 'from', 'get'], correct: 'for' }, 
-    { word: 'on', options: ['on', 'in', 'of'], correct: 'on' },
-    { word: 'are', options: ['are', 'an', 'ate'], correct: 'are' },
-    { word: 'as', options: ['as', 'is', 'at'], correct: 'as' },
-    { word: 'with', options: ['with', 'when', 'which'], correct: 'with' },
-    { word: 'his', options: ['his', 'has', 'is'], correct: 'his' },
-    { word: 'they', options: ['they', 'the', 'them'], correct: 'they' },
-    { word: 'I', options: ['I', 'a', 'it'], correct: 'I' },
-    { word: 'at', options: ['at', 'it', 'an'], correct: 'at' },
-    { word: 'be', options: ['be', 'by', 'but'], correct: 'be' },
-    { word: 'this', options: ['this', 'that', 'his'], correct: 'this' },
-    { word: 'have', options: ['have', 'has', 'he'], correct: 'have' },
-    { word: 'from', options: ['from', 'for', 'form'], correct: 'from' },
-    { word: 'or', options: ['or', 'of', 'on'], correct: 'or' },
-    { word: 'one', options: ['one', 'on', 'own'], correct: 'one' },
-    { word: 'had', options: ['had', 'has', 'hide'], correct: 'had' },
-    { word: 'by', options: ['by', 'be', 'my'], correct: 'by' },
-    { word: 'words', options: ['words', 'work', 'was'], correct: 'words' },
-    { word: 'but', options: ['but', 'put', 'bet'], correct: 'but' },
-    { word: 'not', options: ['not', 'now', 'note'], correct: 'not' },
-    { word: 'what', options: ['what', 'that', 'when'], correct: 'what' },
-    { word: 'all', options: ['all', 'call', 'at'], correct: 'all' },
-    { word: 'were', options: ['were', 'we', 'when'], correct: 'were' },
-    { word: 'we', options: ['we', 'he', 'me'], correct: 'we' },
-    { word: 'when', options: ['when', 'then', 'what'], correct: 'when' },
-    { word: 'your', options: ['your', 'you', 'my'], correct: 'your' },
-    { word: 'can', options: ['can', 'ran', 'and'], correct: 'can' },
-    { word: 'said', options: ['said', 'side', 'say'], correct: 'said' },
-    { word: 'there', options: ['there', 'these', 'three'], correct: 'there' },
-    { word: 'use', options: ['use', 'us', 'see'], correct: 'use' },
-    { word: 'an', options: ['an', 'a', 'on'], correct: 'an' },
-    { word: 'each', options: ['each', 'eat', 'which'], correct: 'each' },
-    { word: 'which', options: ['which', 'with', 'each'], correct: 'which' },
-    { word: 'she', options: ['she', 'he', 'we'], correct: 'she' },
-    { word: 'do', options: ['do', 'go', 'to'], correct: 'do' },
-    { word: 'how', options: ['how', 'now', 'who'], correct: 'how' },
-    { word: 'their', options: ['their', 'them', 'these'], correct: 'their' },
-    { word: 'if', options: ['if', 'is', 'it'], correct: 'if' },
-    { word: 'will', options: ['will', 'well', 'we'], correct: 'will' },
-    { word: 'up', options: ['up', 'us', 'put'], correct: 'up' },
-    { word: 'other', options: ['other', 'over', 'mother'], correct: 'other' },
-    { word: 'about', options: ['about', 'but', 'out'], correct: 'about' },
-    { word: 'out', options: ['out', 'put', 'odd'], correct: 'out' },
-    { word: 'many', options: ['many', 'money', 'man'], correct: 'many' },
-    { word: 'then', options: ['then', 'when', 'ten'], correct: 'then' },
-    { word: 'them', options: ['them', 'then', 'these'], correct: 'them' },
-    { word: 'these', options: ['these', 'those', 'the'], correct: 'these' },
-    { word: 'so', options: ['so', 'no', 'go'], correct: 'so' },
-    { word: 'some', options: ['some', 'come', 'same'], correct: 'some' },
-    { word: 'her', options: ['her', 'he', 'has'], correct: 'her' },
-    { word: 'would', options: ['would', 'could', 'should'], correct: 'would' },
-    { word: 'make', options: ['make', 'take', 'like'], correct: 'make' },
-    { word: 'like', options: ['like', 'look', 'live'], correct: 'like' },
-    { word: 'him', options: ['him', 'his', 'home'], correct: 'him' },
-    { word: 'into', options: ['into', 'in', 'to'], correct: 'into' },
-    { word: 'time', options: ['time', 'tame', 'came'], correct: 'time' },
-    { word: 'has', options: ['has', 'his', 'had'], correct: 'has' },
-    { word: 'look', options: ['look', 'like', 'book'], correct: 'look' },
-    { word: 'two', options: ['two', 'ten', 'try'], correct: 'two' },
-    { word: 'more', options: ['more', 'make', 'most'], correct: 'more' },
-    { word: 'write', options: ['write', 'white', 'with'], correct: 'write' },
-    { word: 'go', options: ['go', 'no', 'do'], correct: 'go' },
-    { word: 'see', options: ['see', 'saw', 'said'], correct: 'see' },
-    { word: 'number', options: ['number', 'new', 'never'], correct: 'number' },
-    { word: 'no', options: ['no', 'go', 'on'], correct: 'no' },
-    { word: 'way', options: ['way', 'day', 'say'], correct: 'way' },
-    { word: 'could', options: ['could', 'would', 'call'], correct: 'could' },
-    { word: 'people', options: ['people', 'paper', 'pupil'], correct: 'people' },
-    { word: 'my', options: ['my', 'me', 'by'], correct: 'my' },
-    { word: 'than', options: ['than', 'that', 'ten'], correct: 'than' },
-    { word: 'first', options: ['first', 'fast', 'find'], correct: 'first' },
-    { word: 'water', options: ['water', 'wait', 'went'], correct: 'water' },
-    { word: 'been', options: ['been', 'bend', 'bind'], correct: 'been' }, 
-    { word: 'called', options: ['called', 'cold', 'can'], correct: 'called' },
-    { word: 'who', options: ['who', 'how', 'when'], correct: 'who' },
-    { word: 'soil', options: ['oil', 'old', 'boil'], correct: 'soil' },
-    { word: 'sit', options: ['sit', 'sat', 'six'], correct: 'sit' },
-    { word: 'now', options: ['now', 'how', 'no'], correct: 'now' },
-    { word: 'find', options: ['find', 'fine', 'kind'], correct: 'find' },
-    { word: 'long', options: ['long', 'look', 'low'], correct: 'long' },
-    { word: 'down', options: ['down', 'now', 'done'], correct: 'down' },
-    { word: 'day', options: ['day', 'way', 'say'], correct: 'day' },
-    { word: 'did', options: ['did', 'do', 'down'], correct: 'did' },
-    { word: 'get', options: ['get', 'go', 'got'], correct: 'get' },
-    { word: 'come', options: ['come', 'came', 'see'], correct: 'come' },
-    { word: 'made', options: ['made', 'had', 'mad'], correct: 'made' },
-    { word: 'may', options: ['may', 'my', 'many'], correct: 'may' },
-    { word: 'part', options: ['part', 'past', 'pat'], correct: 'part' },
+    { word: 'the', options: ['the', 'this', 'that'], correct: 'the' },
+    { word: 'of', options: ['of', 'off', 'for'], correct: 'of' },
+    { word: 'and', options: ['and', 'any', 'can'], correct: 'and' },
+    { word: 'a', options: ['a', 'I', 'at'], correct: 'a' },
+    { word: 'to', options: ['to', 'go', 'do'], correct: 'to' }, 
+    { word: 'in', options: ['in', 'is', 'on'], correct: 'in' },
+    { word: 'is', options: ['is', 'in', 'it'], correct: 'is' },
+    { word: 'you', options: ['you', 'your', 'my'], correct: 'you' },
+    { word: 'that', options: ['that', 'what', 'the'], correct: 'that' },
+    { word: 'it', options: ['it', 'is', 'at'], correct: 'it' },
+    { word: 'he', options: ['he', 'we', 'she'], correct: 'he' },
+    { word: 'was', options: ['was', 'saw', 'has'], correct: 'was' },
+    { word: 'for', options: ['for', 'from', 'get'], correct: 'for' }, 
+    { word: 'on', options: ['on', 'in', 'of'], correct: 'on' },
+    { word: 'are', options: ['are', 'an', 'ate'], correct: 'are' },
+    { word: 'as', options: ['as', 'is', 'at'], correct: 'as' },
+    { word: 'with', options: ['with', 'when', 'which'], correct: 'with' },
+    { word: 'his', options: ['his', 'has', 'is'], correct: 'his' },
+    { word: 'they', options: ['they', 'the', 'them'], correct: 'they' },
+    { word: 'I', options: ['I', 'a', 'it'], correct: 'I' },
+    { word: 'at', options: ['at', 'it', 'an'], correct: 'at' },
+    { word: 'be', options: ['be', 'by', 'but'], correct: 'be' },
+    { word: 'this', options: ['this', 'that', 'his'], correct: 'this' },
+    { word: 'have', options: ['have', 'has', 'he'], correct: 'have' },
+    { word: 'from', options: ['from', 'for', 'form'], correct: 'from' },
+    { word: 'or', options: ['or', 'of', 'on'], correct: 'or' },
+    { word: 'one', options: ['one', 'on', 'own'], correct: 'one' },
+    { word: 'had', options: ['had', 'has', 'hide'], correct: 'had' },
+    { word: 'by', options: ['by', 'be', 'my'], correct: 'by' },
+    { word: 'words', options: ['words', 'work', 'was'], correct: 'words' },
+    { word: 'but', options: ['but', 'put', 'bet'], correct: 'but' },
+    { word: 'not', options: ['not', 'now', 'note'], correct: 'not' },
+    { word: 'what', options: ['what', 'that', 'when'], correct: 'what' },
+    { word: 'all', options: ['all', 'call', 'at'], correct: 'all' },
+    { word: 'were', options: ['were', 'we', 'when'], correct: 'were' },
+    { word: 'we', options: ['we', 'he', 'me'], correct: 'we' },
+    { word: 'when', options: ['when', 'then', 'what'], correct: 'when' },
+    { word: 'your', options: ['your', 'you', 'my'], correct: 'your' },
+    { word: 'can', options: ['can', 'ran', 'and'], correct: 'can' },
+    { word: 'said', options: ['said', 'side', 'say'], correct: 'said' },
+    { word: 'there', options: ['there', 'these', 'three'], correct: 'there' },
+    { word: 'use', options: ['use', 'us', 'see'], correct: 'use' },
+    { word: 'an', options: ['an', 'a', 'on'], correct: 'an' },
+    { word: 'each', options: ['each', 'eat', 'which'], correct: 'each' },
+    { word: 'which', options: ['which', 'with', 'each'], correct: 'which' },
+    { word: 'she', options: ['she', 'he', 'we'], correct: 'she' },
+    { word: 'do', options: ['do', 'go', 'to'], correct: 'do' },
+    { word: 'how', options: ['how', 'now', 'who'], correct: 'how' },
+    { word: 'their', options: ['their', 'them', 'these'], correct: 'their' },
+    { word: 'if', options: ['if', 'is', 'it'], correct: 'if' },
+    { word: 'will', options: ['will', 'well', 'we'], correct: 'will' },
+    { word: 'up', options: ['up', 'us', 'put'], correct: 'up' },
+    { word: 'other', options: ['other', 'over', 'mother'], correct: 'other' },
+    { word: 'about', options: ['about', 'but', 'out'], correct: 'about' },
+    { word: 'out', options: ['out', 'put', 'odd'], correct: 'out' },
+    { word: 'many', options: ['many', 'money', 'man'], correct: 'many' },
+    { word: 'then', options: ['then', 'when', 'ten'], correct: 'then' },
+    { word: 'them', options: ['them', 'then', 'these'], correct: 'them' },
+    { word: 'these', options: ['these', 'those', 'the'], correct: 'these' },
+    { word: 'so', options: ['so', 'no', 'go'], correct: 'so' },
+    { word: 'some', options: ['some', 'come', 'same'], correct: 'some' },
+    { word: 'her', options: ['her', 'he', 'has'], correct: 'her' },
+    { word: 'would', options: ['would', 'could', 'should'], correct: 'would' },
+    { word: 'make', options: ['make', 'take', 'like'], correct: 'make' },
+    { word: 'like', options: ['like', 'look', 'live'], correct: 'like' },
+    { word: 'him', options: ['him', 'his', 'home'], correct: 'him' },
+    { word: 'into', options: ['into', 'in', 'to'], correct: 'into' },
+    { word: 'time', options: ['time', 'tame', 'came'], correct: 'time' },
+    { word: 'has', options: ['has', 'his', 'had'], correct: 'has' },
+    { word: 'look', options: ['look', 'like', 'book'], correct: 'look' },
+    { word: 'two', options: ['two', 'ten', 'try'], correct: 'two' },
+    { word: 'more', options: ['more', 'make', 'most'], correct: 'more' },
+    { word: 'write', options: ['write', 'white', 'with'], correct: 'write' },
+    { word: 'go', options: ['go', 'no', 'do'], correct: 'go' },
+    { word: 'see', options: ['see', 'saw', 'said'], correct: 'see' },
+    { word: 'number', options: ['number', 'new', 'never'], correct: 'number' },
+    { word: 'no', options: ['no', 'go', 'on'], correct: 'no' },
+    { word: 'way', options: ['way', 'day', 'say'], correct: 'way' },
+    { word: 'could', options: ['could', 'would', 'call'], correct: 'could' },
+    { word: 'people', options: ['people', 'paper', 'pupil'], correct: 'people' },
+    { word: 'my', options: ['my', 'me', 'by'], correct: 'my' },
+    { word: 'than', options: ['than', 'that', 'ten'], correct: 'than' },
+    { word: 'first', options: ['first', 'fast', 'find'], correct: 'first' },
+    { word: 'water', options: ['water', 'wait', 'went'], correct: 'water' },
+    { word: 'been', options: ['been', 'bend', 'bind'], correct: 'been' }, 
+    { word: 'called', options: ['called', 'cold', 'can'], correct: 'called' },
+    { word: 'who', options: ['who', 'how', 'when'], correct: 'who' },
+    { word: 'soil', options: ['oil', 'old', 'boil'], correct: 'soil' },
+    { word: 'sit', options: ['sit', 'sat', 'six'], correct: 'sit' },
+    { word: 'now', options: ['now', 'how', 'no'], correct: 'now' },
+    { word: 'find', options: ['find', 'fine', 'kind'], correct: 'find' },
+    { word: 'long', options: ['long', 'look', 'low'], correct: 'long' },
+    { word: 'down', options: ['down', 'now', 'done'], correct: 'down' },
+    { word: 'day', options: ['day', 'way', 'say'], correct: 'day' },
+    { word: 'did', options: ['did', 'do', 'down'], correct: 'did' },
+    { word: 'get', options: ['get', 'go', 'got'], correct: 'get' },
+    { word: 'come', options: ['come', 'came', 'see'], correct: 'come' },
+    { word: 'made', options: ['made', 'had', 'mad'], correct: 'made' },
+    { word: 'may', options: ['may', 'my', 'many'], correct: 'may' },
+    { word: 'part', options: ['part', 'past', 'pat'], correct: 'part' },
 ];
+
 // --- SENTENCES DATABASE (50 total sentences) ---
 window.sentencesData = [
   { sentence: 'The Fennec Fox has big ears.', options: ['The Fennec Fox has big ears.', 'The fox can fly.', 'The bird can run.'], correct: 'The Fennec Fox has big ears.' },
@@ -2004,7 +1854,7 @@ window.sentencesData = [
   { sentence: 'Who will make the list?', options: ['Who will make the list?', 'How will they write it?', 'What did she find?'], correct: 'Who will make the list?' },
   { sentence: 'Look at all the animals.', options: ['Look at all the animals.', 'Look at some flowers.', 'Look for other things.'], correct: 'Look at all the animals.' },
   { sentence: 'My mother is writing now.', options: ['My mother is writing now.', 'My father is working now.', 'Your brother is reading now.'], correct: 'My mother is writing now.' },
-  { sentence: 'Can you go outside?', options: ['Can you go outside?', 'Will you go up stairs?', 'Did they come home?'], correct: 'Can you go outside.' },
+  { sentence: 'Can you go outside?', options: ['Can you go outside?', 'Will you go up stairs?', 'Did they come home?'], correct: 'Can you go outside?' },
   { sentence: 'That was the first time.', options: ['That was the first time.', 'This is the last chance.', 'It had been a good try.'], correct: 'That was the first time.' },
   { sentence: 'We have many good words.', options: ['We have many good words.', 'They had some old things.', 'I want more food.'], correct: 'We have many good words.' },
   { sentence: 'He is from another place.', options: ['He is from another place.', 'She is going far away.', 'They came here by chance.'], correct: 'He is from another place.' },
@@ -2046,3 +1896,4 @@ window.VIDEO_DATABASE = [
     { title: "Animal Fact Video 5: Okapi's Long Tongue", url: "https://youtu.be/4j5-4rjrbqM?si=3xf129zUgJ2BZnFD?controls=0" }, 
     { title: "Animal Fact Video 6: Komodo Dragon Venom", url: "https://youtu.be/pFaSswGnT0I?si=fThm0AI63VF6OSRN=0" }, 
 ];
+```
