@@ -3921,7 +3921,7 @@ window.ANIMAL_DATABASE = [
     `It digs and lines its burrows with silk.`,
     `The spider's legs can span up to 12 inches across.`,
   ]
-}
+},
 ];
 
 // --- SIGHT WORD DATABASE (100 words and custom options, homophones removed) ---
