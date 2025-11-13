@@ -1338,380 +1338,380 @@ window.ANIMAL_DATABASE = [
     ]
   },
 {
-name: 'Megalodon',
-facts: [
-Megalodon was the largest shark that ever lived, growing up to 60 feet long.,
-Its bite force was powerful enough to crush a car.,
-The largest megalodon tooth discovered was about the length of a TV remote.,
-Megalodon went extinct about 2.6 million years ago.,
-It was an important apex predator in ancient oceans.,
-Megalodon teeth are the most commonly found fossils, with hundreds discovered.,
-Its jaws could span 2.7 by 3.4 meters wide.,
-Megalodon was three times larger than a great white shark.,
-It lived during the Miocene and Pliocene epochs.,
-Megalodon primarily hunted whales and other large marine animals.
-]
-},
-{
-name: 'Tasmanian Tiger',
-facts: [
-The Tasmanian Tiger, or Thylacine, was a marsupial, not a true tiger.,
-It had tiger-like stripes on its back and a dog-like head.,
-Thylacines went extinct in 1936, with the last known individual dying in captivity.,
-They were the largest carnivorous marsupials of modern times.,
-The closest living relatives are Tasmanian devils and numbat.,
-Thylacines had an abdominal pouch similar to a kangaroo.,
-They were shy and avoided humans, contrary to popular belief.,
-Hunting and habitat loss led to their extinction.,
-Thylacines could open their jaws up to 80 degrees.,
-They were native to Tasmania, mainland Australia, and New Guinea.
-]
-},
-{
-name: 'Dire Wolf',
-facts: [
-Dire wolves were about 25% larger than modern gray wolves.,
-They had a bite force 30% stronger than a gray wolf.,
-Dire wolves lived during the Late Pleistocene and Early Holocene.,
-They were native to the Americas.,
-Dire wolves often hunted horses and other large prey.,
-They weighed up to 150 pounds and stood about 2.5 feet at the shoulder.,
-Fossils show they had robust builds with shorter legs.,
-Dire wolves went extinct around 10,000 years ago.,
-They are not direct ancestors of modern wolves.,
-Over 4,000 dire wolf fossils have been found at Rancho La Brea.
-]
-},
-{
-name: 'Dodo',
-facts: [
-The dodo was a flightless bird endemic to Mauritius.,
-It weighed about 50 pounds and stood up to 3 feet tall.,
-Dodos had blue-gray plumage and a large blackish bill.,
-They went extinct in the late 17th century due to human activity.,
-The dodo's name comes from the Portuguese word for "foolish.",
-Dodos laid a single egg on the ground.,
-They were fearless of humans, making them easy to hunt.,
-The dodo is a symbol of extinction.,
-Fossils show they were related to pigeons.,
-Dodos primarily ate fruits and nuts.
-]
-},
-{
-name: 'Passenger Pigeon',
-facts: [
-Passenger pigeons were once the most abundant bird in North America, with populations of 5 billion.,
-They could fly at speeds up to 62 mph.,
-Their flocks could darken the sky for days.,
-They went extinct in 1914, with the last individual dying in captivity.,
-Males were bluish-gray with red eyes; females were smaller.,
-They nested in massive colonies covering hundreds of square miles.,
-Habitat destruction and overhunting caused their extinction.,
-They fed mainly on mast, fruits, and invertebrates.,
-Passenger pigeons were highly social and bred communally.,
-They could live up to 16.5 inches in length.
-]
-},
-{
-name: 'Smilodon',
-facts: [
-Smilodon, or saber-toothed cat, had 7-inch canines.,
-It could open its mouth to 120 degrees.,
-Smilodon weighed up to 880 pounds.,
-It lived in the Americas during the Pleistocene.,
-Smilodon was not closely related to modern tigers.,
-Its canines were used for slashing, not biting.,
-It was an ambush predator, not a fast runner.,
-Smilodon went extinct around 10,000 years ago.,
-Fossils show it had powerful forelimbs for grappling prey.,
-It primarily hunted large herbivores like bison.
-]
-},
-{
-name: 'Woolly Mammoth',
-facts: [
-Woolly mammoths were covered in shaggy hair up to 3 feet long.,
-They stood up to 13 feet tall at the shoulder.,
-Woolly mammoths had curved tusks up to 14 feet long.,
-They lived from 700,000 to 4,000 years ago.,
-Their diet consisted of grasses and sedges.,
-They had small ears to conserve heat.,
-Woolly mammoths went extinct due to climate change and hunting.,
-Some lived on Wrangel Island until 1650 BC.,
-They are ancestors of modern elephants.,
-Males weighed up to 6 tons.
-]
-},
-{
-name: 'Quagga',
-facts: [
-The quagga was a subspecies of plains zebra.,
-It had zebra stripes only on its head and neck.,
-Quaggas lived in South Africa until the late 19th century.,
-They formed vast herds in grasslands.,
-The last wild quagga was shot in 1878.,
-Quaggas were herbivores, grazing on grasses.,
-They were mistaken for a separate species initially.,
-The Quagga Project aims to breed look-alikes.,
-Only one photograph exists of a living quagga.,
-Quaggas weighed about 550 pounds.
-]
-},
-{
-name: 'Great Auk',
-facts: [
-The great auk was a flightless seabird.,
-It stood about 30 inches tall and weighed 11 pounds.,
-Great auks had black plumage with white bellies.,
-They went extinct in 1844 due to hunting.,
-They nested in large colonies on rocky islands.,
-Great auks used wings for swimming underwater.,
-Their diet consisted of fish and crustaceans.,
-They were found in the North Atlantic.,
-Sailors hunted them for meat and feathers.,
-The great auk laid a single large egg.
-]
-},
-{
-name: "Steller's Sea Cow",
-facts: [
-Steller's sea cow was discovered in 1741 and extinct by 1768.,
-It grew up to 30 feet long and weighed 10 tons.,
-It was a sirenian, related to manatees.,
-Steller's sea cows lived in the Bering Sea.,
-They had thick, wrinkled, bark-like skin.,
-Their diet was kelp and other seaweeds.,
-They were hunted by fur traders for meat.,
-Babies were born year-round, often in fall.,
-They were gregarious, living in small herds.,
-Steller's sea cow was the largest sirenian.
-]
-},
-{
-name: 'Irish Elk',
-facts: [
-The Irish elk had antlers spanning up to 12 feet.,
-It stood 7 feet tall at the shoulder.,
-Irish elk weighed about 1,500 pounds.,
-They lived across Eurasia during the Pleistocene.,
-Antlers were used for display and combat.,
-They went extinct around 7,700 years ago.,
-Irish elk were herbivores, eating grasses and leaves.,
-Males had larger antlers than females.,
-They are not closely related to modern elk.,
-Fossils show they thrived in open woodlands.
-]
-},
-{
-name: 'Moa',
-facts: [
-Moa were giant flightless birds endemic to New Zealand.,
-The largest species stood 12 feet tall.,
-They weighed up to 550 pounds.,
-Moa went extinct around 1440 AD due to Maori hunting.,
-There were 11 species of moa.,
-They had long necks and strong legs.,
-Moa diet included leaves, fruits, and twigs.,
-They laid large eggs on the ground.,
-Moa were preyed upon by Haast's eagle.,
-Fossils are abundant in swamps and caves.
-]
-},
-{
-name: 'Aurochs',
-facts: [
-The aurochs was the wild ancestor of domestic cattle.,
-It stood up to 6 feet at the shoulder.,
-Aurochs weighed up to 1,800 pounds.,
-They lived in Europe, Asia, and North Africa.,
-Aurochs had long, lyre-shaped horns.,
-They went extinct in 1627.,
-Aurochs were herbivores, grazing on grasses.,
-They were hunted by early humans.,
-The last aurochs lived in Poland.,
-Breeding back projects aim to recreate them.
-]
-},
-{
-name: 'Giant Ground Sloth',
-facts: [
-Giant ground sloths like Megatherium stood 20 feet tall when upright.,
-They weighed up to 4 tons.,
-They lived in the Americas during the Pleistocene.,
-Giant sloths had large claws for pulling branches.,
-Their diet was leaves and soft plants.,
-They went extinct around 10,000 years ago.,
-Some evidence suggests human hunting contributed.,
-They could rear up on hind legs to reach vegetation.,
-Giant sloths had slow metabolisms.,
-Fossils show they had peg-like teeth.
-]
-},
-{
-name: "Haast's Eagle",
-facts: [
-"Haast's eagle was the largest eagle ever known.,
-It had a wingspan up to 9 feet.,
-It weighed up to 33 pounds.,
-Haast's eagle preyed on moa birds.,
-It lived in New Zealand until about 1400 AD.,
-Its talons were as large as a tiger's claws.,
-It went extinct due to moa extinction and human arrival.,
-Haast's eagle could snatch prey weighing 440 pounds.,
-It had keen eyesight for hunting.,
-Fossils include bones with eagle talon marks.
-]
-},
-{
-name: 'Glyptodon',
-facts: [
-Glyptodon was a giant armadillo relative.,
-It was 10 feet long and weighed 2 tons.,
-Glyptodon had a armored shell like a turtle.,
-It lived in South America during the Pleistocene.,
-Its tail had bony spikes for defense.,
-Glyptodon was a herbivore, eating grasses.,
-It went extinct around 10,000 years ago.,
-Young glyptodons had softer armor.,
-It used claws for digging and foraging.,
-Glyptodon fossils are found in Argentina.
-]
-},
-{
-name: 'Cave Bear',
-facts: [
-Cave bears were mostly vegetarian, eating plants.,
-They weighed up to 2,200 pounds.,
-Cave bears lived in Europe during the Pleistocene.,
-They hibernated in caves, leaving fossils there.,
-Cave bears had stronger bites than modern bears.,
-They went extinct around 24,000 years ago.,
-Early humans may have worshiped them.,
-Males were much larger than females.,
-Cave bears had blunt teeth for grinding vegetation.,
-Their population declined due to climate change.
-]
-},
-{
-name: 'American Mastodon',
-facts: [
-American mastodons were covered in dense fur.,
-They stood 9 feet tall and weighed 10 tons.,
-Mastodons had straight tusks up to 13 feet long.,
-They lived in North America until 10,000 years ago.,
-Their name means "nipple tooth" due to molar shape.,
-Mastodons browsed on trees and shrubs.,
-They are not true elephants but proboscideans.,
-Human hunting contributed to their extinction.,
-Fossils show they had low-domed skulls.,
-Mastodons migrated seasonally for food.
-]
-},
-{
-name: 'Arthropleura',
-facts: [
-Arthropleura was the largest land invertebrate, up to 8 feet long.,
-It was a giant millipede from the Carboniferous period.,
-Arthropleura had no known predators due to size.,
-It ate plants, possibly fungi or decaying matter.,
-It lived 300 million years ago in swampy forests.,
-Arthropleura could weigh as much as a large dog.,
-Its body was segmented with many legs.,
-Fossils are found in Europe and North America.,
-It breathed through spiracles along its body.,
-Arthropleura benefited from high oxygen levels.
-]
-},
-{
-name: 'Titanoboa',
-facts: [
-Titanoboa was the largest snake ever, up to 50 feet long.,
-It weighed over 2,500 pounds.,
-Titanoboa lived 60 million years ago in South America.,
-It was a constrictor, hunting large vertebrates.,
-Its fossils were found in Colombia's Cerrejón Formation.,
-Titanoboa could swallow prey whole.,
-It lived in tropical rainforests.,
-Titanoboa had heat-sensing organs.,
-It went extinct due to cooling climate.,
-It preyed on early crocodiles and giant turtles.
-]
-},
-{
-name: 'Spinosaurus',
-facts: [
-Spinosaurus was the largest carnivorous dinosaur, up to 60 feet long.,
-It had a sail-like fin on its back up to 7 feet tall.,
-Spinosaurus was semi-aquatic, hunting in rivers.,
-It lived in North Africa 100 million years ago.,
-Its jaws resembled a crocodile's for catching fish.,
-Spinosaurus had conical teeth for gripping slippery prey.,
-It weighed up to 9.9 tons.,
-Fossils show it had dense bones for diving.,
-Spinosaurus may have been the first dinosaur to swim.,
-It coexisted with other theropods like Carcharodontosaurus.
-]
-},
-{
-name: 'Dunkleosteus',
-facts: [
-Dunkleosteus was a giant armored fish up to 30 feet long.,
-It lived 382-358 million years ago in the Devonian.,
-Its bite force was 8,000 pounds per square inch.,
-Dunkleosteus had bony plates instead of teeth.,
-It was an apex predator of ancient seas.,
-Fossils show self-sharpening jaw edges.,
-Dunkleosteus could open its mouth in 60 milliseconds.,
-It weighed up to 4 tons.,
-It had no true teeth but slicing plates.,
-Dunkleosteus fossils are found worldwide.
-]
-},
-{
-name: 'Meganeura',
-facts: [
-Meganeura was a giant dragonfly with a 2.5-foot wingspan.,
-It lived 300 million years ago in the Carboniferous.,
-High oxygen levels allowed its enormous size.,
-Meganeura was a predator of smaller insects.,
-It resembled modern dragonflies but was unrelated.,
-Fossils are wing impressions from swamps.,
-It could not fold its wings like modern insects.,
-Meganeura hunted in fern forests.,
-It was the largest flying insect ever.,
-Its body was up to 1 foot long.
-]
-},
-{
-name: 'Hallucigenia',
-facts: [
-Hallucigenia was a worm-like creature from the Cambrian period.,
-It was 0.5 to 2 inches long.,
-It had seven pairs of legs and spines.,
-Hallucigenia lived 505 million years ago.,
-Its mouth was lined with tiny teeth.,
-It walked on stilt-like legs.,
-Fossils were first reconstructed upside down.,
-Hallucigenia was a lobopodian, related to velvet worms.,
-It scavenged or fed on microbes.,
-Its head was hard to distinguish from its tail.
-]
-},
-{
-name: 'Anomalocaris',
-facts: [
-Anomalocaris was an early apex predator of the Cambrian.,
-It grew up to 3 feet long.,
-Anomalocaris had compound eyes with 16,000 lenses.,
-It lived 520 million years ago.,
-Its mouth had circular plates for grinding prey.,
-Anomalocaris used grasping appendages to catch food.,
-It swam with flaps along its body.,
-Fossils show bite marks on trilobites.,
-It was one of the first large swimmers.,
-Anomalocaris was arthropod-like but unique.
-]
-}
+    name: 'Megalodon',
+    facts: [
+      `Megalodon was the largest shark that ever lived, growing up to 60 feet long.`,
+      `Its bite force was powerful enough to crush a car.`,
+      `The largest megalodon tooth discovered was about the length of a TV remote.`,
+      `Megalodon went extinct about 2.6 million years ago.`,
+      `It was an important apex predator in ancient oceans.`,
+      `Megalodon teeth are the most commonly found fossils, with hundreds discovered.`,
+      `Its jaws could span 2.7 by 3.4 meters wide.`,
+      `Megalodon was three times larger than a great white shark.`,
+      `It lived during the Miocene and Pliocene epochs.`,
+      `Megalodon primarily hunted whales and other large marine animals.`
+    ]
+  },
+  {
+    name: 'Tasmanian Tiger',
+    facts: [
+      `The Tasmanian Tiger, or Thylacine, was a marsupial, not a true tiger.`,
+      `It had tiger-like stripes on its back and a dog-like head.`,
+      `Thylacines went extinct in 1936, with the last known individual dying in captivity.`,
+      `They were the largest carnivorous marsupials of modern times.`,
+      `The closest living relatives are Tasmanian devils and numbat.`,
+      `Thylacines had an abdominal pouch similar to a kangaroo.`,
+      `They were shy and avoided humans, contrary to popular belief.`,
+      `Hunting and habitat loss led to their extinction.`,
+      `Thylacines could open their jaws up to 80 degrees.`,
+      `They were native to Tasmania, mainland Australia, and New Guinea.`
+    ]
+  },
+  {
+    name: 'Dire Wolf',
+    facts: [
+      `Dire wolves were about 25% larger than modern gray wolves.`,
+      `They had a bite force 30% stronger than a gray wolf.`,
+      `Dire wolves lived during the Late Pleistocene and Early Holocene.`,
+      `They were native to the Americas.`,
+      `Dire wolves often hunted horses and other large prey.`,
+      `They weighed up to 150 pounds and stood about 2.5 feet at the shoulder.`,
+      `Fossils show they had robust builds with shorter legs.`,
+      `Dire wolves went extinct around 10,000 years ago.`,
+      `They are not direct ancestors of modern wolves.`,
+      `Over 4,000 dire wolf fossils have been found at Rancho La Brea.`
+    ]
+  },
+  {
+    name: 'Dodo',
+    facts: [
+      `The dodo was a flightless bird endemic to Mauritius.`,
+      `It weighed about 50 pounds and stood up to 3 feet tall.`,
+      `Dodos had blue-gray plumage and a large blackish bill.`,
+      `They went extinct in the late 17th century due to human activity.`,
+      `The dodo's name comes from the Portuguese word for "foolish."`,
+      `Dodos laid a single egg on the ground.`,
+      `They were fearless of humans, making them easy to hunt.`,
+      `The dodo is a symbol of extinction.`,
+      `Fossils show they were related to pigeons.`,
+      `Dodos primarily ate fruits and nuts.`
+    ]
+  },
+  {
+    name: 'Passenger Pigeon',
+    facts: [
+      `Passenger pigeons were once the most abundant bird in North America, with populations of 5 billion.`,
+      `They could fly at speeds up to 62 mph.`,
+      `Their flocks could darken the sky for days.`,
+      `They went extinct in 1914, with the last individual dying in captivity.`,
+      `Males were bluish-gray with red eyes; females were smaller.`,
+      `They nested in massive colonies covering hundreds of square miles.`,
+      `Habitat destruction and overhunting caused their extinction.`,
+      `They fed mainly on mast, fruits, and invertebrates.`,
+      `Passenger pigeons were highly social and bred communally.`,
+      `They could live up to 16.5 inches in length.`
+    ]
+  },
+  {
+    name: 'Smilodon',
+    facts: [
+      `Smilodon, or saber-toothed cat, had 7-inch canines.`,
+      `It could open its mouth to 120 degrees.`,
+      `Smilodon weighed up to 880 pounds.`,
+      `It lived in the Americas during the Pleistocene.`,
+      `Smilodon was not closely related to modern tigers.`,
+      `Its canines were used for slashing, not biting.`,
+      `It was an ambush predator, not a fast runner.`,
+      `Smilodon went extinct around 10,000 years ago.`,
+      `Fossils show it had powerful forelimbs for grappling prey.`,
+      `It primarily hunted large herbivores like bison.`
+    ]
+  },
+  {
+    name: 'Woolly Mammoth',
+    facts: [
+      `Woolly mammoths were covered in shaggy hair up to 3 feet long.`,
+      `They stood up to 13 feet tall at the shoulder.`,
+      `Woolly mammoths had curved tusks up to 14 feet long.`,
+      `They lived from 700,000 to 4,000 years ago.`,
+      `Their diet consisted of grasses and sedges.`,
+      `They had small ears to conserve heat.`,
+      `Woolly mammoths went extinct due to climate change and hunting.`,
+      `Some lived on Wrangel Island until 1650 BC.`,
+      `They are ancestors of modern elephants.`,
+      `Males weighed up to 6 tons.`
+    ]
+  },
+  {
+    name: 'Quagga',
+    facts: [
+      `The quagga was a subspecies of plains zebra.`,
+      `It had zebra stripes only on its head and neck.`,
+      `Quaggas lived in South Africa until the late 19th century.`,
+      `They formed vast herds in grasslands.`,
+      `The last wild quagga was shot in 1878.`,
+      `Quaggas were herbivores, grazing on grasses.`,
+      `They were mistaken for a separate species initially.`,
+      `The Quagga Project aims to breed look-alikes.`,
+      `Only one photograph exists of a living quagga.`,
+      `Quaggas weighed about 550 pounds.`
+    ]
+  },
+  {
+    name: 'Great Auk',
+    facts: [
+      `The great auk was a flightless seabird.`,
+      `It stood about 30 inches tall and weighed 11 pounds.`,
+      `Great auks had black plumage with white bellies.`,
+      `They went extinct in 1844 due to hunting.`,
+      `They nested in large colonies on rocky islands.`,
+      `Great auks used wings for swimming underwater.`,
+      `Their diet consisted of fish and crustaceans.`,
+      `They were found in the North Atlantic.`,
+      `Sailors hunted them for meat and feathers.`,
+      `The great auk laid a single large egg.`
+    ]
+  },
+  {
+    name: "Steller's Sea Cow",
+    facts: [
+      `Steller's sea cow was discovered in 1741 and extinct by 1768.`,
+      `It grew up to 30 feet long and weighed 10 tons.`,
+      `It was a sirenian, related to manatees.`,
+      `Steller's sea cows lived in the Bering Sea.`,
+      `They had thick, wrinkled, bark-like skin.`,
+      `Their diet was kelp and other seaweeds.`,
+      `They were hunted by fur traders for meat.`,
+      `Babies were born year-round, often in fall.`,
+      `They were gregarious, living in small herds.`,
+      `Steller's sea cow was the largest sirenian.`
+    ]
+  },
+  {
+    name: 'Irish Elk',
+    facts: [
+      `The Irish elk had antlers spanning up to 12 feet.`,
+      `It stood 7 feet tall at the shoulder.`,
+      `Irish elk weighed about 1,500 pounds.`,
+      `They lived across Eurasia during the Pleistocene.`,
+      `Antlers were used for display and combat.`,
+      `They went extinct around 7,700 years ago.`,
+      `Irish elk were herbivores, eating grasses and leaves.`,
+      `Males had larger antlers than females.`,
+      `They are not closely related to modern elk.`,
+      `Fossils show they thrived in open woodlands.`
+    ]
+  },
+  {
+    name: 'Moa',
+    facts: [
+      `Moa were giant flightless birds endemic to New Zealand.`,
+      `The largest species stood 12 feet tall.`,
+      `They weighed up to 550 pounds.`,
+      `Moa went extinct around 1440 AD due to Maori hunting.`,
+      `There were 11 species of moa.`,
+      `They had long necks and strong legs.`,
+      `Moa diet included leaves, fruits, and twigs.`,
+      `They laid large eggs on the ground.`,
+      `Moa were preyed upon by Haast's eagle.`,
+      `Fossils are abundant in swamps and caves.`
+    ]
+  },
+  {
+    name: 'Aurochs',
+    facts: [
+      `The aurochs was the wild ancestor of domestic cattle.`,
+      `It stood up to 6 feet at the shoulder.`,
+      `Aurochs weighed up to 1,800 pounds.`,
+      `They lived in Europe, Asia, and North Africa.`,
+      `Aurochs had long, lyre-shaped horns.`,
+      `They went extinct in 1627.`,
+      `Aurochs were herbivores, grazing on grasses.`,
+      `They were hunted by early humans.`,
+      `The last aurochs lived in Poland.`,
+      `Breeding back projects aim to recreate them.`
+    ]
+  },
+  {
+    name: 'Giant Ground Sloth',
+    facts: [
+      `Giant ground sloths like Megatherium stood 20 feet tall when upright.`,
+      `They weighed up to 4 tons.`,
+      `They lived in the Americas during the Pleistocene.`,
+      `Giant sloths had large claws for pulling branches.`,
+      `Their diet was leaves and soft plants.`,
+      `They went extinct around 10,000 years ago.`,
+      `Some evidence suggests human hunting contributed.`,
+      `They could rear up on hind legs to reach vegetation.`,
+      `Giant sloths had slow metabolisms.`,
+      `Fossils show they had peg-like teeth.`
+    ]
+  },
+  {
+    name: "Haast's Eagle",
+    facts: [
+      `Haast's eagle was the largest eagle ever known.`,
+      `It had a wingspan up to 9 feet.`,
+      `It weighed up to 33 pounds.`,
+      `Haast's eagle preyed on moa birds.`,
+      `It lived in New Zealand until about 1400 AD.`,
+      `Its talons were as large as a tiger's claws.`,
+      `It went extinct due to moa extinction and human arrival.`,
+      `Haast's eagle could snatch prey weighing 440 pounds.`,
+      `It had keen eyesight for hunting.`,
+      `Fossils include bones with eagle talon marks.`
+    ]
+  },
+  {
+    name: 'Glyptodon',
+    facts: [
+      `Glyptodon was a giant armadillo relative.`,
+      `It was 10 feet long and weighed 2 tons.`,
+      `Glyptodon had a armored shell like a turtle.`,
+      `It lived in South America during the Pleistocene.`,
+      `Its tail had bony spikes for defense.`,
+      `Glyptodon was a herbivore, eating grasses.`,
+      `It went extinct around 10,000 years ago.`,
+      `Young glyptodons had softer armor.`,
+      `It used claws for digging and foraging.`,
+      `Glyptodon fossils are found in Argentina.`
+    ]
+  },
+  {
+    name: 'Cave Bear',
+    facts: [
+      `Cave bears were mostly vegetarian, eating plants.`,
+      `They weighed up to 2,200 pounds.`,
+      `Cave bears lived in Europe during the Pleistocene.`,
+      `They hibernated in caves, leaving fossils there.`,
+      `Cave bears had stronger bites than modern bears.`,
+      `They went extinct around 24,000 years ago.`,
+      `Early humans may have worshiped them.`,
+      `Males were much larger than females.`,
+      `Cave bears had blunt teeth for grinding vegetation.`,
+      `Their population declined due to climate change.`
+    ]
+  },
+  {
+    name: 'American Mastodon',
+    facts: [
+      `American mastodons were covered in dense fur.`,
+      `They stood 9 feet tall and weighed 10 tons.`,
+      `Mastodons had straight tusks up to 13 feet long.`,
+      `They lived in North America until 10,000 years ago.`,
+      `Their name means "nipple tooth" due to molar shape.`,
+      `Mastodons browsed on trees and shrubs.`,
+      `They are not true elephants but proboscideans.`,
+      `Human hunting contributed to their extinction.`,
+      `Fossils show they had low-domed skulls.`,
+      `Mastodons migrated seasonally for food.`
+    ]
+  },
+  {
+    name: 'Arthropleura',
+    facts: [
+      `Arthropleura was the largest land invertebrate, up to 8 feet long.`,
+      `It was a giant millipede from the Carboniferous period.`,
+      `Arthropleura had no known predators due to size.`,
+      `It ate plants, possibly fungi or decaying matter.`,
+      `It lived 300 million years ago in swampy forests.`,
+      `Arthropleura could weigh as much as a large dog.`,
+      `Its body was segmented with many legs.`,
+      `Fossils are found in Europe and North America.`,
+      `It breathed through spiracles along its body.`,
+      `Arthropleura benefited from high oxygen levels.`
+    ]
+  },
+  {
+    name: 'Titanoboa',
+    facts: [
+      `Titanoboa was the largest snake ever, up to 50 feet long.`,
+      `It weighed over 2,500 pounds.`,
+      `Titanoboa lived 60 million years ago in South America.`,
+      `It was a constrictor, hunting large vertebrates.`,
+      `Its fossils were found in Colombia's Cerrejón Formation.`,
+      `Titanoboa could swallow prey whole.`,
+      `It lived in tropical rainforests.`,
+      `Titanoboa had heat-sensing organs.`,
+      `It went extinct due to cooling climate.`,
+      `It preyed on early crocodiles and giant turtles.`
+    ]
+  },
+  {
+    name: 'Spinosaurus',
+    facts: [
+      `Spinosaurus was the largest carnivorous dinosaur, up to 60 feet long.`,
+      `It had a sail-like fin on its back up to 7 feet tall.`,
+      `Spinosaurus was semi-aquatic, hunting in rivers.`,
+      `It lived in North Africa 100 million years ago.`,
+      `Its jaws resembled a crocodile's for catching fish.`,
+      `Spinosaurus had conical teeth for gripping slippery prey.`,
+      `It weighed up to 9.9 tons.`,
+      `Fossils show it had dense bones for diving.`,
+      `Spinosaurus may have been the first dinosaur to swim.`,
+      `It coexisted with other theropods like Carcharodontosaurus.`
+    ]
+  },
+  {
+    name: 'Dunkleosteus',
+    facts: [
+      `Dunkleosteus was a giant armored fish up to 30 feet long.`,
+      `It lived 382-358 million years ago in the Devonian.`,
+      `Its bite force was 8,000 pounds per square inch.`,
+      `Dunkleosteus had bony plates instead of teeth.`,
+      `It was an apex predator of ancient seas.`,
+      `Fossils show self-sharpening jaw edges.`,
+      `Dunkleosteus could open its mouth in 60 milliseconds.`,
+      `It weighed up to 4 tons.`,
+      `It had no true teeth but slicing plates.`,
+      `Dunkleosteus fossils are found worldwide.`
+    ]
+  },
+  {
+    name: 'Meganeura',
+    facts: [
+      `Meganeura was a giant dragonfly with a 2.5-foot wingspan.`,
+      `It lived 300 million years ago in the Carboniferous.`,
+      `High oxygen levels allowed its enormous size.`,
+      `Meganeura was a predator of smaller insects.`,
+      `It resembled modern dragonflies but was unrelated.`,
+      `Fossils are wing impressions from swamps.`,
+      `It could not fold its wings like modern insects.`,
+      `Meganeura hunted in fern forests.`,
+      `It was the largest flying insect ever.`,
+      `Its body was up to 1 foot long.`
+    ]
+  },
+  {
+    name: 'Hallucigenia',
+    facts: [
+      `Hallucigenia was a worm-like creature from the Cambrian period.`,
+      `It was 0.5 to 2 inches long.`,
+      `It had seven pairs of legs and spines.`,
+      `Hallucigenia lived 505 million years ago.`,
+      `Its mouth was lined with tiny teeth.`,
+      `It walked on stilt-like legs.`,
+      `Fossils were first reconstructed upside down.`,
+      `Hallucigenia was a lobopodian, related to velvet worms.`,
+      `It scavenged or fed on microbes.`,
+      `Its head was hard to distinguish from its tail.`
+    ]
+  },
+  {
+    name: 'Anomalocaris',
+    facts: [
+      `Anomalocaris was an early apex predator of the Cambrian.`,
+      `It grew up to 3 feet long.`,
+      `Anomalocaris had compound eyes with 16,000 lenses.`,
+      `It lived 520 million years ago.`,
+      `Its mouth had circular plates for grinding prey.`,
+      `Anomalocaris used grasping appendages to catch food.`,
+      `It swam with flaps along its body.`,
+      `Fossils show bite marks on trilobites.`,
+      `It was one of the first large swimmers.`,
+      `Anomalocaris was arthropod-like but unique.`
+    ]
+  },
   {
     name: 'Giant Armadillo',
     facts: [
