@@ -74,5 +74,8 @@
   "anglerfish": "./assets/images/anglerfish.webp",
   "flying-fish": "./assets/images/flying-fish.webp",
   "quetzalcoatlus": "./assets/images/quetzalcoatlus.webp",
-  "chinchilla": "./assets/images/chinchilla.webp"
+  "chinchilla": "./assets/images/chinchilla.webp",
+  "Hydra": "./assets/images/hydra.webp",
+  "Fossa": "./assets/images/fossa.webp",
+  "chinchilla": "./assets/images/blobfish.webp"
 }
