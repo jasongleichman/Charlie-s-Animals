@@ -1,4 +1,3 @@
-```javascript
 /* ================== APP DATA ================== */
 // Contains all the static data for the application.
 // This file is loaded before the main app script in index.html.
@@ -1896,4 +1895,3 @@ window.VIDEO_DATABASE = [
     { title: "Animal Fact Video 5: Okapi's Long Tongue", url: "https://youtube/embed/4j5-4rjrbqM?si=3xf129zUgJ2BZnFD?controls=0" }, 
     { title: "Animal Fact Video 6: Komodo Dragon Venom", url: "https://youtube/embed/pFaSswGnT0I?si=fThm0AI63VF6OSRN=0" }, 
 ];
-```
