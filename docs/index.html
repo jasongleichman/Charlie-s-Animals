@@ -400,7 +400,7 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const videoDatabase = window.VIDEO_DATABASE || [];
     const videoIndex = Math.floor(Math.random() * (videoDatabase.length || 1));
     const actualVideo = videoDatabase[videoIndex] || { title: 'No Video Available', url: '' };
-    const embedUrl = actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be"))
+    const embedUrl = (actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be")))
                      ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
                      : actualVideo.url;
     return (
@@ -468,7 +468,7 @@ const RewardsModal = ({ profile, onClose }) => {
                         <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
                     ) : videoDatabase.map((video, index) => {
                         const isUnlocked = rewardsEarned > index;
-                        const embedUrl = (video.url.includes("youtube.com") || video.url.includes("youtu.be"))
+                        const embedUrl = (video.url && (video.url.includes("youtube.com") || video.url.includes("youtu.be")))
                                         ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
                                         : video.url;
                        
