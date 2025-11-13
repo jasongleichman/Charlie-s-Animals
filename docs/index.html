@@ -372,13 +372,180 @@ const useAppState = () => {
         saveUserProfile, handleSignOut, speak, generateRewardAnimal, getAnimalDataForModal, loadUserProfile
     };
 };
-// --- UI COMPONENTS & MODALS (Defined outside App to fix scope) ---
+// --- UI COMPONENTS & MODALS (Hoisted to fix ReferenceErrors) ---
+
+// Generic Modal Component
+const Modal = ({ title, children, onClose }) => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
+        <div
+            className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
+            onClick={e => e.stopPropagation()}
+        >
+            <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                <h2 className="text-2xl font-semibold text-emerald-600">{title}</h2>
+                <button onClick={onClose} className="text-gray-500 hover:text-emerald-500 transition">
+                    <X className="w-6 h-6" />
+                </button>
+            </div>
+            <div className="py-4">
+                {children}
+            </div>
+        </div>
+    </div>
+);
+
+// Video Reward Modal Component
+const VideoRewardModal = ({ rewardTitle, onClose }) => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const videoDatabase = window.VIDEO_DATABASE || [];
+    const videoIndex = Math.floor(Math.random() * (videoDatabase.length || 1));
+    const actualVideo = videoDatabase[videoIndex] || { title: 'No Video Available', url: '' };
+    const embedUrl = actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be"))
+                     ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                     : actualVideo.url;
+    return (
+        <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
+            <div className="text-center space-y-4">
+                <h3 className="text-2xl font-bold text-gray-800">Video Unlocked: {actualVideo.title}</h3>
+                <p className="text-gray-500">You earned this video for 10 consecutive correct answers!</p>
+               
+                <div className="relative w-full aspect-video bg-gray-900 rounded-xl overflow-hidden flex items-center justify-center">
+                    {!actualVideo.url || !embedUrl ? (
+                        <div className="text-white">Video data missing.</div>
+                    ) : !isPlaying ? (
+                        <div className="flex flex-col items-center justify-center h-full w-full">
+                            <Video className="w-16 h-16 text-gray-500 mb-4" />
+                            <button
+                                onClick={() => setIsPlaying(true)}
+                                className="bg-emerald-500 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform flex items-center gap-2"
+                            >
+                                <Play className="w-6 h-6" /> Play Video
+                            </button>
+                        </div>
+                    ) : (
+                        <iframe
+                            className="w-full h-full"
+                            src={embedUrl}
+                            title={actualVideo.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            loading="lazy"
+                        ></iframe>
+                    )}
+                </div>
+               
+                <button
+                    onClick={onClose}
+                    className={`w-full bg-emerald-500 text-white font-semibold py-3 rounded-xl hover:bg-emerald-600 transition-colors mt-4
+                    ${!actualVideo.url ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={!actualVideo.url}
+                >
+                    Continue to Animal Fact <ArrowRight className="w-6 h-6 inline ml-2" />
+                </button>
+            </div>
+        </Modal>
+    );
+};
+
+// Rewards Modal Component
+const RewardsModal = ({ profile, onClose }) => {
+    const videoDatabase = window.VIDEO_DATABASE || [];
+    const rewardsEarned = profile.rewardsEarned || 0;
+    const totalVideos = videoDatabase.length;
+    return (
+        <Modal title="My Video Rewards" onClose={onClose}>
+            <div className="space-y-4">
+                <div className="text-center mb-4">
+                    <h3 className="text-2xl font-bold text-gray-800">Video Rewards Earned</h3>
+                    <p className="text-lg text-gray-500">Unlocked: <span className="font-semibold text-emerald-600">{`${rewardsEarned} / ${totalVideos}`}</span></p>
+                    <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
+                </div>
+         
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto p-1">
+                    {videoDatabase.length === 0 ? (
+                        <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
+                    ) : videoDatabase.map((video, index) => {
+                        const isUnlocked = rewardsEarned > index;
+                        const embedUrl = (video.url.includes("youtube.com") || video.url.includes("youtu.be"))
+                                        ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
+                                        : video.url;
+                       
+                        return (
+                            <div
+                                key={index}
+                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-70'}`}
+                            >
+                                <div className="relative aspect-video">
+                                    {isUnlocked ? (
+                                        <iframe
+                                            className="w-full h-full"
+                                            src={embedUrl}
+                                            title={video.title}
+                                            frameBorder="0"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                            loading="lazy"
+                                        ></iframe>
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                            <Lock className="w-8 h-8 text-gray-500" />
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-3">
+                                    <h4 className={`font-semibold line-clamp-2 ${isUnlocked ? 'text-gray-800' : 'text-gray-500'}`}>
+                                        {isUnlocked ? video.title : `Reward ${index + 1} (Locked)`}
+                                    </h4>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
+// Stats Modal Component
+const StatsModal = ({ profile, onClose }) => {
+    const sortedScores = profile.highScores
+        ? [...profile.highScores].sort((a, b) => b.score - a.score)
+        : [];
+   
+    return (
+        <Modal title="High Score History" onClose={onClose}>
+            <div className="space-y-4">
+                <p className="text-sm text-gray-500 border-b pb-2">All scores logged for player: <span className="font-semibold text-emerald-600">{profile.name}</span></p>
+                <div className="max-h-80 overflow-y-auto space-y-3">
+                    {sortedScores.length > 0 ? (
+                        sortedScores.map((s, index) => (
+                            <div key={index} className="bg-gray-50 p-4 rounded-xl flex justify-between items-center shadow-sm">
+                                <div className="flex items-center space-x-3">
+                                    <Trophy className={`w-6 h-6 ${index === 0 ? 'text-emerald-500' : 'text-gray-400'}`} />
+                                    <div>
+                                        <p className="text-lg font-bold text-gray-800">Score: {s.score}</p>
+                                        <p className="text-xs text-gray-500">Player: {s.userName}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-sm text-gray-600 font-semibold">{s.mode === 'words' ? 'Words Quiz' : 'Sentence Quiz'}</p>
+                                    <p className="text-xs text-gray-400">{new Date(s.date).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <p className="text-center text-gray-500 py-4">No scores logged yet. Start playing!</p>
+                    )}
+                </div>
+            </div>
+        </Modal>
+    );
+};
+
 
 // Sidebar component (Hoisted)
 const Sidebar = ({ profile, handleHomeClick, handleCollectionClick, handleScoresClick, handleRewardsClick, handleSignOutAndReset }) => {
-    const totalAnimals = window.ANIMAL_DATABASE ? window.ANIMAL_DATABASE.length : 0;
-    const collectedCount = (profile.collectedAnimals || []).length;
-    
     const SidebarButton = ({ icon: Icon, label, labelDesktop, onClick }) => (
         <button
             onClick={onClick}
@@ -430,132 +597,7 @@ const MainContainer = ({ children, sidebarProps }) => (
         </main>
     </div>
 );
-// Generic Modal Component (Sleek, Centered)
-const Modal = ({ title, children, onClose }) => (
-    // CRITICAL FIX: Removed onClick={onClose} from the outermost div (the backdrop)
-    // Modal now only closes when 'X' or a button explicitly calling onClose is clicked.
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75 p-4">
-        <div
-            className="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto transform transition-all duration-300 scale-100"
-            onClick={e => e.stopPropagation()} // Prevent clicks inside the white box from bubbling out
-        >
-            <div className="flex justify-between items-center pb-4 border-b border-gray-200">
-                <h2 className="text-2xl font-semibold text-emerald-600">{title}</h2>
-                <button onClick={onClose} className="text-gray-500 hover:text-emerald-500 transition">
-                    <X className="w-6 h-6" />
-                </button>
-            </div>
-            <div className="py-4">
-                {children}
-            </div>
-        </div>
-    </div>
-);
-// NEW SCREEN: Animal Details Screen (Full Screen replacement for FactModal in Gallery View)
-const AnimalDetailsScreen = ({ animal, profile, navigateTo, speak, isSpeaking, getAnimalDataForModal }) => {
-    // Note: 'animal' is already decorated with imageUrl from GalleryScreen's pre-fetch
-    const factsEarned = (profile.factIndices || {})[animal.name] || 0;
-    const totalFactsCount = animal.facts.length;
-    // State is managed by which fact is currently selected/highlighted
-    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
-    const [isLoading, setIsLoading] = useState(false);
 
-    // Unified click handler for fact rows: handles selection AND audio playback
-    const handleFactClick = useCallback((e, fact, index, isUnlocked, isCurrent) => {
-        // Stop propagation at the fact row level to prevent accidental closure
-        e.stopPropagation();
-        if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
-        
-        if (!isUnlocked) return;
-        
-        if (isCurrent) {
-            // User clicked the currently selected (green) fact -> Play Audio
-            speak(fact);
-        } else {
-            // User clicked an unlocked but not selected fact -> Select it
-            setFactIndex(index);
-        }
-    }, [setFactIndex, speak]);
-
-    // Use MainContainer for full screen layout
-    return (
-        <MainContainer sidebarProps={{ profile, handleHomeClick: () => navigateTo('home'), handleCollectionClick: () => navigateTo('gallery'), handleScoresClick: () => {}, handleRewardsClick: () => {}, handleSignOutAndReset: () => {} }}>
-            <div className="w-full max-w-lg">
-                <div className="flex justify-between items-center py-4 mb-6 border-b border-gray-200">
-                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
-                        <ChevronLeft className="w-6 h-6" />
-                    </button>
-                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
-                        {animal.name}
-                    </h1>
-                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
-                        <X className="w-6 h-6" />
-                    </button>
-                </div>
-                
-                <div className="bg-white border border-gray-200 p-6 rounded-3xl shadow-xl space-y-4">
-                    <div className="text-center">
-                        <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
-                    </div>
-                    
-                    <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
-                        <img
-                            src={animal.imageUrl}
-                            alt={animal.name}
-                            className="max-h-full object-contain"
-                            onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
-                        />
-                    </div>
-                    
-                    <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
-                    
-                    <div className="space-y-2 max-h-[50vh] overflow-y-auto p-1">
-                        {animal.facts.map((fact, index) => {
-                            const isUnlocked = index < factsEarned;
-                            const isCurrent = index === factIndex;
-                            const factNumber = index + 1;
-                            
-                            return (
-                                <div
-                                    key={index}
-                                    role="button"
-                                    tabIndex={isUnlocked ? 0 : -1}
-                                    className={`p-3 rounded-xl flex justify-between items-center transition-all ${
-                                        isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
-                                    } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
-                                    
-                                    onClick={(e) => handleFactClick(e, fact, index, isUnlocked, isCurrent)}
-                                >
-                                    {/* Fact Text Container */}
-                                    <span className={`text-sm font-medium pr-4 flex-grow ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                                        <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
-                                        {isUnlocked ? fact : "Locked: Complete more quizzes!"}
-                                    </span>
-                                    
-                                    {/* Audio/Lock Icon - now just for visual feedback */}
-                                    {isUnlocked ? (
-                                        <div
-                                            className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100'}`}
-                                            aria-label="Read fact aloud"
-                                        >
-                                            <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
-                                        </div>
-                                    ) : (
-                                        <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                    
-                    <button onClick={() => navigateTo('gallery')} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
-                        Back to Collection
-                    </button>
-                </div>
-            </div>
-        </MainContainer>
-    );
-};
 // Welcome Screen component (Hoisted)
 function AW_WelcomeScreen({ onStart }){
   const [profiles, setProfiles] = React.useState(() => awLoadProfiles().sort((a,b) => b.lastPlayed - a.lastPlayed));
@@ -678,6 +720,8 @@ function AW_WelcomeScreen({ onStart }){
     </main>
   );
 }
+
+
 // MAIN APP COMPONENT
 const AnimalReadingApp = () => {
     // 🔥 State Hook
@@ -921,6 +965,7 @@ const AnimalReadingApp = () => {
     const GameScreen = () => {
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
         const currentItem = currentContent[currentIndex];
+        
         const autoPlayFlag = useRef(false);
        
         if (!currentItem) { return <LoadingScreen />; }
