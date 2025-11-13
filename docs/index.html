@@ -642,100 +642,106 @@ const Modal = ({ title, children, onClose }) => (
         </div>
     </div>
 );
-// Fact Modal Component (FIXED: Structural changes to resolve click conflicts and unify audio playback)
-const FactModal = ({ animal, factsEarned, totalFacts, onClose, speak, isSpeaking }) => {
-    // Default to the newest earned fact, or fact 0 if no facts earned yet (for gallery view)
-    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
+// NEW SCREEN: Animal Details Screen (Replaces FactModal logic for Gallery View)
+const AnimalDetailsScreen = ({ animal, profile, setProfile, navigateTo, speak, isSpeaking }) => {
+    const factsEarned = (profile.factIndices || {})[animal.name] || 0;
     const totalFactsCount = animal.facts.length;
+    // State is managed by which fact is currently selected/highlighted
+    const [factIndex, setFactIndex] = useState(factsEarned > 0 ? factsEarned - 1 : 0);
     
-    useEffect(() => {
-        // When factsEarned changes (e.g., in reward modal), update to show the *newest* fact
-        if (factsEarned > 0) {
-            setFactIndex(factsEarned - 1);
-        }
-    }, [factsEarned]);
-
-    // NEW unified click handler for fact rows to prevent modal closure and handle new logic
+    // Unified click handler for fact rows: handles selection AND audio playback
     const handleFactClick = useCallback((e, fact, index, isUnlocked, isCurrent) => {
-        // Stop propagation at the fact row level to prevent the outside-click logic
+        // Stop propagation just in case, though the parent Modal handler is removed
         e.stopPropagation();
         if (e.nativeEvent) e.nativeEvent.stopImmediatePropagation();
         
-        if (!isUnlocked) return; // Do nothing if locked
+        if (!isUnlocked) return;
         
         if (isCurrent) {
-            // User clicked the currently selected (green) fact -> Play Audio
+            // User clicked the currently selected (highlighted) fact -> Play Audio
             speak(fact);
         } else {
             // User clicked an unlocked but not selected fact -> Select it
             setFactIndex(index);
         }
-    }, [setFactIndex, speak]); 
+    }, [setFactIndex, speak]);
 
     return (
-        <Modal title={`${animal.name} Collection`} onClose={onClose}>
-            <div className="space-y-4">
-                <div className="text-center">
-                    <h3 className="text-xl font-bold text-gray-800">{animal.name}</h3>
-                    
-                    <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
+        <MainContainer>
+            <div className="w-full max-w-lg">
+                <div className="flex justify-between items-center py-4 mb-6 border-b border-gray-200">
+                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
+                        <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                        {animal.name}
+                    </h1>
+                    <button onClick={() => navigateTo('gallery')} className="text-gray-700 hover:text-emerald-500 p-2 rounded-full border border-gray-300 transition-colors">
+                        <X className="w-6 h-6" />
+                    </button>
                 </div>
-                <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
-                    <img
-                        src={animal.imageUrl}
-                        alt={animal.name}
-                        className="max-h-full object-contain"
-                        onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
-                    />
-                </div>
-                <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
                 
-                <div className="space-y-2 max-h-60 overflow-y-auto p-1">
-                    {animal.facts.map((fact, index) => {
-                        const isUnlocked = index < factsEarned;
-                        const isCurrent = index === factIndex;
-                        const factNumber = index + 1;
-                       
-                        return (
-                            <div
-                                key={index}
-                                role="button"
-                                tabIndex={isUnlocked ? 0 : -1}
-                                // The entire div is now the click target
-                                className={`p-3 rounded-lg flex justify-between items-center transition-all ${
-                                    isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
-                                } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
-                                
-                                onClick={(e) => handleFactClick(e, fact, index, isUnlocked, isCurrent)}
-                            >
-                                {/* Fact Text Container */}
-                                <span className={`text-sm font-medium pr-4 flex-grow ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
-                                    <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
-                                    {isUnlocked ? fact : "Locked: Complete more quizzes!"}
-                                </span>
-                                
-                                {/* Audio/Lock Icon - now just for visual feedback */}
-                                {isUnlocked ? (
-                                    <div
-                                        // This is a div for visual feedback only. Clicking it triggers the parent div's onClick.
-                                        className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100'}`}
-                                        aria-label="Read fact aloud"
-                                    >
-                                        <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
-                                    </div>
-                                ) : (
-                                    <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                )}
-                            </div>
-                        );
-                    })}
+                <div className="bg-white border border-gray-200 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div className="text-center">
+                        <p className="text-sm text-gray-500">Facts Unlocked: <span className="font-semibold text-emerald-600">{`${factsEarned} / ${totalFactsCount}`}</span></p>
+                    </div>
+                    
+                    <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
+                        <img
+                            src={animal.imageUrl}
+                            alt={animal.name}
+                            className="max-h-full object-contain"
+                            onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x192/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
+                        />
+                    </div>
+                    
+                    <h4 className="text-lg font-semibold text-gray-700 mt-4 border-t pt-4">Fact Details:</h4>
+                    
+                    <div className="space-y-2 max-h-[50vh] overflow-y-auto p-1">
+                        {animal.facts.map((fact, index) => {
+                            const isUnlocked = index < factsEarned;
+                            const isCurrent = index === factIndex;
+                            const factNumber = index + 1;
+                            
+                            return (
+                                <div
+                                    key={index}
+                                    role="button"
+                                    tabIndex={isUnlocked ? 0 : -1}
+                                    className={`p-3 rounded-xl flex justify-between items-center transition-all ${
+                                        isUnlocked ? 'hover:bg-emerald-50 cursor-pointer' : 'bg-gray-100 text-gray-400 opacity-80'
+                                    } ${isCurrent && isUnlocked ? 'border-2 border-emerald-500 shadow-md bg-emerald-50' : 'border border-transparent'}`}
+                                    
+                                    onClick={(e) => handleFactClick(e, fact, index, isUnlocked, isCurrent)}
+                                >
+                                    {/* Fact Text Container */}
+                                    <span className={`text-sm font-medium pr-4 flex-grow ${isUnlocked ? 'text-gray-700' : 'text-gray-500'}`}>
+                                        <strong className="text-emerald-600">Fact {`${factNumber}`}:</strong>
+                                        {isUnlocked ? fact : "Locked: Complete more quizzes!"}
+                                    </span>
+                                    
+                                    {/* Audio/Lock Icon - now just for visual feedback */}
+                                    {isUnlocked ? (
+                                        <div
+                                            className={`p-2 rounded-full flex-shrink-0 transition ${isSpeaking && isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-emerald-100'}`}
+                                            aria-label="Read fact aloud"
+                                        >
+                                            <Volume2 className={`w-5 h-5 ${isSpeaking && isCurrent ? 'text-white' : 'text-emerald-600'}`} />
+                                        </div>
+                                    ) : (
+                                        <Lock className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                    
+                    <button onClick={() => navigateTo('gallery')} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
+                        Back to Collection
+                    </button>
                 </div>
-               
-                <button onClick={onClose} className="w-full bg-gray-200 text-gray-700 font-semibold py-3 rounded-xl hover:bg-gray-300 transition-colors mt-4">
-                    Back to Collection
-                </button>
             </div>
-        </Modal>
+        </MainContainer>
     );
 };
 // Video Reward Modal Component (Used only after a 10-streak)
@@ -775,7 +781,6 @@ const VideoRewardModal = ({ rewardTitle, onClose }) => {
                             // FIX 3: Use the embed URL for correct playback
                             src={embedUrl}
                             title={actualVideo.title}
-                            frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
                             loading="lazy"
@@ -904,7 +909,7 @@ const AnimalReadingApp = () => {
         loadUserProfile
     } = useAppState();
     // --- Local Game State ---
-    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'home', 'game', 'complete', 'gallery'
+    const [appView, setAppView] = useState('loading'); // 'loading', 'setup', 'home', 'game', 'complete', 'gallery', 'animal-details'
     const [gameMode, setGameMode] = useState('words');
     const [currentIndex, setCurrentIndex] = useState(0);
     const [score, setScore] = useState(0);
@@ -913,19 +918,26 @@ const AnimalReadingApp = () => {
     const [selectedAnswer, setSelectedAnswer] = useState(null);
     const [animalData, setAnimalData] = useState(null); // The animal object for the reward screen
     const [pausedGame, setPausedGame] = useState(null); // Stores { mode, index, score } of a paused game
+    const [selectedAnimalForDetails, setSelectedAnimalForDetails] = useState(null); // Tracks the animal to show in AnimalDetailsScreen
    
     // UI State (Modals that persist across main views)
     const [showStatsModal, setShowStatsModal] = useState(false);
     const [showRewardsModal, setShowRewardsModal] = useState(false);
    
     // FIX (Navigation Bug): Centralized navigation function to ensure modals are cleared on view change
-    const navigateTo = useCallback((newView, clearModals = true) => {
+    const navigateTo = useCallback((newView, clearModals = true, animalName = null) => {
         if (clearModals) {
             setShowStatsModal(false);
             setShowRewardsModal(false);
         }
+        if (newView === 'animal-details' && animalName) {
+             const animal = window.ANIMAL_DATABASE.find(a => a.name === animalName);
+             setSelectedAnimalForDetails(animal);
+        } else if (newView !== 'animal-details') {
+             setSelectedAnimalForDetails(null);
+        }
         setAppView(newView);
-    }, [setAppView, setShowStatsModal, setShowRewardsModal]);
+    }, [setAppView, setShowStatsModal, setShowRewardsModal, setSelectedAnimalForDetails]);
     // --- Game Data Initializer & Shuffling ---
     const [shuffledWords, setShuffledWords] = useState([]);
     const [shuffledSentences, setShuffledSentences] = useState([]);
@@ -1253,6 +1265,9 @@ const AnimalReadingApp = () => {
     const GameScreen = () => {
         const currentContent = gameMode === 'words' ? shuffledWords : shuffledSentences;
         const currentItem = currentContent[currentIndex];
+        
+        // FIX for Auto-Play Loop: Use a ref to track if audio has played in this modal instance
+        const autoPlayFlag = useRef(false);
        
         if (!currentItem) {
             return (
@@ -1270,13 +1285,18 @@ const AnimalReadingApp = () => {
             if (!animal) return <LoadingScreen />; // Should be pre-loaded, but just in case
             const totalFacts = (window.ANIMAL_DATABASE || []).find(a => a.name === animal.name)?.facts.length || 10;
            
-            // NEW FEATURE: Auto-play the earned fact when the modal loads
+            // FIX: Auto-play logic using useRef to ensure single execution per modal appearance
             useEffect(() => {
-                if (showRewardModal && animalData) {
+                if (showRewardModal && animalData && !autoPlayFlag.current) {
                     const factToPlay = animalData.facts[animalData.earnedFactIndex - 1];
                     if (factToPlay) {
                         speak(factToPlay);
+                        autoPlayFlag.current = true; // Mark as played
                     }
+                }
+                // Reset flag when modal closes (e.g., when moving to the next question)
+                if (!showRewardModal) {
+                    autoPlayFlag.current = false;
                 }
             }, [showRewardModal, animalData, speak]);
 
@@ -1309,16 +1329,8 @@ const AnimalReadingApp = () => {
                                   
                                     Total Facts Earned: <span className="font-semibold text-emerald-600">{`${animal.earnedFactIndex} / ${totalFacts}`}</span>
                                 </p>
-                                <button
-                                    onClick={() => speak(animal.facts[animal.earnedFactIndex - 1])}
-                                    disabled={isSpeaking}
-                                    className="w-full bg-emerald-50 text-emerald-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-3 transition-colors shadow-md hover:bg-emerald-100"
-                                >
-                                    {isSpeaking ? <Loader2 className="w-6 h-6 animate-spin" /> : <Volume2 className="w-6 h-6" />}
-                                    {animal.facts[animal.earnedFactIndex - 1]}
-                                </button>
-                               
-                                <h4 className="text-lg font-semibold text-gray-700 mt-4 pt-4 border-t">New Fact:</h4>
+                                
+                                {/* FIX: Move Image Above "New Fact" Text */}
                                 <div className="h-48 bg-gray-100 rounded-xl flex items-center justify-center overflow-hidden shadow-inner">
                                     {isLoading ? (
                                         <Loader2 className="w-12 h-12 animate-spin text-gray-400" />
@@ -1331,6 +1343,18 @@ const AnimalReadingApp = () => {
                                         />
                                     )}
                                 </div>
+                               
+                                <h4 className="text-lg font-semibold text-gray-700 mt-4 pt-4 border-t">New Fact:</h4>
+                                
+                                {/* FIX: Move Green Fact Box Below "New Fact" Text */}
+                                <button
+                                    onClick={() => speak(animal.facts[animal.earnedFactIndex - 1])}
+                                    disabled={isSpeaking}
+                                    className="w-full bg-emerald-50 text-emerald-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-3 transition-colors shadow-md hover:bg-emerald-100"
+                                >
+                                    {isSpeaking ? <Loader2 className="w-6 h-6 animate-spin" /> : <Volume2 className="w-6 h-6" />}
+                                    {animal.facts[animal.earnedFactIndex - 1]}
+                                </button>
                                
                                 <button
                                     onClick={() => moveToNextQuestion(animal.name)}
@@ -1466,27 +1490,26 @@ const AnimalReadingApp = () => {
    
     // FIX (Collection Modal): Added local loading state and verified async function structure.
     const GalleryScreen = () => {
-        const [factModalOpen, setFactModalOpen] = useState(false);
         const [modalLoading, setModalLoading] = useState(false); // NEW: Local loading state
-        const [currentAnimal, setCurrentAnimal] = useState(null);
         const [imageUrls, setImageUrls] = useState({});
-        const openFactModal = useCallback(async (animal) => {
+        
+        // Modified openFactModal to navigate to the new full screen
+        const openFactDetails = useCallback(async (animalName) => {
             if (modalLoading) return;
-            setModalLoading(true); // Start loading indicator
-            // Await the asynchronous data fetch
-            const animalWithData = await getAnimalDataForModal(animal.name);
-            // Once data is returned, stop loading, update data, and open modal
-            setModalLoading(false);
-            if (animalWithData) {
-                const factsEarned = (profile.factIndices || {})[animal.name] || 0;
-               
-                setCurrentAnimal({ ...animalWithData, factsEarned });
-                setFactModalOpen(true);
-            } else {
-                console.error("Failed to load full animal data for modal.");
-                // Optionally show a user-facing error message here
+            setModalLoading(true);
+            const animal = window.ANIMAL_DATABASE.find(a => a.name === animalName);
+            if (animal) {
+                // Preload image data for the detail screen
+                const animalWithData = await getAnimalDataForModal(animalName);
+                if (animalWithData) {
+                    setSelectedAnimalForDetails(animalWithData);
+                    navigateTo('animal-details', false);
+                } else {
+                    console.error("Failed to load full animal data for details screen.");
+                }
             }
-        }, [getAnimalDataForModal, profile.factIndices, modalLoading]);
+            setModalLoading(false);
+        }, [getAnimalDataForModal, modalLoading, navigateTo, setSelectedAnimalForDetails]);
        
         // Logic for preloading image manifest remains the same
         useEffect(() => {
@@ -1533,7 +1556,7 @@ const AnimalReadingApp = () => {
                                 <div
                                     key={animal.name}
                                     className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
-                                    onClick={() => isCollected && openFactModal(animal)}
+                                    onClick={() => isCollected && openFactDetails(animal.name)}
                                 >
                                     <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
                                         {isCollected ? (
@@ -1568,17 +1591,9 @@ const AnimalReadingApp = () => {
                          <Loader2 className="w-16 h-16 animate-spin text-emerald-400" />
                     </div>
                 )}
-              
-                {factModalOpen && currentAnimal && (
-                <FactModal
-                    animal={currentAnimal}
-                    factsEarned={currentAnimal.factsEarned}
-                    totalFacts={currentAnimal.facts.length}
-                    onClose={() => { setFactModalOpen(false); setCurrentAnimal(null); }}
-                    speak={speak}
-                    isSpeaking={isSpeaking}
-                />
-                )}
+                {/* Modals are handled outside of the main view component */}
+                {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
+                {showRewardsModal && <RewardsModal profile={profile} onClose={() => setShowRewardsModal(false)} />}
             </MainContainer>
         );
     };
@@ -1596,6 +1611,19 @@ const AnimalReadingApp = () => {
         case 'complete':
             return <CompletionScreen />;
         case 'gallery':
+            return <GalleryScreen />;
+        case 'animal-details':
+            if (selectedAnimalForDetails) {
+                 return <AnimalDetailsScreen 
+                            animal={selectedAnimalForDetails} 
+                            profile={profile}
+                            setProfile={setProfile}
+                            navigateTo={navigateTo}
+                            speak={speak}
+                            isSpeaking={isSpeaking}
+                        />;
+            }
+            // Fallback to gallery if no animal is selected
             return <GalleryScreen />;
         default:
             return <LoadingScreen />; // Default to loading
