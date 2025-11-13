@@ -11,7 +11,7 @@ hit.split("=").slice(1).join("=") : def;
 const DB_PATH   = arg("db", "docs/index.html");
 const OUT_ROOT  = arg("out", "./docs/assets");
 const RATE_MS   = parseInt(arg("rate", "1000"), 10) || 1000;
-const VOICE_ID  = arg("voice", "Matthew");
+const VOICE_ID  = arg("voice", "Joanna");
 // e.g., Matthew, Joanna, Salli, etc.
 
 const TTS_DIR   = path.join(OUT_ROOT, "tts");
@@ -57,7 +57,7 @@ function collectAllText({ animals, sightWords, sentences }) {
   animals.forEach(animal => {
     if (animal.name) textSet.add(animal.name);
   });
-
+ 
   // 2. Animal Facts
   let factCount = 0;
   animals.forEach(animal => {
@@ -96,7 +96,7 @@ async function synthesizeToFile(text, outFile) {
     OutputFormat: "mp3",
     Text: text,
     VoiceId: VOICE_ID,
-    Engine: "standard",         // use "standard" to avoid neural-engine region errors
+    Engine: "neural",         // use "standard" to avoid neural-engine region errors
     LanguageCode: "en-US",      // clear American English
     SampleRate: "22050"
   });
