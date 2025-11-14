@@ -8,6 +8,7 @@ const fetch = nodeFetch.default || nodeFetch;
 // -------- VOICE CONFIGURATION (Using specific Voice IDs) --------
 const VOICE_SIGHT_WORDS_ID = "8SKmtcPfPSqEllqMebBk"; // Misti
 const VOICE_ANIMAL_FACTS_ID = "j9jfwdrw7BRfcR43Qohk"; // Frederick Surrey
+// FINAL MODEL FIX: Use the recommended stable model
 const MODEL_ID = "eleven_multilingual_v2"; 
 
 // -------- CLI ARGS --------
@@ -19,7 +20,6 @@ function arg(key, def = null) {
 const DB_PATH   = arg("db", "docs/index.html");
 const OUT_ROOT  = arg("out", "./docs/assets");
 const RATE_MS   = parseInt(arg("rate", "1000"), 10) || 1000;
-// NEW ARG: Scope to limit generation to 'words', 'facts', or 'all'
 const SCOPE_MODE = arg("scope", "all"); 
 
 const TTS_DIR   = path.join(OUT_ROOT, "tts");
@@ -163,7 +163,7 @@ async function main() {
       await sleep(RATE_MS);
     } catch (e) {
       failed++;
-      console.error(`❌ TTS fail (ID: ${voiceId.substring(0, 4)}...): ${text.substring(0, 60)}... :: ${e.message || e}`);
+      console.error(`❌ TTS fail (ID: ${voiceId.substring(0, 4)}...): ${e.message || e}`);
       
       // Attempt to handle length limit by truncation
       if (e.message && e.message.includes("Text length exceeded")) {
