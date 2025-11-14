@@ -24,14 +24,11 @@ jobs:
         with:
           node-version: "20"
 
-   # aws   - name: Ensure folders 
-
-  # ⬇️ NEW: Install node-fetch for API calls and new TTS script ELEVEN LABS
-        name: Install TTS dependencies (node-fetch)
+      # ⬇️ NEW: Install node-fetch for Eleven Labs API calls
+      - name: Install TTS dependencies (node-fetch)
         run: npm install node-fetch
-        name: Ensure assets folders
-   
-      
+
+      - name: Ensure assets folders
         run: |
           mkdir -p docs/assets/images docs/assets/tts
 
@@ -40,21 +37,11 @@ jobs:
         run: |
           node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ⬇️ NEW: install AWS Polly SDK so the runner can call Polly    AWS
-      # - name: Install deps for TTS   AWS
-      #  run: npm i @aws-sdk/client-polly  AWS
-
-      # ⬇️ NEW: build only the missing TTS files with AWS Polly OR ELEVEN LABS
-      - name: Build TTS (diff-only, AWS Polly )
+      # ⬇️ FINAL: Build only the missing TTS files with Eleven Labs (Dual Voice)
+      - name: Build TTS (diff-only, Eleven Labs)
         env:
-         # AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-         # AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-         # AWS_REGION: ${{ secrets.AWS_REGION }}   # e.g. us-east-1
-        run: |
-      # node scripts/build_tts_polly.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --voice=Joanna  AWS
-
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-        node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000
+        run: node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000
 
       # Commit only if something actually changed
       - name: Commit & push if changes
