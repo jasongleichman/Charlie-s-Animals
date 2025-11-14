@@ -8,7 +8,7 @@ const fetch = nodeFetch.default || nodeFetch;
 
 // -------- VOICE CONFIGURATION (Using specific Voice IDs) --------
 const VOICE_SIGHT_WORDS_ID = "qyFhaJEAwHR0eYLCmlUT"; // Adam - Engineering Professor
-const VOICE_ANIMAL_FACTS_ID = "sIsyDvq54C8vCgtvpJac"; // Frederick Surrey
+const VOICE_ANIMAL_FACTS_ID = "qyFhaJEAwHR0eYLCmlUT"; // Frederick Surrey
 const MODEL_ID = "eleven_monolingual_v1"; // Recommended stable model
 
 // -------- CLI ARGS --------
