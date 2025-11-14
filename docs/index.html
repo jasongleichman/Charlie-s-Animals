@@ -398,11 +398,17 @@ const Modal = ({ title, children, onClose }) => (
 const VideoRewardModal = ({ rewardTitle, onClose }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const videoDatabase = window.VIDEO_DATABASE || [];
-    const videoIndex = Math.floor(Math.random() * (videoDatabase.length || 1));
+    
+    // If there are videos, use a random index, otherwise use a placeholder
+    const maxIndex = (videoDatabase.length > 0) ? videoDatabase.length : 1;
+    const videoIndex = Math.floor(Math.random() * maxIndex);
     const actualVideo = videoDatabase[videoIndex] || { title: 'No Video Available', url: '' };
-    const embedUrl = (actualVideo.url && (actualVideo.url.includes("youtube.com") || actualVideo.url.includes("youtu.be")))
-                     ? actualVideo.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
-                     : actualVideo.url;
+    
+    // FIX: Normalize URL to the proper embed path for stability and fix 404 errors
+    const embedUrl = actualVideo.url
+        ? actualVideo.url.replace(/(?:youtu\.be\/|watch\?v=)([^&?]+)/, 'https://www.youtube.com/embed/$1')
+        : '';
+
     return (
         <Modal title="🎉 10-Streak Reward!" onClose={onClose}>
             <div className="text-center space-y-4">
@@ -463,21 +469,23 @@ const RewardsModal = ({ profile, onClose }) => {
                     <p className="text-sm text-gray-500 mt-1">Earn a new video for every 10-question streak!</p>
                 </div>
          
-                <div className="flex flex-col space-y-4 max-h-96 overflow-y-auto p-2">
+                <div className="flex flex-col space-y-4 max-h-96 overflow-y-auto p-2"> 
                     {videoDatabase.length === 0 ? (
                         <p className="text-center text-gray-500 col-span-full py-8">No video rewards available yet.</p>
                     ) : videoDatabase.map((video, index) => {
                         const isUnlocked = rewardsEarned > index;
-                        const embedUrl = (video.url && (video.url.includes("youtube.com") || video.url.includes("youtu.be")))
-                                        ? video.url.replace(/(watch\?v=|\/youtu\.be\/)([^&]+).*/, 'embed/$2')
-                                        : video.url;
+                        
+                        // FIX: Normalize URL to the proper embed path
+                        const embedUrl = video.url 
+                            ? video.url.replace(/(?:youtu\.be\/|watch\?v=)([^&?]+)/, 'https://www.youtube.com/embed/$1')
+                            : '';
                        
                         return (
                             <div
                                 key={index}
-                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all w-full p-2 ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-80'}`}
+                                className={`bg-white rounded-xl overflow-hidden shadow-md transition-all w-full p-4 ${isUnlocked ? 'border-2 border-emerald-500' : 'border-2 border-gray-300 opacity-80'}`}
                             >
-                                <div className="relative aspect-video">
+                                <div className="relative aspect-video p-2"> 
                                     {isUnlocked ? (
                                         <iframe
                                             className="w-full h-full"
@@ -1307,10 +1315,10 @@ const AnimalReadingApp = () => {
                             return (
                                 <div
                                     key={animal.name}
-                                    className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-60'}`}
+                                    className={`bg-white rounded-2xl overflow-hidden shadow-md transition-all ${isCollected ? 'border-2 border-emerald-200 hover:shadow-lg cursor-pointer' : 'border border-gray-200 opacity-80'}`}
                                     onClick={() => isCollected && openFactDetails(animal.name)}
                                 >
-                                    <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden">
+                                    <div className="h-36 bg-gray-100 flex items-center justify-center overflow-hidden p-4">
                                         {isCollected ? (
                                             <img
                                                 src={imageUrl}
@@ -1319,7 +1327,7 @@ const AnimalReadingApp = () => {
                                                 onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/400x250/f0fdf4/065f46?text=${animal.name.replace(' ', '+')}` }}
                                             />
                                         ) : (
-                                            <span className="text-xl text-gray-400 font-semibold">LOCKED</span>
+                                            <Lock className="w-12 h-12 text-gray-500" />
                                         )}
                                     </div>
                                     <div className="p-4">
@@ -1395,6 +1403,11 @@ root.render(<AnimalReadingApp />);
       }, 600);
   });
 </script>
+ 
+  <script>
+    // Make the Change Player/Sign Out area always work as a safety net
+    document.addEventListener('click', function(e){
+      const el = e.target.closest('[data-action="signout"], [data-action
  
   <script>
     // Make the Change Player/Sign Out area always work as a safety net
