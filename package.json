@@ -6,6 +6,7 @@
     "build:assets": "node scripts/build_assets.cjs --db=docs/index.html --out=./docs/assets --images --tts --rate=7000"
   },
   "dependencies": {
-    "@aws-sdk/client-polly": "^3.931.0"
+    "@aws-sdk/client-polly": "^3.931.0",
+    "node-fetch": "^3.3.2"
   }
 }
