@@ -5,7 +5,7 @@ import vm from "vm";
 import { Buffer } from "buffer"; 
 
 // --------- helpers ----------
-const __filename = fileURL2Path(import.meta.url);
+const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function slugify(name) {
@@ -32,9 +32,9 @@ async function fetchBuffer(url) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-// --- CENTRALIZED IMAGE URLS (To avoid modifying app-data.js) ---
+// --- CENTRALIZED IMAGE URLS (CORRECTED LIST) ---
 const WIKIMEDIA_SOURCES = {
-    // Note: Updated URLs to known-good Wikimedia File paths. The 404 was due to invalid image links.
+    // Note: These URLs point to the primary file pages, and are generally more stable than direct file links.
     "Goliath Bird-Eater": "https://upload.wikimedia.org/wikipedia/commons/f/ff/Goliath_Bird-Eating_Tarantula_at_the_Cincinnati_Zoo.jpg",
     "Glass Lizard": "https://upload.wikimedia.org/wikipedia/commons/0/07/Western_Slender_Glass_Lizard_%28Ophisaurus_attenuatus_attenuatus%29_%2848072177003%29.jpg",
     "Giant Weta": "https://upload.wikimedia.org/wikipedia/commons/2/23/Cook_Strait_Giant_Weta_%285601688959%29.jpg",
@@ -122,7 +122,7 @@ async function main() {
   if (!animalMatch) throw new Error("Could not find window.ANIMAL_DATABASE in the script.");
 
   // Use vm to safely evaluate the array literal (replacing backticks with quotes where possible for compatibility)
-  // This structure is specifically designed to handle the problematic template literal strings like `... a "skulk" or a "leash"...`
+  // This structure is specifically designed to handle the problematic template literal strings.
   const animalListString = animalMatch[1]
       .replace(/`([^`]*)`/gs, (match, p1) => `'${p1.replace(/'/g, "\\'")}'`) // Replace backticks with single quotes, escaping internal single quotes
       .replace(/window\.(ANIMAL_DATABASE|sightWordsData|sentencesData|VIDEO_DATABASE)/g, '$1'); // Remove 'window.'
