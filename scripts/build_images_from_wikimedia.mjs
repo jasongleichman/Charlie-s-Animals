@@ -34,7 +34,7 @@ async function fetchBuffer(url) {
 
 // --- CENTRALIZED IMAGE URLS (To avoid modifying app-data.js) ---
 const WIKIMEDIA_SOURCES = {
-    // Note: The first 53 files exist locally, but subsequent files need remote URLs for download.
+    // Note: The script will prioritize downloading images for these animals if the local file is missing.
     "Goliath Bird-Eater": "https://upload.wikimedia.org/wikipedia/commons/e/e9/GoliathBird-EatingTarantula_TheraposaBlondi.jpg",
     "Glass Lizard": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Western_Slender_Glass_Lizard_%28Ophisaurus_attenuatus_attenuatus%29_%2848072177003%29.jpg",
     "Giant Weta": "https://upload.wikimedia.org/wikipedia/commons/2/23/Cook_Strait_Giant_Weta_%285601688959%29.jpg",
@@ -111,19 +111,25 @@ async function main() {
   fs.mkdirSync(outDir, { recursive: true });
   fs.mkdirSync(imagesDir, { recursive: true });
 
-  // --- Parse data (from app-data.js located in the specified output directory) ---
-  const dataPath = path.join(path.dirname(args.db), 'assets', 'app-data.js');
+  // --- Parse data from app-data.js (robust parsing using VM) ---
+  const dataPath = path.join(path.dirname(args.db), 'assets', 'app-data.js'); // Assuming docs/index.html -> docs/assets/app-data.js
   if (!fs.existsSync(dataPath)) throw new Error(`Data file not found at expected path: ${dataPath}`);
 
   const dataContent = fs.readFileSync(dataPath, "utf8");
   
-  // Extract ANIMAL_DATABASE content by stripping 'window.' and reading the raw array string
+  // Extract ANIMAL_DATABASE content by finding the raw array string
   const animalMatch = dataContent.match(/window\.ANIMAL_DATABASE\s*=\s*(\[[^]*?\]);/s);
   if (!animalMatch) throw new Error("Could not find window.ANIMAL_DATABASE in the script.");
 
-  // Use vm to safely evaluate the array literal (after removing 'window.')
-  const ctx = { Array, Object }; // Only provide necessary global objects
-  const animals = vm.runInNewContext(animalMatch[1].replace(/`|'/g, "\""), ctx) || [];
+  // Use vm to safely evaluate the array literal (replacing backticks with quotes where possible for compatibility)
+  // This structure is specifically designed to handle the problematic template literal strings.
+  const animalListString = animalMatch[1]
+      .replace(/`([^`]*)`/gs, (match, p1) => `'${p1.replace(/'/g, "\\'")}'`) // Replace backticks with single quotes, escaping internal single quotes
+      .replace(/window\.(ANIMAL_DATABASE|sightWordsData|sentencesData|VIDEO_DATABASE)/g, '$1'); // Remove 'window.'
+
+  const sandbox = { ANIMAL_DATABASE: [], Array, Object, String };
+  vm.createContext(sandbox);
+  const animals = vm.runInContext('ANIMAL_DATABASE = ' + animalListString, sandbox);
 
   const names = new Set();
   animals.forEach(a => {
