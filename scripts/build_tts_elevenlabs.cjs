@@ -4,6 +4,11 @@ const vm = require("vm");
 const { Buffer } = require("buffer"); 
 const fetch = require('node-fetch'); // Requires npm install node-fetch
 
+// -------- VOICE CONFIGURATION --------
+const VOICE_SIGHT_WORDS = "Adam"; 
+const VOICE_ANIMAL_FACTS = "Frederick"; 
+const MODEL_ID = "eleven_monolingual_v1"; // Stable model for consistent results
+
 // -------- CLI ARGS --------
 function arg(key, def = null) {
   const hit = process.argv.find(a => a.startsWith(`--${key}=`));
@@ -13,8 +18,6 @@ function arg(key, def = null) {
 const DB_PATH   = arg("db", "docs/index.html");
 const OUT_ROOT  = arg("out", "./docs/assets");
 const RATE_MS   = parseInt(arg("rate", "1000"), 10) || 1000;
-const VOICE_ID  = arg("voice", "Rachel"); // Eleven Labs default voice
-const MODEL_ID  = arg("model", "eleven_monolingual_v1"); // Default model
 
 const TTS_DIR   = path.join(OUT_ROOT, "tts");
 fs.mkdirSync(TTS_DIR, { recursive: true });
@@ -48,7 +51,6 @@ function readDatabases(dataPath) {
       } 
   };
   vm.createContext(sandbox);
-  // Execute the data file content, defining window. variables in the sandbox
   vm.runInContext(jsContent, sandbox);
 
   const animals = sandbox.window.ANIMAL_DATABASE;
@@ -59,37 +61,45 @@ function readDatabases(dataPath) {
 }
 
 /**
- * Gathers all unique text strings that need TTS.
+ * Gathers all unique text strings and assigns a voice based on source.
+ * Returns an array of { text: string, voice: string }
  */
-function collectAllText({ animals, sightWords, sentences }) {
-  const textSet = new Set();
+function collectAllTextWithVoice({ animals, sightWords, sentences }) {
+  const textMap = new Map();
 
-  animals.forEach(a => {
-    if (a.name) textSet.add(a.name);
-    (a.facts || []).forEach(f => {
-        if (typeof f === 'string' && f.trim().length > 0) {
-            textSet.add(f);
+  const addText = (text, voice) => {
+    if (typeof text === 'string' && text.trim().length > 0) {
+        // If a duplicate exists, keep the existing voice (prevents overriding names/facts)
+        if (!textMap.has(text)) {
+            textMap.set(text, voice);
         }
-    });
+    }
+  };
+
+  // 1. Assign Frederick to Animal Names and Facts
+  animals.forEach(a => {
+    addText(a.name, VOICE_ANIMAL_FACTS);
+    (a.facts || []).forEach(f => addText(f, VOICE_ANIMAL_FACTS));
   });
 
-  sightWords.forEach(w => textSet.add(w.word));
-  sentences.forEach(s => textSet.add(s.sentence));
+  // 2. Assign Adam to Sight Words and Sentences
+  sightWords.forEach(w => addText(w.word, VOICE_SIGHT_WORDS));
+  sentences.forEach(s => addText(s.sentence, VOICE_SIGHT_WORDS));
 
-  return Array.from(textSet);
+  return Array.from(textMap.entries()).map(([text, voice]) => ({ text, voice }));
 }
 
 
 /**
  * Synthesize text using Eleven Labs and save to a file.
  */
-async function synthesizeToFile(text, outFile) {
+async function synthesizeToFile(text, outFile, voiceId) {
   const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
   if (!ELEVENLABS_API_KEY) {
       throw new Error("ELEVENLABS_API_KEY is not set.");
   }
   
-  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${VOICE_ID}`, {
+  const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
     method: 'POST',
     headers: {
       'xi-api-key': ELEVENLABS_API_KEY,
@@ -113,7 +123,6 @@ async function synthesizeToFile(text, outFile) {
     throw new Error(`Eleven Labs API failed with status ${response.status}: ${errorText}`);
   }
 
-  // The response body is the raw MP3 audio stream
   const buffer = Buffer.from(await response.arrayBuffer());
   await fs.promises.writeFile(outFile, buffer);
 }
@@ -123,24 +132,18 @@ async function synthesizeToFile(text, outFile) {
  */
 async function main() {
   const { animals, sightWords, sentences } = readDatabases(DB_PATH);
-  const allText = collectAllText({ animals, sightWords, sentences });
+  const allTextWithVoice = collectAllTextWithVoice({ animals, sightWords, sentences });
   
-  console.log(`\nFound ${allText.length} \nunique text strings to synthesize.`);
-  console.log(`Using Eleven Labs Voice ID: ${VOICE_ID}`);
+  console.log(`\nFound ${allTextWithVoice.length} \nunique text strings to synthesize.`);
+  console.log(`Using Voices: Facts/Names=${VOICE_ANIMAL_FACTS}, Words/Sentences=${VOICE_SIGHT_WORDS}`);
 
-  // 2. Loop and generate
   let created = 0, skipped = 0, failed = 0;
-  for (const text of allText) {
+  for (const { text, voice } of allTextWithVoice) {
    
-  const slug = toSlug(text);
-    if (!slug) {
-        console.log(`⚠️  Skipping empty text.`);
-        continue;
-    }
+    const slug = toSlug(text);
+    if (!slug) continue;
 
-    // Handle very long slugs (from facts/sentences) by truncating
-    const safeSlug = slug.length > 100 ?
-    slug.substring(0, 100) : slug;
+    const safeSlug = slug.length > 100 ? slug.substring(0, 100) : slug;
     const outFile = path.join(TTS_DIR, `${safeSlug}.mp3`);
 
     if (fs.existsSync(outFile)) {
@@ -148,26 +151,24 @@ async function main() {
       continue;
     }
 
-    // Synthesize the full, original text
     try {
-      console.log(`🎙  TTS: [${text.substring(0, 60)}...]`);
-      await synthesizeToFile(text, outFile);
+      console.log(`🎙  TTS (${voice}): [${text.substring(0, 60)}...]`);
+      await synthesizeToFile(text, outFile, voice);
       created++;
       console.log(`   -> Saved ${outFile}`);
       await sleep(RATE_MS);
-      // Throttle requests
     } catch (e) {
       failed++;
       console.error(`❌ TTS fail: ${text.substring(0, 60)}... :: ${e.message || e}`);
       
-      // Handle the case where Eleven Labs might have a text length limit
+      // Attempt to handle length limit by truncation
       if (e.message && e.message.includes("Text length exceeded")) {
         const longText = text.substring(0, 200);
         console.log(`   -> Retrying with truncated text: [${longText.substring(0, 60)}...]`);
         const longSlug = toSlug(longText);
         const longOutFile = path.join(TTS_DIR, `${longSlug}.mp3`);
         try {
-          await synthesizeToFile(longText, longOutFile);
+          await synthesizeToFile(longText, longOutFile, voice);
           created++;
           console.log(`   -> Saved truncated ${longOutFile}`);
           await sleep(RATE_MS);
