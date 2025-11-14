@@ -24,7 +24,6 @@ jobs:
         with:
           node-version: "20"
 
-      # ⬇️ NEW: Install node-fetch for Eleven Labs API calls
       - name: Install TTS dependencies (node-fetch)
         run: npm install node-fetch
 
@@ -37,11 +36,14 @@ jobs:
         run: |
           node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ⬇️ FINAL: Build only the missing TTS files with Eleven Labs (Dual Voice)
-      - name: Build TTS (diff-only, Eleven Labs)
+      # ⬇️ FINAL: Build all TTS files with Eleven Labs (Dual Voice)
+      - name: Build TTS (Forced Regeneration, Eleven Labs)
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-        run: node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000
+        run: |
+          # 🚨 FORCE REGENERATION: Delete existing MP3s to ensure the new Eleven Labs voices are used.
+          rm -f docs/assets/tts/*.mp3 || true
+          node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000
 
       # Commit only if something actually changed
       - name: Commit & push if changes
