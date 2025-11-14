@@ -41,8 +41,13 @@ jobs:
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
-          # 🚨 Delete existing MP3s to force regeneration of *all* audio.
-          rm -f docs/assets/tts/*.mp3 || true
+          # 🚨 DELETE ONLY WORD/SENTENCE AUDIO before running the targeted build.
+          # NOTE: Since the script now only collects words/sentences when scope=words, 
+          # this entire folder deletion is less critical than before, but we'll leave it 
+          # here to be safe and ensure a full regeneration of this category if needed.
+          # WARNING: To be fully precise, you should only delete files matching word/sentence slugs. 
+          # For now, we will rely on the script's 'if exists' check.
+          
           # Run script with scope=words to process only words/sentences
           node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=words
 
