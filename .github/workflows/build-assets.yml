@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       UPDATE_FILES:
-        description: 'Set to true to regenerate and update ALL images and TTS files. Default is false (diff-only).'
+        description: 'Set to true to regenerate and update ALL images and TTS files (FORCED REGEN). Set to false to run diff-only on manifest (SAFEST MODE).'
         required: false
         default: 'false'
   push:
@@ -39,29 +39,25 @@ jobs:
           mkdir -p docs/assets/images docs/assets/tts
 
       # ⬇️ STEP 1: CONDITIONAL IMAGE BUILD
-      - name: Build Images Manifest (Conditional Regeneration)
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.UPDATE_FILES == 'true'
-        run: |
-          # If UPDATE_FILES is true, run with --overwrite to force image download.
-          # Otherwise, run normally (diff-only, using local files if present).
-          node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
+      - name: Build Images Manifest (Safest Mode)
+        # This runs every time to keep manifest accurate but won't delete files.
+        run: node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ⬇️ STEP 2: CONDITIONAL TTS BUILD
-      - name: Build TTS (Conditional Regeneration, Eleven Labs)
-        if: github.event_name != 'workflow_dispatch' || github.event.inputs.UPDATE_FILES == 'true'
+      # ⬇️ STEP 2: CONDITIONAL TTS BUILD (Triggered ONLY by UPDATE_FILES: true)
+      - name: Build TTS (FORCED REGEN for ALL Missing Files)
+        if: github.event_name == 'workflow_dispatch' && github.event.inputs.UPDATE_FILES == 'true'
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
-          # 🚨 Delete all MP3s ONLY if UPDATING FILES is explicitly requested.
-          # This forces regeneration and prevents using old AWS audio.
+          echo "WARNING: UPDATE_FILES is TRUE. Deleting all MP3s to force full regeneration of new voices."
+          # 🚨 The only way to guarantee the new voice/model is used is to delete the old MP3s.
           rm -f docs/assets/tts/*.mp3 || true
           
-          # We use scope=facts here to generate all the missing Animal Facts audio.
-          node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=facts
+          # Run script with scope=all to process all 1413 strings.
+          node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=all
 
-      # Commit only if something actually changed
+      # ⬇️ STEP 3: COMMIT PUSH LOGIC (Always commits manifest changes)
       - name: Commit & push if changes
-        if: always() # Always run this step even if previous steps failed (to check for manifest changes)
         shell: bash
         run: |
           # Configure bot user
