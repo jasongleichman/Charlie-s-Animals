@@ -477,7 +477,7 @@ const RewardsModal = ({ profile, onClose }) => {
                         
                         // FIX: Normalize URL to the proper embed path
                         const embedUrl = video.url 
-                            ? video.url.replace(/((?:youtu\.be\/|watch\?v=))([^&?]+)/, 'https://www.youtube.com/embed/$2')
+                            ? video.url.replace(/(?:youtu\.be\/|watch\?v=)([^&?]+)/, 'https://www.youtube.com/embed/$1')
                             : '';
                        
                         return (
@@ -654,7 +654,7 @@ const AnimalDetailsScreen = ({ animal, profile, navigateTo, speak, isSpeaking, g
                         Back to Collection
                     </button>
                 </div>
-            </MainContainer>
+            </div>
         </MainContainer>
     );
 };
@@ -1083,10 +1083,12 @@ const AnimalReadingApp = () => {
         
         if (!currentItem) { return <LoadingScreen />; }
         
-        // FIX: The audio to play should use the slug of the 'correct' word, 
-        // but the spoken text is the entire 'word' property for TTS generation.
-        const audioSlugSource = gameMode === 'words' ? currentItem.correct : (currentItem.word || currentItem.sentence);
-        const displayMainText = currentItem.word || currentItem.sentence;
+        // FIX 1: Frontend display is the single correct word (as requested by the user).
+        const displayMainText = gameMode === 'words' ? currentItem.correct : (currentItem.word || currentItem.sentence);
+        
+        // FIX 2: Audio slug source remains the full sentence (e.g., "The word is, the")
+        // The script generates the audio file slug based on `currentItem.word` for 'words' mode.
+        const audioSlugSource = gameMode === 'words' ? currentItem.word : (currentItem.word || currentItem.sentence);
        
         if (showRewardModal || showVideoModal) {
             const animal = animalData;
@@ -1133,7 +1135,7 @@ const AnimalReadingApp = () => {
                                 
                                 {/* Green Fact Box moved below "New Fact" text. Now explicitly relies on click. */}
                                 <button
-                                    onClick={() => speak(animal.facts[animal.earnedFactIndex - 1])}
+                                    onClick={() => speak(audioSlugSource)}
                                     disabled={isSpeaking}
                                     className="w-full bg-emerald-50 text-emerald-700 font-semibold py-3 px-6 rounded-xl flex items-center justify-center gap-3 transition-colors shadow-md hover:bg-emerald-100"
                                 >
@@ -1179,8 +1181,7 @@ const AnimalReadingApp = () => {
                         <div className="text-center mb-8">
                             <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
                                 <Image className="w-12 h-12 text-gray-400 mb-2" />
-                                <span className="text-xl font-semibold text-gray-700">MYSTERY ANIMAL</span>
-                                <p className="text-sm text-gray-500">Get it right to reveal the fact!</p>
+                                <span className="text-xl font-semibold text-gray-700">{displayMainText}</span>
                             </div>
                             <button
                                 onClick={() => speak(audioSlugSource)}
@@ -1224,6 +1225,8 @@ const AnimalReadingApp = () => {
                         </div>
                     </div>
                 </div>
+                {showStatsModal && <StatsModal profile={profile} onClose={() => setShowStatsModal(false)} />}
+                {showRewardsModal && <RewardsModal profile={profile} onClose={() => setShowRewardsModal(false)} />}
             </MainContainer>
         );
     };
