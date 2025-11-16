@@ -1819,7 +1819,7 @@ window.sightWordsData = [
     { word: 'The word is, been', options: ['been', 'bend', 'bind'], correct: 'been' }, 
     { word: 'The word is, called', options: ['called', 'cold', 'can'], correct: 'called' },
     { word: 'The word is, who', options: ['who', 'how', 'when'], correct: 'who' },
-    { word: 'The word is, soil', options: ['oil', 'old', 'boil'], correct: 'soil' },
+    { word: 'The word is, soil', options: ['soil', 'old', 'boil'], correct: 'soil' },
     { word: 'The word is, sit', options: ['sit', 'sat', 'six'], correct: 'sit' },
     { word: 'The word is, now', options: ['now', 'how', 'no'], correct: 'now' },
     { word: 'The word is, find', options: ['find', 'fine', 'kind'], correct: 'find' },
