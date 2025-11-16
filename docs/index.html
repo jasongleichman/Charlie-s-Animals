@@ -982,7 +982,8 @@ const AnimalReadingApp = () => {
                 generateRewardAnimal(false, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
             }
         } else {
-            window.__speakLocal('Game Over!');
+            // FIX: Use 'Game Over' slug for audio file lookup
+            speak('Game Over');
             setTimeout(() => { logScoreAndEndGame(score, gameMode); }, 1000);
         }
     };
@@ -1083,11 +1084,10 @@ const AnimalReadingApp = () => {
         
         if (!currentItem) { return <LoadingScreen />; }
         
-        // FIX 1: Frontend display is the single correct word (as requested by the user).
+        // FIX 1: Display ONLY the single word (e.g., 'the', 'a', 'people')
         const displayMainText = gameMode === 'words' ? currentItem.correct : (currentItem.word || currentItem.sentence);
         
-        // FIX 2: Audio slug source remains the full sentence (e.g., "The word is, the")
-        // The script generates the audio file slug based on `currentItem.word` for 'words' mode.
+        // FIX 2: Audio spoken is the full sentence (e.g., "The word is, the"), which matches the TTS file generation logic
         const audioSlugSource = gameMode === 'words' ? currentItem.word : (currentItem.word || currentItem.sentence);
        
         if (showRewardModal || showVideoModal) {
