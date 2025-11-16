@@ -39,15 +39,11 @@ jobs:
         run: |
           node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ⬇️ Build only Sight Words and Sentences (Adam voice)
+      # ⬇️ FINAL: Build only Sight Words and Sentences (Differential Update)
       - name: Build TTS (Words/Sentences Only, Eleven Labs)
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
-        run: |
-          # 🚨 Delete existing MP3s to force regeneration of *all* audio.
-          rm -f docs/assets/tts/*.mp3 || true
-          # Run script with scope=words to process only words/sentences
-          node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=words
+        run: node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=words
 
       # Commit only if something actually changed
       - name: Commit & push if changes
@@ -57,16 +53,18 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Only stage the TTS files (since that's what was generated)
-          git add docs/assets/tts/*.mp3 2>/dev/null || true 
+          # Stage all generated assets (images and newly created TTS)
+          git add docs/assets/tts/*.mp3 || true 
+          git add docs/assets/images/*.webp || true
+          git add docs/assets/manifest.json docs/images_map.json || true
           
           if git diff --cached --quiet; then
             echo "No staged changes to commit."
             exit 0
           fi
           
-          git commit -m "chore(tts): update sight words and sentences via Eleven Labs"
+          git commit -m "chore(assets): automated build and manifest update"
           
-          # FIX: Pull remote changes and rebase local commit on top, then push
+          # Pull remote changes and rebase local commit on top, then push
           git pull --rebase || true
           git push
