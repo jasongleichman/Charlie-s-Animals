@@ -18,6 +18,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Ensure the checkout action has the token necessary for pull/push
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -36,18 +39,13 @@ jobs:
         run: |
           node scripts/build_images_from_wikimedia.mjs --db=docs/index.html --out=./docs/assets
 
-      # ⬇️ FINAL: Build only Sight Words and Sentences (Adam voice)
+      # ⬇️ Build only Sight Words and Sentences (Adam voice)
       - name: Build TTS (Words/Sentences Only, Eleven Labs)
         env:
           ELEVENLABS_API_KEY: ${{ secrets.ELEVENLABS_API_KEY }}
         run: |
-          # 🚨 DELETE ONLY WORD/SENTENCE AUDIO before running the targeted build.
-          # NOTE: Since the script now only collects words/sentences when scope=words, 
-          # this entire folder deletion is less critical than before, but we'll leave it 
-          # here to be safe and ensure a full regeneration of this category if needed.
-          # WARNING: To be fully precise, you should only delete files matching word/sentence slugs. 
-          # For now, we will rely on the script's 'if exists' check.
-          
+          # 🚨 Delete existing MP3s to force regeneration of *all* audio.
+          rm -f docs/assets/tts/*.mp3 || true
           # Run script with scope=words to process only words/sentences
           node scripts/build_tts_elevenlabs.cjs --db=docs/index.html --out=./docs/assets --rate=1000 --scope=words
 
@@ -55,13 +53,20 @@ jobs:
       - name: Commit & push if changes
         shell: bash
         run: |
-          # Use 'git add -A' to ensure ALL modified/new/deleted files are staged
-          git add -A 2>/dev/null || true 
+          # Configure bot user
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Only stage the TTS files (since that's what was generated)
+          git add docs/assets/tts/*.mp3 2>/dev/null || true 
+          
           if git diff --cached --quiet; then
             echo "No staged changes to commit."
             exit 0
           fi
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(assets): automated build and manifest update"
+          
+          git commit -m "chore(tts): update sight words and sentences via Eleven Labs"
+          
+          # FIX: Pull remote changes and rebase local commit on top, then push
+          git pull --rebase || true
           git push
