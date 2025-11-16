@@ -6,9 +6,8 @@ const nodeFetch = require('node-fetch');
 const fetch = nodeFetch.default || nodeFetch; 
 
 // -------- VOICE CONFIGURATION (Using specific Voice IDs) --------
-const VOICE_SIGHT_WORDS_ID = "8SKmtcPfPSqEllqMebBk"; // Misti
+const VOICE_SIGHT_WORDS_ID = "QIhD5ivPGEoYZQDocuHI"; // Adam - Engineering Professor
 const VOICE_ANIMAL_FACTS_ID = "j9jfwdrw7BRfcR43Qohk"; // Frederick Surrey
-// FINAL MODEL FIX: Use the recommended stable model
 const MODEL_ID = "eleven_multilingual_v2"; 
 
 // -------- CLI ARGS --------
@@ -68,10 +67,13 @@ function readDatabases(dataPath) {
 function collectAllTextWithVoice({ animals, sightWords, sentences }) {
   const textMap = new Map();
 
-  const addText = (text, voiceId) => {
+  // Helper function to deduplicate based on the slug source (w.correct)
+  const addText = (text, slug_source, voiceId) => {
+    // FIX: Use the slug as the unique key in the map
+    const key = toSlug(slug_source);
     if (typeof text === 'string' && text.trim().length > 0) {
-        if (!textMap.has(text)) {
-            textMap.set(text, voiceId);
+        if (!textMap.has(key)) {
+            textMap.set(key, { text, slug_source: slug_source, voiceId });
         }
     }
   };
@@ -79,18 +81,21 @@ function collectAllTextWithVoice({ animals, sightWords, sentences }) {
   if (SCOPE_MODE === 'facts' || SCOPE_MODE === 'all') {
     // 1. Assign Frederick (ANIMAL_VOICE_ID) to Animal Names and Facts
     animals.forEach(a => {
-      addText(a.name, VOICE_ANIMAL_FACTS_ID);
-      (a.facts || []).forEach(f => addText(f, VOICE_ANIMAL_FACTS_ID));
+      addText(a.name, a.name, VOICE_ANIMAL_FACTS_ID);
+      (a.facts || []).forEach(f => addText(f, f, VOICE_ANIMAL_FACTS_ID));
     });
   }
 
   if (SCOPE_MODE === 'words' || SCOPE_MODE === 'all') {
     // 2. Assign Adam (SIGHT_WORD_VOICE_ID) to Sight Words and Sentences
-    sightWords.forEach(w => addText(w.word, VOICE_SIGHT_WORDS_ID));
-    sentences.forEach(s => addText(s.sentence, VOICE_SIGHT_WORDS_ID));
+    // Sight Words: Speak w.word (e.g., "The word is, a"), but slug by w.correct (e.g., "a")
+    sightWords.forEach(w => addText(w.word, w.correct, VOICE_SIGHT_WORDS_ID));
+    
+    // Sentences: Text and slug_source are the same (the full sentence)
+    sentences.forEach(s => addText(s.sentence, s.sentence, VOICE_SIGHT_WORDS_ID));
   }
   
-  return Array.from(textMap.entries()).map(([text, voiceId]) => ({ text, voiceId }));
+  return Array.from(textMap.values());
 }
 
 
@@ -142,9 +147,11 @@ async function main() {
   console.log(`Voice Map: Facts/Names=${VOICE_ANIMAL_FACTS_ID}, Words/Sentences=${VOICE_SIGHT_WORDS_ID}`);
 
   let created = 0, skipped = 0, failed = 0;
-  for (const { text, voiceId } of allTextWithVoice) {
+  // FIX: Destructure the new properties { text, slug_source, voiceId }
+  for (const { text, slug_source, voiceId } of allTextWithVoice) {
    
-    const slug = toSlug(text);
+    // FIX: Generate slug from the desired slug_source (i.e., 'a' for sight words)
+    const slug = toSlug(slug_source); 
     if (!slug) continue;
 
     const safeSlug = slug.length > 100 ? slug.substring(0, 100) : slug;
@@ -156,7 +163,7 @@ async function main() {
     }
 
     try {
-      console.log(`🎙  TTS (ID: ${voiceId.substring(0, 4)}...): [${text.substring(0, 60)}...]`);
+      console.log(`🎙  TTS (ID: ${voiceId.substring(0, 4)}..., File: ${safeSlug}): [${text.substring(0, 60)}...]`);
       await synthesizeToFile(text, outFile, voiceId);
       created++;
       console.log(`   -> Saved ${outFile}`);
