@@ -929,7 +929,8 @@ const AnimalReadingApp = () => {
         isSpeaking, isLoading, apiError, setApiError,
         saveUserProfile, handleSignOut, speak,
         generateRewardAnimal, getAnimalDataForModal,
-        loadUserProfile
+        loadUserProfile,
+        useSpeechRecognition // Import the new hook function
     } = useAppState();
     // --- Local Game State ---
     const [appView, setAppView] = useState('loading');
@@ -1010,18 +1011,18 @@ const AnimalReadingApp = () => {
             options.sort(() => Math.random() - 0.5);
             return { ...item, options: options };
         };
-        if (mode === 'words') {
+        if (mode === 'words' || mode === 'speech') {
             setShuffledWords(window.sightWordsData.map(shuffleOptions).sort(() => Math.random() - 0.5));
         } else {
             setShuffledSentences(window.sentencesData.map(shuffleOptions).sort(() => Math.random() - 0.5));
         }
-        navigateTo('game', true);
+        navigateTo(mode === 'speech' ? 'speech' : 'game', true);
     };
    
     const resumeGame = () => {
         if (!pausedGame) return;
         setGameMode(pausedGame.mode); setCurrentIndex(pausedGame.index); setScore(pausedGame.score); setPausedGame(null);
-        navigateTo('game', true);
+        navigateTo(pausedGame.mode === 'speech' ? 'speech' : 'game', true);
     };
    
     const pauseGame = () => {
@@ -1085,7 +1086,7 @@ const AnimalReadingApp = () => {
         if (score > (profile.highScore || 0)) { newProfile.highScore = score; }
         setProfile(newProfile);
         saveUserProfile(newProfile);
-        const currentList = gameMode === 'words' ? shuffledWords : shuffledSentences;
+        const currentList = gameMode === 'words' || gameMode === 'speech' ? shuffledWords : shuffledSentences;
         if (currentIndex < currentList.length - 1) {
             setCurrentIndex(currentIndex + 1);
         } else {
@@ -1156,11 +1157,17 @@ const AnimalReadingApp = () => {
                     </button>
                     {/* NEW BUTTON FOR SPEECH MODE */}
                     <button
-                        onClick={() => startNewGame('speech')}
+                        onClick={() => pausedGame && pausedGame.mode === 'speech' ? resumeGame() : startNewGame('speech')}
                         className="bg-emerald-500 text-white p-10 rounded-2xl flex flex-col items-center justify-center gap-4 transition-all transform hover:scale-[1.02] shadow-xl shadow-emerald-500/30"
                     >
                         <Volume2 className="w-12 h-12" /> <span className="text-2xl font-bold">3. Read Word Challenge</span>
-                        <span className="text-sm opacity-90">Speak the word you see (Mic required)</span>
+                        {pausedGame && pausedGame.mode === 'speech' ? (
+                            <span className="text-sm opacity-90 bg-emerald-700 px-3 py-1 rounded-full flex items-center gap-2">
+                                <Play className="w-4 h-4" /> RESUME GAME ({pausedGame.score} pts)
+                            </span>
+                        ) : (
+                            <span className="text-sm opacity-90">Speak the word you see (Mic required)</span>
+                        )}
                     </button>
                 </div>
             </div>
@@ -1271,8 +1278,8 @@ const AnimalReadingApp = () => {
                     <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl">
                         <div className="text-center mb-8">
                             <div className="h-48 bg-gray-100 border-2 border-emerald-100 rounded-xl flex flex-col items-center justify-center shadow-inner mb-6">
-                                <Image className="w-12 h-12 text-gray-400 mb-2" />
-                                <span className="text-xl font-semibold text-gray-700">{displayMainText}</span>
+                                <Lock className="w-12 h-12 text-gray-400 mb-2" />
+                                <span className="text-xl font-semibold text-gray-700">Listen for the correct word!</span>
                             </div>
                             <button
                                 onClick={() => speak(audioSlugSource)}
@@ -1327,15 +1334,8 @@ const AnimalReadingApp = () => {
         const currentContent = shuffledWords;
         const currentItem = currentContent[currentIndex];
         
-        const { transcript, isListening, isFinal, startListening, stopListening, setTranscript, setIsFinal } = useAppState().useSpeechRecognition();
+        const { transcript, isListening, isFinal, startListening, stopListening, setTranscript, setIsFinal } = useAppState().useSpeechRecognition(currentItem.correct);
 
-        // Check answer immediately after receiving a final, non-empty transcript
-        useEffect(() => {
-            if (isFinal && transcript && !selectedAnswer) {
-                handleSpeechAnswer(transcript);
-            }
-        }, [isFinal, transcript, selectedAnswer, handleSpeechAnswer]);
-        
         // Handler to compare spoken word against the correct word
         const handleSpeechAnswer = useCallback((spokenText) => {
             if (selectedAnswer) return;
@@ -1373,6 +1373,13 @@ const AnimalReadingApp = () => {
                 setTimeout(() => { logScoreAndEndGame(score, gameMode); }, 1000);
             }
         }, [currentItem, score, gameMode, selectedAnswer, profile, setProfile, saveUserProfile, generateRewardAnimal, logScoreAndEndGame, moveToNextQuestion]);
+        
+        // Check answer immediately after receiving a final, non-empty transcript
+        useEffect(() => {
+            if (isFinal && transcript && !selectedAnswer) {
+                handleSpeechAnswer(transcript);
+            }
+        }, [isFinal, transcript, selectedAnswer, handleSpeechAnswer]);
 
 
         // Determine button state and text
