@@ -232,134 +232,109 @@ const slugify = (s) => (s || "")
     const ChevronLeft = (p) => <LucideIcon name="chevron-left" {...p} />;
 // --- CUSTOM HOOK: useAppState (LOCAL ONLY) ---
 const useAppState = () => {
-    // NEW HOOK: Promise-Based Speech Recognition for stability
+    // NEW HOOK: Stable MediaRecorder API for capture, with Mocked Recognition result
     const useSpeechRecognition = () => {
         const [transcript, setTranscript] = useState('');
         const [isListening, setIsListening] = useState(false);
         const [isFinal, setIsFinal] = useState(false);
-        const recognitionRef = useRef(null);
+        const mediaRecorderRef = useRef(null);
         const isMounted = useRef(true); 
 
-        // Function to abort any running recognition instance
-        const abortRecognition = useCallback(() => {
-            if (recognitionRef.current) {
-                try {
-                    recognitionRef.current.abort();
-                } catch (e) {
-                    console.warn("Error aborting recognition:", e);
-                }
-                recognitionRef.current = null;
+        // Function to safely stop MediaRecorder
+        const stopRecording = useCallback(() => {
+            if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+                mediaRecorderRef.current.stop();
+            }
+            if (isMounted.current) {
+                setIsListening(false);
             }
         }, []);
 
         // Start listening wrapped in a Promise to control the flow
         const startListening = useCallback(() => {
-            if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
-                alert("Speech recognition is not supported in this browser. Please use Chrome or Edge.");
+            if (!navigator.mediaDevices || !window.MediaRecorder) {
+                alert("Microphone recording is not supported in this browser.");
                 return Promise.resolve({ transcript: '', error: 'Unsupported' });
             }
            
-            // Clean up any stray instance before starting
-            abortRecognition();
+            stopRecording(); // Ensure any previous instance is stopped
            
-            return new Promise(resolve => {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                const recognition = new SpeechRecognition();
-                recognitionRef.current = recognition;
+            return new Promise(async resolve => {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorderRef.current = mediaRecorder;
+                    let audioChunks = [];
+                    
+                    mediaRecorder.ondataavailable = event => {
+                        audioChunks.push(event.data);
+                    };
 
-                recognition.continuous = false;
-                recognition.interimResults = true;
-                recognition.lang = 'en-US';
-                
-                let finalTranscript = '';
-                
-                const handleFinalResult = (error = null) => {
-                    // Cleanup internal references
-                    if (recognitionRef.current) {
-                        recognitionRef.current = null;
-                    }
+                    mediaRecorder.onstart = () => {
+                        if (isMounted.current) {
+                            setIsListening(true);
+                            setTranscript('... recording audio (READY FOR CLOUD)'); 
+                            setIsFinal(false);
+                        }
+                    };
+                    
+                    mediaRecorder.onstop = async () => {
+                        if (isMounted.current) {
+                            setIsListening(false);
+                        }
+                        
+                        // 1. Create audio Blob (to be sent to cloud)
+                        const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+                        
+                        // Stop tracks/stream
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        // --- MOCK API CALL START ---
+                        // In a real application, you would send audioBlob to a Firebase Cloud Function here.
+                        // const transcription = await fetch(YOUR_CLOUD_FUNCTION_ENDPOINT, { method: 'POST', body: audioBlob });
+                        
+                        // MOCK RESOLUTION (SUCCESS): Simulate a perfect transcription of 'correct'
+                        setTimeout(() => {
+                            if (isMounted.current) {
+                                setIsFinal(true);
+                                // The mock logic relies on the component to check the word
+                                resolve({ transcript: 'correct', error: null }); 
+                            }
+                        }, 1000); // Simulate network latency/processing time
 
+                        // --- MOCK API CALL END ---
+                    };
+
+                    mediaRecorder.onerror = event => {
+                        stream.getTracks().forEach(track => track.stop());
+                        if (isMounted.current) {
+                            setIsListening(false);
+                        }
+                        resolve({ transcript: '', error: event.error ? event.error.name : 'Unknown recording error' });
+                    };
+
+                    // Start recording for a fixed duration (e.g., 3 seconds)
+                    mediaRecorder.start();
+                    setTimeout(() => {
+                        if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+                            mediaRecorderRef.current.stop();
+                        }
+                    }, 3000); // Record for 3 seconds max
+
+                } catch (e) {
+                    console.error('Microphone access denied or failed:', e);
                     if (isMounted.current) {
                         setIsListening(false);
-                        // Resolve the Promise, providing the result or an error
-                        resolve({ transcript: finalTranscript, error });
                     }
-                };
-
-                recognition.onstart = () => {
-                    if (isMounted.current) {
-                        setIsListening(true);
-                        setTranscript('');
-                        setIsFinal(false);
-                        finalTranscript = '';
-                    }
-                };
-                
-                recognition.onresult = (event) => {
-                    let interimTranscript = '';
-                    for (let i = event.resultIndex; i < event.results.length; ++i) {
-                        const segment = event.results[i][0].transcript;
-                        if (event.results[i].isFinal) {
-                            finalTranscript += segment;
-                        } else {
-                            interimTranscript += segment;
-                        }
-                    }
-
-                    if (isMounted.current) {
-                        setTranscript(finalTranscript || interimTranscript);
-                        if (finalTranscript) {
-                            setIsFinal(true);
-                            recognition.stop(); // Stop recognition once final result is found
-                        }
-                    }
-                };
-
-                recognition.onerror = (event) => {
-                    console.error('Speech recognition error', event.error);
-                    handleFinalResult(event.error);
-                };
-                
-                recognition.onend = () => {
-                    if (!finalTranscript) {
-                        // If onend fires without a final transcript (e.g., timeout/no speech), resolve with current transcript.
-                        handleFinalResult(finalTranscript ? null : 'No speech detected');
-                    } else {
-                        handleFinalResult();
-                    }
-                };
-
-                // Add a robust timeout to stop if onend/onerror doesn't fire (browser specific issue)
-                const timeoutId = setTimeout(() => {
-                    if (recognitionRef.current) {
-                        recognitionRef.current.stop();
-                    }
-                }, 5500); // 5.5 second hard stop limit
-
-                // Cleanup timeout on resolution
-                recognition.onend = () => {
-                    clearTimeout(timeoutId);
-                    if (!finalTranscript) {
-                        handleFinalResult(finalTranscript ? null : 'No speech detected');
-                    } else {
-                        handleFinalResult();
-                    }
-                };
-                recognition.onerror = (event) => {
-                    clearTimeout(timeoutId);
-                    console.error('Speech recognition error', event.error);
-                    handleFinalResult(event.error);
-                };
-
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.error('Failed to start recognition', e);
-                    clearTimeout(timeoutId);
-                    handleFinalResult('Start failed');
+                    resolve({ transcript: '', error: 'Microphone access denied' });
                 }
             });
-        }, [abortRecognition]);
+        }, [stopRecording]);
+       
+        // We keep abort for component unmount safety
+        const abortRecognition = useCallback(() => {
+            stopRecording();
+        }, [stopRecording]);
        
         // CLEANUP EFFECT: Abort recognition on unmount to prevent errors
         useEffect(() => {
@@ -369,7 +344,6 @@ const useAppState = () => {
             };
         }, [abortRecognition]);
 
-        // We return the raw functions/states. startListening returns a Promise that must be awaited.
         return { transcript, isListening, isFinal, startListening, abortRecognition, setTranscript, setIsFinal };
     };
    
@@ -407,7 +381,8 @@ const useAppState = () => {
         }
       
         setIsSpeaking(true);
-        const slug = (text || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+        const slug = (text || "").toLowerCase().replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
         if (!slug) {
             setIsSpeaking(false);
             return;
@@ -1370,39 +1345,37 @@ const AnimalReadingApp = () => {
     // NEW COMPONENT: SPEECH GAME SCREEN
     const SpeechGameScreen = () => {
         const [isProcessing, setIsProcessing] = useState(false);
+        // Use the MediaRecorder-based hook
         const { transcript, isListening, isFinal, startListening, abortRecognition, setTranscript, setIsFinal } = useSpeechRecognition();
         
         // State management for speech recognition result
         const checkSpeech = useCallback(async () => {
-            if (isProcessing) return; // Prevent multiple simultaneous checks
+            if (isProcessing) return; 
             
-            // Step 1: Start the recognition and await the result
+            // Step 1: Start the audio capture and await the result (simulating cloud processing)
             setIsProcessing(true);
             const { transcript: spokenText, error } = await startListening();
             setIsProcessing(false);
 
             if (error) {
-                console.error("Speech API Error:", error);
-                if (spokenText && spokenText.trim().length > 0) {
-                     // If there was an error but some speech was transcribed, still process it.
-                } else {
-                    // Critical failure/no speech detected, stop here.
-                    setApiError(`Microphone Error: ${error === 'No speech detected' ? 'Please speak louder or check your mic.' : error}`);
-                    // After a critical error, just transition the game (or allow next question)
-                    // We rely on the parent component's useEffect for game flow on selectedAnswer change.
-                    return;
-                }
+                console.error("Microphone Access/Recording Error:", error);
+                setApiError(`Microphone Error: ${error === 'Microphone access denied' ? 'Access denied. Please enable your microphone.' : 'Recording failed. Try again.'}`);
+                // Since this is a critical access error, we don't proceed with game logic.
+                setSelectedAnswer('Error');
+                return;
             }
             
             // Step 2: Process the Spoken Text
+            const currentContent = shuffledWords;
+            const currentItem = currentContent[currentIndex];
             const targetWord = currentItem.correct;
-            const normalizedSpoken = spokenText.toLowerCase().trim().replace(/[^\w\s]/g, '');
-            const normalizedCorrect = targetWord.toLowerCase().trim().replace(/[^\w\s]/g, '');
-            const isCorrect = normalizedSpoken === normalizedCorrect;
+            
+            // MOCK LOGIC: The mock hook returns 'correct', so this is always TRUE.
+            const isCorrect = spokenText === 'correct';
            
             // Step 3: Update game state based on result
             // Set the final answer to trigger visual feedback
-            setSelectedAnswer(isCorrect ? targetWord : spokenText); 
+            setSelectedAnswer(targetWord); // Display the correct word
 
             if (isCorrect) {
                 const newScore = score + 10;
@@ -1421,11 +1394,11 @@ const AnimalReadingApp = () => {
                     generateRewardAnimal(false, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
                 }
             } else {
+                 // This path should ideally not be hit with the mock, but is kept for safety
                 window.__speakLocal('Try again.');
-                // Critical Delay: Wait 1 second after feedback/mic cleanup before ending the game
                 setTimeout(() => { logScoreAndEndGame(score, gameMode); }, 1000);
             }
-        }, [isProcessing, currentItem, startListening, setApiError, score, profile, setProfile, saveUserProfile, generateRewardAnimal, logScoreAndEndGame, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal]);
+        }, [isProcessing, startListening, setApiError, score, profile, setProfile, saveUserProfile, generateRewardAnimal, logScoreAndEndGame, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal, currentIndex, shuffledWords]);
 
 
         // Handle effects for modals/next question
@@ -1436,14 +1409,13 @@ const AnimalReadingApp = () => {
             }
         }, [showRewardModal, animalData, moveToNextQuestion]);
 
-        // Cleanup on unmount (provided by useSpeechRecognition hook)
        
         const currentContent = shuffledWords;
         const currentItem = currentContent[currentIndex];
         if (!currentItem) { return <LoadingScreen />; }
        
         // Determine button state and text
-        const gameEnded = selectedAnswer !== null && !isListening; // Check if an answer has been processed AND listening has stopped
+        const gameEnded = selectedAnswer !== null; 
         const canStart = !isListening && !isProcessing && !gameEnded;
         
         let buttonText = 'Tap to Speak'; 
@@ -1451,14 +1423,18 @@ const AnimalReadingApp = () => {
         let micIcon = <Volume2 className="w-6 h-6" />;
        
         if (isProcessing || isListening) {
-            buttonText = 'Listening... Speak Now!'; 
+            buttonText = 'PROCESSING... (Cloud Simulation)'; 
             buttonClass = 'bg-red-500 hover:bg-red-600 animate-pulse';
             micIcon = <Loader2 className="w-6 h-6 animate-spin" />;
-        } else if (selectedAnswer) {
-            const isCorrect = selectedAnswer === currentItem.correct;
-            buttonText = isCorrect ? 'Correct! Next Word' : 'Incorrect. Game Over'; 
-            buttonClass = isCorrect ? 'bg-emerald-500' : 'bg-red-500';
-            micIcon = isCorrect ? <CheckCircle className="w-6 h-6" /> : <XCircle className="w-6 h-6" />;
+        } else if (selectedAnswer && selectedAnswer !== 'Error') {
+            // Success based on mock
+            buttonText = 'Correct! Next Word'; 
+            buttonClass = 'bg-emerald-500';
+            micIcon = <CheckCircle className="w-6 h-6" />;
+        } else if (selectedAnswer === 'Error') {
+            buttonText = 'Microphone Error. Try Again.';
+            buttonClass = 'bg-red-500';
+            micIcon = <XCircle className="w-6 h-6" />;
         }
 
         if (showRewardModal || showVideoModal) {
@@ -1541,7 +1517,7 @@ const AnimalReadingApp = () => {
                     </div>
                     {apiError && (
                         <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md text-sm" role="alert">
-                            <p className="font-bold">Microphone/API Warning:</p> <p>{apiError}</p>
+                            <p className="font-bold">Error/Mute Warning:</p> <p>{apiError}</p>
                         </div>
                     )}
                     <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl text-center">
@@ -1550,18 +1526,10 @@ const AnimalReadingApp = () => {
                             <span className="text-5xl font-extrabold text-gray-800">{currentItem.correct}</span>
                         </div>
                         <p className="text-center text-lg font-semibold text-gray-700 mb-4">
-                            {isListening ? "Listening... Speak clearly!" : (selectedAnswer ? "" : "Tap the button and say the word above.")}
+                            {isListening ? "RECORDING: Please speak now!" : (selectedAnswer ? "" : "Tap the button and say the word above.")}
                         </p>
                         <button
-                            onClick={() => {
-                                if (canStart) {
-                                    setApiError(null); // Clear previous API error
-                                    checkSpeech(); // Start the async process
-                                } else if (isListening) {
-                                    // If manually stopped while listening, abort the current attempt
-                                    abortRecognition(); 
-                                }
-                            }}
+                            onClick={checkSpeech}
                             disabled={!canStart}
                             className={`w-full text-white text-xl font-bold py-3 px-8 rounded-xl flex items-center justify-center gap-3 mx-auto transition-all transform hover:scale-105 shadow-md shadow-emerald-500/20 disabled:opacity-50 select-none ${buttonClass}`}
                         >
@@ -1569,9 +1537,9 @@ const AnimalReadingApp = () => {
                         </button>
                        
                         <div className="mt-4 p-2 bg-gray-50 rounded-lg text-sm text-gray-700">
-                            <p className="font-semibold">You said:</p>
+                            <p className="font-semibold">Status (Transcription is Simulated):</p>
                             <p className="font-mono text-base break-words">
-                                {isListening ? transcript : (selectedAnswer || "...")}
+                                {isListening ? transcript : (selectedAnswer ? `SUCCESS: ${currentItem.correct}` : "Awaiting response...")}
                             </p>
                         </div>
                         {gameEnded && (
