@@ -239,7 +239,8 @@ const useAppState = () => {
         const [isFinal, setIsFinal] = useState(false);
         const recognitionRef = useRef(null);
         const micTimeoutRef = useRef(null);
-        const isRunningRef = useRef(false); // <--- CRITICAL FIX: Track if recognition is actively running
+        const isRunningRef = useRef(false); 
+        const isMounted = useRef(true); // <--- CRITICAL FIX: Mount flag for stability
 
         // Utility to clean up listeners and state
         const cleanup = useCallback(() => {
@@ -248,7 +249,7 @@ const useAppState = () => {
                  micTimeoutRef.current = null;
              }
              
-             // CRITICAL FIX: Only abort if the recognition object exists AND is running
+             // Only abort if the recognition object exists AND is running
              if (recognitionRef.current && isRunningRef.current) {
                  try {
                      recognitionRef.current.abort(); // Use abort for aggressive cleanup
@@ -257,9 +258,11 @@ const useAppState = () => {
                  }
              }
 
-             // Reset state variables
+             // Reset local running flag
              isRunningRef.current = false;
-             setIsListening(false);
+             if(isMounted.current) { // Only update state if component is mounted
+                 setIsListening(false);
+             }
         }, []);
         
         const startListening = useCallback(() => {
@@ -282,7 +285,9 @@ const useAppState = () => {
 
             recognition.onstart = () => {
                 isRunningRef.current = true; // Mark as running
-                setIsListening(true);
+                if(isMounted.current) {
+                    setIsListening(true);
+                }
                 
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
                 micTimeoutRef.current = setTimeout(() => {
@@ -303,9 +308,13 @@ const useAppState = () => {
                         interimTranscript += transcriptSegment;
                     }
                 }
-                setTranscript(finalTranscript || interimTranscript);
+                if(isMounted.current) {
+                    setTranscript(finalTranscript || interimTranscript);
+                }
                 if (finalTranscript) {
-                    setIsFinal(true);
+                    if(isMounted.current) {
+                        setIsFinal(true);
+                    }
                     // On final result, use stop() to trigger onend gracefully
                     if (recognitionRef.current) {
                         recognitionRef.current.stop(); 
@@ -315,19 +324,29 @@ const useAppState = () => {
 
             recognition.onerror = (event) => {
                 console.error('Speech recognition error', event.error);
-                isRunningRef.current = false; // Must mark as not running here
-                setIsListening(false);
+                isRunningRef.current = false; 
+                if (isMounted.current) {
+                    setIsListening(false);
+                }
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
             };
             
             recognition.onend = () => {
                 // If the recognition stopped normally, unset the running flag and clean up timeout
                 isRunningRef.current = false;
-                setIsListening(false);
+                if (isMounted.current) {
+                    setIsListening(false);
+                }
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
                 
                 // If it ended without a final result, and we have an interim transcript, mark it as final
-                if (transcript && !isFinal) {
+                // Note: The value of `transcript` here is the one captured at the time `startListening` was called, 
+                // which is why we rely on `onresult` to update the actual state. This onend is now stable.
+                // We rely on the `useEffect` in SpeechGameScreen to check `isFinal` state update.
+                if (isMounted.current && !isFinal) {
+                    // We can't use the state value of `transcript` inside onend safely due to closure issues here.
+                    // The subsequent useEffect will rely on `isFinal` becoming true.
+                    // This is sufficient for the component logic.
                     setIsFinal(true);
                 }
             };
@@ -337,10 +356,12 @@ const useAppState = () => {
             } catch (e) {
                 console.error('Failed to start recognition', e);
                 isRunningRef.current = false;
-                setIsListening(false);
+                if (isMounted.current) {
+                    setIsListening(false);
+                }
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
             }
-        }, [cleanup, transcript, isFinal]); 
+        }, [cleanup, isFinal]); // Reduced dependencies
        
         const stopListening = useCallback(() => {
              // Stop the recognition gracefully, which will trigger onend
@@ -349,9 +370,10 @@ const useAppState = () => {
              }
         }, []);
        
-        // CLEANUP EFFECT: Stops recognition when the component is unmounted
+        // CLEANUP EFFECT: Sets isMounted to false and aborts recognition on unmount
         useEffect(() => {
             return () => {
+                isMounted.current = false; // <--- Set mount flag to false
                 cleanup(); // This will abort the recognition when the component unmounts
             };
         }, [cleanup]);
