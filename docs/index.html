@@ -1,131 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Charlie's Animal Words</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/lucide@0.453.0/dist/umd/lucide.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>
-    html, body, #root { height: 100%; margin: 0; padding: 0; }
-  </style>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <style>
-    :root {
-      --safe-top: env(safe-area-inset-top);
-      --safe-bottom: env(safe-area-inset-bottom);
-      --safe-left: env(safe-area-inset-left);
-      --safe-right: env(safe-area-inset-right);
-    }
-    html { height: 100%; }
-    body {
-      min-height: 100vh;
-      background: #f8fafc;
-      padding-top: var(--safe-top);
-      padding-bottom: var(--safe-bottom);
-      padding-left: var(--safe-left);
-      padding-right: var(--safe-right);
-    }
- 
-    @media (orientation: landscape) {
-      html { font-size: clamp(14px, 1.9vh, 16px); }
-    }
-    @media (max-width: 834px) {
-      .text-5xl { font-size: clamp(1.6rem, 5vw, 2rem) !important; }
-      .text-4xl { font-size: clamp(1.4rem, 4.5vw, 1.8rem) !important; }
-      .text-3xl { font-size: clamp(1.2rem, 4vw, 1.6rem) !important; }
-      .p-8 { padding: clamp(0.75rem, 2.5vw, 1.25rem) !important; }
-      .p-6 { padding: clamp(0.6rem, 2vw, 1rem) !important; }
-      main { overflow: auto; }
-    }
-    @media (min-width: 1280px) {
-      .container, .mx-auto { padding-left: 1.25rem; padding-right: 1.25rem; }
-    }
-  </style>
-  <style id="ipad-welcome-55">
-    @media (orientation: landscape) and (min-width: 900px) {
-      .welcome-card, .setup-card {
-        width: 55vw !important;
-        max-width: 55vw !important;
-        margin-left: auto !important;
-        margin-right: auto !important;
-      }
-      .welcome-input.api-key,
-      input.api-key {
-        max-width: 36ch !important;
-        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
-        font-size: 0.95rem !important;
-        padding-left: 0.9rem !important;
-        padding-right: 0.9rem !important;
-      }
-    }
-    main { max-height: 100vh; overflow:auto; }
-  </style>
-</head>
-<body>
-  <script>
-    // ---- Fallback: on-device SpeechSynthesis with male English voice ----
-    (function(){
-      let __voicesReady = false, __voices = [];
-    
-      function pickEnUSMale(){
-        if (!__voices.length) return null;
-        const pref = ["Aaron","Alex","Eddy","Evan","Reed","Tom","Google US English","Microsoft David","Daniel","Matthew","Oliver"];
-        const en = __voices.filter(v => /en[-_]?US/i.test(v.lang||v.voiceURI||""));
-        for (const n of pref){ const hit=en.find(v => (v.name||v.voiceURI||"").toLowerCase().includes(n.toLowerCase())); if (hit) return hit; }
-        return en[0] || __voices[0] || null;
-      }
-    
-      async function loadVoices() {
-        return new Promise(res => {
-          const tryLoad=()=>{
-            const v = speechSynthesis.getVoices();
-            if (v && v.length){
-              __voices=v;
-              __voicesReady=true;
-              res();
-            } else {
-              setTimeout(tryLoad, 100);
-            }
-          };
-          tryLoad();
-        });
-      }
-      window.__speakLocal = window.__speakLocal || (async function(text){
-        try{
-          if (!__voicesReady) {
-            await loadVoices();
-          }
-          const u = new SpeechSynthesisUtterance(text||"");
-          const v = pickEnUSMale();
-          if (v) {
-            u.voice = v;
-            u.lang = v.lang;
-          } else {
-            u.lang = "en-US";
-          }
-          u.rate=0.92; u.pitch=1.0; u.volume=1.0;
-          return new Promise(r=>{ u.onend=r; speechSynthesis.speak(u); });
-        } catch(e){ console.warn("WebSpeech error", e); }
-      });
-      try {
-        speechSynthesis.getVoices();
-        setTimeout(()=>speechSynthesis.getVoices(), 500);
-      } catch(_){}
-    })();
-  </script>
-  <div id="root"></div>
-  <script src="./assets/app-data.js"></script>
-  <script>
-    window.appInstance = {};
-    window.firebase = {};
-  </script>
 <script type="text/babel">
 // --- CORE UTILS ---
 const AW_AVATAR_EMOJI = ["🦊","🦁","🐯","🐻","🐼","🐨","🐵","🦝","🦓","🦒","🦘","🦭","🦥","🦔","🦅","🦉","🦩","🦚"];
@@ -240,7 +112,7 @@ const useAppState = () => {
         const recognitionRef = useRef(null);
         const micTimeoutRef = useRef(null);
         const isRunningRef = useRef(false); 
-        const isMounted = useRef(true); // <--- CRITICAL FIX: Mount flag for stability
+        const isMounted = useRef(true); // Mount flag for stability
 
         // Utility to clean up listeners and state
         const cleanup = useCallback(() => {
@@ -340,13 +212,7 @@ const useAppState = () => {
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
                 
                 // If it ended without a final result, and we have an interim transcript, mark it as final
-                // Note: The value of `transcript` here is the one captured at the time `startListening` was called, 
-                // which is why we rely on `onresult` to update the actual state. This onend is now stable.
-                // We rely on the `useEffect` in SpeechGameScreen to check `isFinal` state update.
                 if (isMounted.current && !isFinal) {
-                    // We can't use the state value of `transcript` inside onend safely due to closure issues here.
-                    // The subsequent useEffect will rely on `isFinal` becoming true.
-                    // This is sufficient for the component logic.
                     setIsFinal(true);
                 }
             };
@@ -361,7 +227,7 @@ const useAppState = () => {
                 }
                 if (micTimeoutRef.current) clearTimeout(micTimeoutRef.current);
             }
-        }, [cleanup, isFinal]); // Reduced dependencies
+        }, [cleanup, isFinal]); 
        
         const stopListening = useCallback(() => {
              // Stop the recognition gracefully, which will trigger onend
@@ -373,7 +239,7 @@ const useAppState = () => {
         // CLEANUP EFFECT: Sets isMounted to false and aborts recognition on unmount
         useEffect(() => {
             return () => {
-                isMounted.current = false; // <--- Set mount flag to false
+                isMounted.current = false; // Set mount flag to false
                 cleanup(); // This will abort the recognition when the component unmounts
             };
         }, [cleanup]);
@@ -1419,6 +1285,7 @@ const AnimalReadingApp = () => {
                     generateRewardAnimal(false, appView, setAppView, setAnimalData, setShowRewardModal, setShowVideoModal);
                 }
             } else {
+                // *** CRITICAL CHANGE: Delay unmount by 1000ms after incorrect answer
                 window.__speakLocal('Try again.');
                 setTimeout(() => { logScoreAndEndGame(score, gameMode); }, 1000);
             }
